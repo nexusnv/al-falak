@@ -194,6 +194,27 @@ yallop_zone(q: float) -> str
 Yallop visibility zone (`"A"`–`"F"`) for a q value. Non-real or
 non-finite inputs raise `ValidationError`.
 
+## odeh_v
+
+```python
+odeh_v(arcv_topo_deg: float, width_arcmin: float) -> float
+```
+
+Odeh V from airless topocentric ARCV (degrees) and topocentric
+crescent width (arcminutes). Non-real or non-finite inputs raise
+`ValidationError`.
+
+## odeh_class
+
+```python
+odeh_class(v: float, arcl_deg: float) -> str
+```
+
+Odeh visibility class (`"A"`–`"D"`) for a V value and elongation
+ARCL (degrees). Elongation below 6.4 degrees (Danjon floor) is class
+`"D"` regardless of V. Non-real or non-finite inputs raise
+`ValidationError`.
+
 ## CalculationParameters
 
 ```python

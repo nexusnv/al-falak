@@ -9,6 +9,7 @@ from alfalak.astronomy.CrescentGeometry import (
 )
 from alfalak.astronomy.DeltaT import delta_t
 from alfalak.astronomy.LunarCoordinates import LunarCoordinates
+from alfalak.astronomy.Odeh import odeh_class, odeh_v
 from alfalak.astronomy.Yallop import yallop_q, yallop_zone
 from alfalak.exceptions import (
     AlFalakError,
@@ -52,6 +53,8 @@ def test_root_exports_match_all():
         "delta_t",
         "yallop_q",
         "yallop_zone",
+        "odeh_v",
+        "odeh_class",
     ]
     assert {
         "AlFalakError": AlFalakError,
@@ -75,6 +78,8 @@ def test_root_exports_match_all():
         "delta_t": delta_t,
         "yallop_q": yallop_q,
         "yallop_zone": yallop_zone,
+        "odeh_v": odeh_v,
+        "odeh_class": odeh_class,
     } == {name: getattr(alfalak, name) for name in alfalak.__all__}
     assert alfalak.PrayerTimes is RootPrayerTimes
 

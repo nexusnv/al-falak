@@ -7,6 +7,7 @@ from alfalak.astronomy.CrescentGeometry import (
 )
 from alfalak.astronomy.DeltaT import delta_t
 from alfalak.astronomy.LunarCoordinates import LunarCoordinates
+from alfalak.astronomy.Odeh import odeh_class, odeh_v
 from alfalak.astronomy.Yallop import yallop_q, yallop_zone
 from alfalak.calculation.CalculationMethod import CalculationMethod
 from alfalak.calculation.CalculationParameters import CalculationParameters
@@ -45,4 +46,6 @@ __all__ = [
     "delta_t",
     "yallop_q",
     "yallop_zone",
+    "odeh_v",
+    "odeh_class",
 ]
