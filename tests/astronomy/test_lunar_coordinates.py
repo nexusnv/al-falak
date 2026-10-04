@@ -1,5 +1,8 @@
+import math
+
 import pytest
 from alfalak.astronomy.LunarCoordinates import LunarCoordinates
+from alfalak.exceptions import ValidationError
 
 
 def test_meeus_example_47a():
@@ -14,3 +17,9 @@ def test_ra_dec_in_range():
     moon = LunarCoordinates(2448724.5)
     assert 0.0 <= moon.right_ascension < 360.0
     assert -90.0 <= moon.declination <= 90.0
+
+
+def test_non_finite_julian_day_rejected():
+    for bad in (math.inf, math.nan):
+        with pytest.raises(ValidationError, match="(?i)finite"):
+            LunarCoordinates(bad)

@@ -7,6 +7,7 @@ from alfalak.astronomy.CrescentGeometry import (
 )
 from alfalak.astronomy.DeltaT import delta_t
 from alfalak.astronomy.LunarCoordinates import LunarCoordinates
+from alfalak.astronomy.Mabims import is_mabims_1992, is_neo_mabims_2021
 from alfalak.astronomy.Odeh import odeh_class, odeh_v
 from alfalak.astronomy.Yallop import yallop_q, yallop_zone
 from alfalak.calculation.CalculationMethod import CalculationMethod
@@ -48,4 +49,6 @@ __all__ = [
     "yallop_zone",
     "odeh_v",
     "odeh_class",
+    "is_neo_mabims_2021",
+    "is_mabims_1992",
 ]

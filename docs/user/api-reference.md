@@ -215,6 +215,26 @@ ARCL (degrees). Elongation below 6.4 degrees (Danjon floor) is class
 `"D"` regardless of V. Non-real or non-finite inputs raise
 `ValidationError`.
 
+## is_neo_mabims_2021
+
+```python
+is_neo_mabims_2021(alt_deg: float, elong_deg: float) -> bool
+```
+
+Neo-MABIMS 2021 visibility: `True` when the sunset altitude is at
+least 3 degrees and the elongation is at least 6.4 degrees.
+Non-real or non-finite inputs raise `ValidationError`.
+
+## is_mabims_1992
+
+```python
+is_mabims_1992(alt_deg: float, elong_deg: float, age_hours: float) -> bool
+```
+
+1992 MABIMS visibility: `True` when (altitude >= 2 degrees and
+elongation >= 3 degrees) or the Moon age is at least 8 hours.
+Non-real or non-finite inputs raise `ValidationError`.
+
 ## CalculationParameters
 
 ```python
