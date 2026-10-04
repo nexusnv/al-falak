@@ -21,6 +21,7 @@ from alfalak import (
     Coordinates,
     Prayer,
     LunarCoordinates,
+    delta_t,
     AlFalakError,
     AstronomicalError,
     ConfigurationError,
@@ -132,6 +133,17 @@ Non-real or non-finite Julian days raise `ValidationError`.
 | `distance_km` | `float` | Geocentric distance in km |
 | `right_ascension` | `float` | Right ascension in degrees [0, 360) |
 | `declination` | `float` | Declination in degrees |
+
+## delta_t
+
+```python
+delta_t(year: float, override: float | None = None) -> float
+```
+
+Isolated Delta-T (TT minus UT1, in seconds) for the lunar path only —
+never called by the prayer path. Default is the Espenak polynomial for
+2005–2050; pass IERS-observed values via `override` for modern dates.
+Non-real or non-finite inputs raise `ValidationError`.
 
 ## CalculationParameters
 

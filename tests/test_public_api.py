@@ -3,6 +3,7 @@ import pytest
 import alfalak
 from alfalak import PrayerTimes as RootPrayerTimes
 from alfalak import Qibla, SunnahTimes
+from alfalak.astronomy.DeltaT import delta_t
 from alfalak.astronomy.LunarCoordinates import LunarCoordinates
 from alfalak.exceptions import (
     AlFalakError,
@@ -41,6 +42,7 @@ def test_root_exports_match_all():
         "Coordinates",
         "Prayer",
         "LunarCoordinates",
+        "delta_t",
     ]
     assert {
         "AlFalakError": AlFalakError,
@@ -59,6 +61,7 @@ def test_root_exports_match_all():
         "Coordinates": Coordinates,
         "Prayer": Prayer,
         "LunarCoordinates": LunarCoordinates,
+        "delta_t": delta_t,
     } == {name: getattr(alfalak, name) for name in alfalak.__all__}
     assert alfalak.PrayerTimes is RootPrayerTimes
 
