@@ -28,6 +28,7 @@ from alfalak.astronomy.LunarCoordinates import LunarCoordinates
 from alfalak.astronomy.SolarCoordinates import SolarCoordinates
 from alfalak.astronomy.SolarTime import SolarTime
 from alfalak.data.Coordinates import Coordinates
+from alfalak.exceptions import AstronomicalError
 from alfalak.util.DateComponents import DateComponents
 from alfalak.util.FloatUtil import unwind_angle
 
@@ -158,10 +159,16 @@ def crescent_geometry_at_sunset(
     year = day.year
     month = day.month
     day_of_month = day.day
-    jd_utc = julian_day(year, month, day_of_month, 12.0)
+    st = SolarTime(DateComponents(year, month, day_of_month), coordinates)
+    if math.isnan(st.sunset):
+        raise AstronomicalError(
+            "Crescent geometry is undefined: the Sun does not set "
+            f"(no sunset) on {day.isoformat()} at this location."
+        )
+    jd_sunset_utc = julian_day(year, month, day_of_month) + st.sunset / 24.0
     decimal_year = year + day.timetuple().tm_yday / 365.25
     dt = delta_t(decimal_year, override=delta_t_override)
-    jd_tt = jd_utc + dt / 86400.0
+    jd_tt = jd_sunset_utc + dt / 86400.0
 
     sun = SolarCoordinates(jd_tt)
     moon = LunarCoordinates(jd_tt)
@@ -207,5 +214,5 @@ def crescent_geometry_at_sunset(
         lag_hours=lag_hours,
         moon_age_days=moon_age,
         used_delta_t_s=dt,
-        sunset_jd_utc=jd_utc,
+        sunset_jd_utc=jd_sunset_utc,
     )

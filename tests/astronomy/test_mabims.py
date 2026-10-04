@@ -79,13 +79,16 @@ _SUNSET_SUN_ALT_DEG = -50.0 / 60.0
 
 
 def test_criteria_agreement_matrix():
-    # Goldens recorded 2026-10-05 from a live run, verified sane: 2025-02-28
-    # (Ramadan-eve crescent, ARCL ~6.5 deg, age ~11 h) is visible under both
-    # MABIMS rules; 2025-03-29 (solar-eclipse new moon, ARCL ~1.3 deg,
-    # age ~3 h) is invisible under every criterion (Yallop F, Odeh D).
+    # Goldens recorded 2026-10-05 from a live run at local sunset (see
+    # CrescentGeometry.crescent_geometry_at_sunset), verified sane: Makkah
+    # 2025-02-28 (Ramadan-eve crescent, ARCL ~8.4 deg, moon_alt ~6.5 deg)
+    # is visible under both MABIMS rules (Odeh C: optical aid); KL on the
+    # same evening (ARCL ~6.2 deg, moon_alt ~4.3 deg, age ~10 h) passes only
+    # old-MABIMS via the age>=8 h branch; 2025-03-29 (solar-eclipse new
+    # moon) is invisible under every criterion (Yallop F, Odeh D).
     cases = [
-        (date(2025, 2, 28), 3.1390, 101.6869, "F", "D", True, True),
-        (date(2025, 2, 28), 21.4225, 39.8262, "F", "D", True, True),
+        (date(2025, 2, 28), 3.1390, 101.6869, "F", "D", False, True),
+        (date(2025, 2, 28), 21.4225, 39.8262, "F", "C", True, True),
         (date(2025, 3, 29), 3.1390, 101.6869, "F", "D", False, False),
         (date(2025, 3, 29), 21.4225, 39.8262, "F", "D", False, False),
     ]
