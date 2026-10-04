@@ -20,6 +20,7 @@ from alfalak import (
     PrayerAdjustments,
     Coordinates,
     Prayer,
+    LunarCoordinates,
     AlFalakError,
     AstronomicalError,
     ConfigurationError,
@@ -112,6 +113,25 @@ zone.
 | Method | Returns | Description |
 |---|---|---|
 | `night_fraction(fraction, start=None, end=None)` | `datetime` | Maghrib + `fraction` of the night (`0 < fraction < 1`, else `ValidationError`); accepts `int`/`float`/`Fraction`/`Decimal` (`bool` rejected); pass aware `start`/`end` datetimes for Isha-anchored or sunset-anchored variants, `end` must be after `start` |
+
+## LunarCoordinates
+
+```python
+LunarCoordinates(julian_day_tt: float)
+```
+
+Low-precision geocentric Moon position (Meeus 2nd ed. Ch.47, Tables 47.A–47.B).
+Non-real or non-finite Julian days raise `ValidationError`.
+
+**Attributes:**
+
+| Attribute | Type | Description |
+|---|---|---|
+| `longitude` | `float` | Geocentric ecliptic longitude in degrees [0, 360) |
+| `latitude` | `float` | Geocentric ecliptic latitude in degrees |
+| `distance_km` | `float` | Geocentric distance in km |
+| `right_ascension` | `float` | Right ascension in degrees [0, 360) |
+| `declination` | `float` | Declination in degrees |
 
 ## CalculationParameters
 

@@ -1,6 +1,7 @@
 from alfalak.PrayerTimes import PrayerTimes
 from alfalak.Qibla import Qibla
 from alfalak.SunnahTimes import SunnahTimes
+from alfalak.astronomy.LunarCoordinates import LunarCoordinates
 from alfalak.calculation.CalculationMethod import CalculationMethod
 from alfalak.calculation.CalculationParameters import CalculationParameters
 from alfalak.calculation.HighLatitudeRule import HighLatitudeRule
@@ -32,4 +33,5 @@ __all__ = [
     "PrayerAdjustments",
     "Coordinates",
     "Prayer",
+    "LunarCoordinates",
 ]
