@@ -175,6 +175,25 @@ never called by the prayer path. Default is the Espenak polynomial for
 2005–2050; pass IERS-observed values via `override` for modern dates.
 Non-real or non-finite inputs raise `ValidationError`.
 
+## yallop_q
+
+```python
+yallop_q(arcv_geo_deg: float, width_arcmin: float) -> float
+```
+
+Best-time Yallop q from geocentric ARCV (degrees) and topocentric
+crescent width (arcminutes). Non-real or non-finite inputs raise
+`ValidationError`.
+
+## yallop_zone
+
+```python
+yallop_zone(q: float) -> str
+```
+
+Yallop visibility zone (`"A"`–`"F"`) for a q value. Non-real or
+non-finite inputs raise `ValidationError`.
+
 ## CalculationParameters
 
 ```python

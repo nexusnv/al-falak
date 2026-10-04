@@ -7,6 +7,7 @@ from alfalak.astronomy.CrescentGeometry import (
 )
 from alfalak.astronomy.DeltaT import delta_t
 from alfalak.astronomy.LunarCoordinates import LunarCoordinates
+from alfalak.astronomy.Yallop import yallop_q, yallop_zone
 from alfalak.calculation.CalculationMethod import CalculationMethod
 from alfalak.calculation.CalculationParameters import CalculationParameters
 from alfalak.calculation.HighLatitudeRule import HighLatitudeRule
@@ -42,4 +43,6 @@ __all__ = [
     "CrescentGeometry",
     "crescent_geometry_at_sunset",
     "delta_t",
+    "yallop_q",
+    "yallop_zone",
 ]
