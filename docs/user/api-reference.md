@@ -21,6 +21,8 @@ from alfalak import (
     Coordinates,
     Prayer,
     LunarCoordinates,
+    CrescentGeometry,
+    crescent_geometry_at_sunset,
     delta_t,
     AlFalakError,
     AstronomicalError,
@@ -133,6 +135,34 @@ Non-real or non-finite Julian days raise `ValidationError`.
 | `distance_km` | `float` | Geocentric distance in km |
 | `right_ascension` | `float` | Right ascension in degrees [0, 360) |
 | `declination` | `float` | Declination in degrees |
+
+## CrescentGeometry
+
+```python
+crescent_geometry_at_sunset(
+    day: date, coordinates: Coordinates,
+    delta_t_override: float | None = None,
+) -> CrescentGeometry
+```
+
+Topocentric crescent geometry at local sunset for moon-sighting work:
+elongation, geocentric/topocentric arcs of vision, azimuth difference,
+crescent width, illumination, moonset lag, and moon age.
+
+**Attributes:**
+
+| Attribute | Type | Description |
+|---|---|---|
+| `arcl_deg` | `float` | Sun–Moon elongation in degrees |
+| `arcv_geo_deg` | `float` | Geocentric arc of vision in degrees |
+| `arcv_topo_deg` | `float` | Topocentric (parallax-corrected) arc of vision in degrees |
+| `daz_deg` | `float` | Sun–Moon azimuth difference in degrees |
+| `width_arcmin` | `float` | Crescent width in arcminutes |
+| `illumination` | `float` | Illuminated fraction of the lunar disc [0, 1] |
+| `lag_hours` | `float` | Hours from sunset to moonset (0.0 if the Moon never sets) |
+| `moon_age_days` | `float` | Days since the previous new moon |
+| `used_delta_t_s` | `float` | Delta-T in seconds used for the TT conversion |
+| `sunset_jd_utc` | `float` | Julian Date (UTC, noon) of the civil date |
 
 ## delta_t
 
