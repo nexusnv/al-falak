@@ -65,6 +65,7 @@ def test_neo_exact_boundaries():
 def test_old_exact_boundaries():
     assert is_mabims_1992(2.0, 3.0, 0.0) is True
     assert is_mabims_1992(1.999, 3.0, 0.0) is False
+    assert is_mabims_1992(2.0, 2.999, 0.0) is False
     assert is_mabims_1992(0.0, 0.0, 8.0) is True
     assert is_mabims_1992(0.0, 0.0, 7.999) is False
 
