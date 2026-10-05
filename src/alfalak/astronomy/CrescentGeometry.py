@@ -28,13 +28,14 @@ from alfalak.astronomy.LunarCoordinates import LunarCoordinates
 from alfalak.astronomy.SolarCoordinates import SolarCoordinates
 from alfalak.astronomy.SolarTime import SolarTime
 from alfalak.data.Coordinates import Coordinates
-from alfalak.exceptions import AstronomicalError
+from alfalak.exceptions import AstronomicalError, ValidationError
 from alfalak.util.DateComponents import DateComponents
 from alfalak.util.FloatUtil import unwind_angle
 
 _EARTH_EQUATORIAL_RADIUS_KM: float = 6378.137
 _SUNSET_ALTITUDE_DEG: float = -50.0 / 60.0
-_MOON_AGE_SEARCH_DAYS: float = 2.0
+# Full synodic month (29.53d): the previous conjunction is always inside.
+_MOON_AGE_SEARCH_DAYS: float = 30.0
 _MOON_AGE_MIN_DAYS: float = 0.1
 _MOON_AGE_STEP_DAYS: float = 1.0 / 24.0
 
@@ -44,6 +45,8 @@ class CrescentGeometry:
     arcl_deg: float
     arcv_geo_deg: float
     arcv_topo_deg: float
+    sun_alt_deg: float
+    moon_alt_topo_deg: float
     daz_deg: float
     width_arcmin: float
     illumination: float
@@ -106,7 +109,22 @@ def _moonset_lag_hours(
     coordinates: Coordinates,
     delta_t_s: float,
 ) -> float:
-    """Hours from sunset to moonset; 0.0 when the Moon never sets."""
+    """Hours from sunset to moonset.
+
+    Negative when the Moon sets before the Sun (no evening visibility
+    window); NaN when no moonset occurs on that civil date (e.g. a
+    circumpolar Moon).
+
+    Time-base note: the lunar transit/hour-angle interpolation is anchored
+    at TT midnight (``julian_day(...) + delta_t_s / 86400``) because the
+    lunar ephemeris takes TT, while ``sunset`` comes from ``SolarTime``
+    anchored at UTC midnight (the prayer path treats UTC as TT, good to
+    ~1 min). Both instants are fractions of the same civil date so the
+    difference cancels most of the ~70 s offset; the residual ephemeris
+    drift over that shift is ~0.01 deg, negligible for visibility scoring.
+    Absolute altitudes carry the full LST shift (~0.3 deg), which is why
+    ``CrescentGeometry`` stores them instead of assuming ``-0.833`` deg.
+    """
     jd_midnight_utc = julian_day(year, month, day_of_month)
     jd_midnight_tt = jd_midnight_utc + delta_t_s / 86400.0
     solar_ref = SolarCoordinates(jd_midnight_tt)
@@ -133,29 +151,58 @@ def _moonset_lag_hours(
     )
     sunset = SolarTime(DateComponents(year, month, day_of_month), coordinates).sunset
     if math.isnan(moonset) or math.isnan(sunset):
-        return 0.0
-    return max(0.0, moonset - sunset)
+        return math.nan
+    return moonset - sunset
 
 
 def _moon_age_days(julian_day_tt: float) -> float:
-    """Elapsed days since the previous new moon (minimum ARCL search)."""
-    best_jd = julian_day_tt - _MOON_AGE_SEARCH_DAYS
-    best_arcl = math.inf
-    offset = _MOON_AGE_SEARCH_DAYS
-    while offset >= _MOON_AGE_MIN_DAYS - 1e-12:
-        arcl = _arcl_at_jd(julian_day_tt - offset)
-        if arcl < best_arcl:
-            best_arcl = arcl
-            best_jd = julian_day_tt - offset
-        offset -= _MOON_AGE_STEP_DAYS
-    age = julian_day_tt - best_jd
-    return max(_MOON_AGE_MIN_DAYS, min(_MOON_AGE_SEARCH_DAYS, age))
+    """Elapsed days since the previous new moon.
+
+    Youngest local minimum of geocentric elongation (ARCL), sampled
+    hourly from sunset back over the prior month. The youngest — not
+    the deepest — minimum is used because a 30-day window usually
+    spans two conjunctions and the global minimum may belong to the
+    older one. Sampling starts at sunset itself so a conjunction hours
+    before sunset is still caught; ages below the floor report the floor.
+
+    When the sunset sample itself is the lowest (conjunction at or just
+    before sunset), it can never win the interior-minimum search below,
+    so a single forward sample disambiguates: waxing (ARCL growing after
+    sunset) reports the floor, while a pre-conjunction evening (ARCL
+    still shrinking toward a future conjunction) falls through to the
+    older minimum.
+    """
+    offsets: list[float] = []
+    offset = 0.0
+    while offset <= _MOON_AGE_SEARCH_DAYS + 1e-12:
+        offsets.append(offset)
+        offset += _MOON_AGE_STEP_DAYS
+    arcls = [_arcl_at_jd(julian_day_tt - offset) for offset in offsets]
+    if (
+        arcls[0] <= arcls[1]
+        and _arcl_at_jd(julian_day_tt + _MOON_AGE_STEP_DAYS) >= arcls[0]
+    ):
+        return _MOON_AGE_MIN_DAYS
+    for i in range(1, len(arcls) - 1):
+        if arcls[i] <= arcls[i - 1] and arcls[i] <= arcls[i + 1]:
+            return max(_MOON_AGE_MIN_DAYS, offsets[i])
+    return _MOON_AGE_SEARCH_DAYS
 
 
 def crescent_geometry_at_sunset(
     day: date, coordinates: Coordinates, delta_t_override: float | None = None
 ) -> CrescentGeometry:
-    """Compute topocentric crescent geometry at sunset for a civil date."""
+    """Compute topocentric crescent geometry at sunset for a civil date.
+
+    A ``datetime`` is accepted and its calendar date is used (the time
+    component is ignored).
+    """
+    if not isinstance(day, date):
+        raise ValidationError(f"day must be a datetime.date, got {day!r}.")
+    if not isinstance(coordinates, Coordinates):
+        raise ValidationError(
+            "coordinates must be a Coordinates instance, " f"got {coordinates!r}."
+        )
     year = day.year
     month = day.month
     day_of_month = day.day
@@ -166,7 +213,9 @@ def crescent_geometry_at_sunset(
             f"(no sunset) on {day.isoformat()} at this location."
         )
     jd_sunset_utc = julian_day(year, month, day_of_month) + st.sunset / 24.0
-    decimal_year = year + day.timetuple().tm_yday / 365.25
+    # Day-of-year is 1-based: subtract 1 so Dec 31 of a leap year stays
+    # inside this calendar year instead of spilling ~1 day into the next.
+    decimal_year = year + (day.timetuple().tm_yday - 1) / 365.25
     dt = delta_t(decimal_year, override=delta_t_override)
     jd_tt = jd_sunset_utc + dt / 86400.0
 
@@ -208,6 +257,8 @@ def crescent_geometry_at_sunset(
         arcl_deg=arcl,
         arcv_geo_deg=arcv_geo,
         arcv_topo_deg=arcv_topo,
+        sun_alt_deg=sun_alt,
+        moon_alt_topo_deg=moon_alt_topo,
         daz_deg=daz,
         width_arcmin=width,
         illumination=illumination,

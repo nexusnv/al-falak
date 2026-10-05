@@ -148,6 +148,9 @@ crescent_geometry_at_sunset(
 Topocentric crescent geometry at local sunset for moon-sighting work:
 elongation, geocentric/topocentric arcs of vision, azimuth difference,
 crescent width, illumination, moonset lag, and moon age.
+Raises `AstronomicalError` when the Sun does not set on that date;
+non-`date`/`Coordinates` inputs (or a non-finite override) raise
+`ValidationError`. A `datetime` is accepted and its calendar date is used.
 
 **Attributes:**
 
@@ -156,13 +159,15 @@ crescent width, illumination, moonset lag, and moon age.
 | `arcl_deg` | `float` | Sun–Moon elongation in degrees |
 | `arcv_geo_deg` | `float` | Geocentric arc of vision in degrees |
 | `arcv_topo_deg` | `float` | Topocentric (parallax-corrected) arc of vision in degrees |
+| `sun_alt_deg` | `float` | True Sun altitude at the evaluated TT instant in degrees (near −0.83° at sunset; differs slightly because the ephemeris runs at TT) |
+| `moon_alt_topo_deg` | `float` | Topocentric (parallax-corrected) Moon altitude in degrees — pass this (not ARCV) as `alt_deg` to the MABIMS helpers |
 | `daz_deg` | `float` | Sun–Moon azimuth difference in degrees |
 | `width_arcmin` | `float` | Crescent width in arcminutes |
 | `illumination` | `float` | Illuminated fraction of the lunar disc [0, 1] |
-| `lag_hours` | `float` | Hours from sunset to moonset (0.0 if the Moon never sets) |
-| `moon_age_days` | `float` | Days since the previous new moon |
+| `lag_hours` | `float` | Hours from sunset to moonset (negative when the Moon sets first; `NaN` when no moonset occurs on that date; large positives mean a gibbous/full Moon up well past sunset — the crescent signal is a small positive lag) |
+| `moon_age_days` | `float` | Days since the previous new moon (youngest hourly ARCL minimum over the prior 30 days) |
 | `used_delta_t_s` | `float` | Delta-T in seconds used for the TT conversion |
-| `sunset_jd_utc` | `float` | Julian Date (UTC, noon) of the civil date |
+| `sunset_jd_utc` | `float` | Julian Date (UTC) of local sunset |
 
 ## delta_t
 
@@ -173,7 +178,10 @@ delta_t(year: float, override: float | None = None) -> float
 Isolated Delta-T (TT minus UT1, in seconds) for the lunar path only —
 never called by the prayer path. Default is the Espenak polynomial for
 2005–2050; pass IERS-observed values via `override` for modern dates.
-Non-real or non-finite inputs raise `ValidationError`.
+Years outside 2005–2050 emit a `UserWarning` and extrapolate (the value is
+still returned); the `override` path never warns. Non-real or non-finite
+inputs raise `ValidationError` (`year` is validated even when `override=`
+is set).
 
 ## yallop_q
 
@@ -221,7 +229,8 @@ ARCL (degrees). Elongation below 6.4 degrees (Danjon floor) is class
 is_neo_mabims_2021(alt_deg: float, elong_deg: float) -> bool
 ```
 
-Neo-MABIMS 2021 visibility: `True` when the sunset altitude is at
+Neo-MABIMS 2021 visibility: `True` when the topocentric Moon altitude
+(`moon_alt_topo_deg` from `crescent_geometry_at_sunset`, not ARCV) is at
 least 3 degrees and the elongation is at least 6.4 degrees.
 Non-real or non-finite inputs raise `ValidationError`.
 
@@ -231,8 +240,9 @@ Non-real or non-finite inputs raise `ValidationError`.
 is_mabims_1992(alt_deg: float, elong_deg: float, age_hours: float) -> bool
 ```
 
-1992 MABIMS visibility: `True` when (altitude >= 2 degrees and
-elongation >= 3 degrees) or the Moon age is at least 8 hours.
+1992 MABIMS visibility: `True` when (topocentric Moon altitude
+`>= 2` degrees and elongation `>= 3` degrees) or the Moon age is at
+least 8 hours. Pass `moon_alt_topo_deg` (not ARCV) as the altitude.
 Non-real or non-finite inputs raise `ValidationError`.
 
 ## CalculationParameters
@@ -344,4 +354,5 @@ AlFalakError (base)
 
 - [Getting Started](/getting-started/) — quick start guide
 - [Calculation Methods](/calculation-methods/) — method details
+- [Moon Sighting](/moon-sighting/) — crescent geometry and visibility criteria
 - [Errors](/errors/) — error handling

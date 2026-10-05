@@ -65,6 +65,10 @@ export default defineConfig({
           link: '/sunnah-times/',
         },
         {
+          label: 'Moon Sighting',
+          link: '/moon-sighting/',
+        },
+        {
           label: 'CLI Usage',
           link: '/cli/',
         },

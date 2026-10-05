@@ -11,29 +11,31 @@ for the future lunar/moon-sighting path. Known limitation: this
 polynomial runs ~5-6s high vs IERS observed values by 2024-2025 (e.g.
 74.77 vs ~69.2 at 2025.5); pass override= with an IERS value when
 absolute-time accuracy matters — CrescentGeometry records
-used_delta_t_s.
+used_delta_t_s. Years outside 2005-2050 extrapolate beyond the
+calibration range and emit a ``UserWarning``; the value is still
+returned so historical queries keep working.
 """
 
-import math
-import numbers
-from decimal import Decimal
+import warnings
 
-from alfalak.exceptions import ValidationError
+from alfalak.util.FloatUtil import require_finite_real
 
-
-def _require_finite_real(value: object, name: str) -> float:
-    if isinstance(value, bool) or not isinstance(value, (numbers.Real, Decimal)):
-        raise ValidationError(f"{name} must be a real number, got {value!r}.")
-    result = float(value)
-    if not math.isfinite(result):
-        raise ValidationError(f"{name} must be finite, got {value!r}.")
-    return result
+_DELTA_T_VALID_MIN_YEAR: float = 2005.0
+_DELTA_T_VALID_MAX_YEAR: float = 2050.0
 
 
 def delta_t(year: float, override: float | None = None) -> float:
     """Return Delta-T (TT minus UT1) in seconds for a decimal year."""
+    year_value = require_finite_real(year, "year")
     if override is not None:
-        return _require_finite_real(override, "override")
-    year_value = _require_finite_real(year, "year")
+        return require_finite_real(override, "override")
+    if not _DELTA_T_VALID_MIN_YEAR <= year_value <= _DELTA_T_VALID_MAX_YEAR:
+        warnings.warn(
+            f"delta_t polynomial is calibrated for 2005-2050; year {year_value} "
+            "extrapolates beyond that range — pass override= with an IERS "
+            "value when accuracy matters.",
+            UserWarning,
+            stacklevel=2,
+        )
     t = year_value - 2000.0
     return 62.92 + 0.32217 * t + 0.005589 * t * t

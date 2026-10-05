@@ -38,3 +38,6 @@ site/
 docs_site/dist/
 docs_site/node_modules/
 docs_site/.astro/
+
+# Local lockfile (library pins via requirements.txt; uv.lock is per-env)
+uv.lock

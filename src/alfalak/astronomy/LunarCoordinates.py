@@ -11,21 +11,18 @@ Validated against Meeus Example 47.a (JDE 2448724.5 -> λ=133.167265°,
 """
 
 import math
-import numbers
-from decimal import Decimal
 
 from alfalak.astronomy.Astronomical import (
     apparent_obliquity_of_the_ecliptic,
     mean_obliquity_of_the_ecliptic,
 )
 from alfalak.astronomy.CalendricalHelper import julian_century
-from alfalak.exceptions import ValidationError
-from alfalak.util.FloatUtil import unwind_angle
+from alfalak.util.FloatUtil import require_finite_real, unwind_angle
 
 # Meeus 2nd ed. Tables 47.A (longitude + distance) and 47.B (latitude).
 # Schema: (D, M, Mp, F, Sl, Sb, Sr) with angles in 1e-6 degree and
 # radius in metres. Rows absent from one table carry 0 in its columns.
-TABLE_47A: list[tuple[int, int, int, int, int, int, int]] = [
+TABLE_47_TERMS: list[tuple[int, int, int, int, int, int, int]] = [
     # Table 47.A: longitude (sine) and distance (cosine) terms.
     (0, 0, 1, 0, 6288774, 0, -20905355),
     (2, 0, -1, 0, 1274027, 0, -3699111),
@@ -150,20 +147,17 @@ TABLE_47A: list[tuple[int, int, int, int, int, int, int]] = [
     (2, -2, 0, 1, 0, 107, 0),
 ]
 
+# Backwards-compatible alias: the merged list was previously (mis)named
+# TABLE_47A even though it holds Tables 47.A and 47.B. Same object (not a
+# copy) so monkeypatching either name affects the computation.
+TABLE_47A = TABLE_47_TERMS
+
 
 class LunarCoordinates:
     """Low-precision geocentric Moon position for a TT Julian Day."""
 
     def __init__(self, julian_day_tt: float) -> None:
-        if isinstance(julian_day_tt, bool) or not isinstance(
-            julian_day_tt, (numbers.Real, Decimal)
-        ):
-            raise ValidationError(
-                "Julian day must be a real number, got " f"{julian_day_tt!r}."
-            )
-        julian_day = float(julian_day_tt)
-        if not math.isfinite(julian_day):
-            raise ValidationError(f"Julian day must be finite, got {julian_day_tt!r}.")
+        julian_day = require_finite_real(julian_day_tt, "julian_day_tt")
         T = julian_century(julian_day)
         Lp = unwind_angle(218.3164477 + 481267.88123421 * T - 0.0015786 * T * T)
         D = unwind_angle(297.8501921 + 445267.1114034 * T - 0.0018819 * T * T)
@@ -171,7 +165,7 @@ class LunarCoordinates:
         Mp = unwind_angle(134.9633964 + 477198.8675055 * T + 0.0087414 * T * T)
         F = unwind_angle(93.2720950 + 483202.0175233 * T - 0.0036539 * T * T)
         sl = sb = sr = 0.0
-        for d, m, mp, f, cl, cb, cr in TABLE_47A:
+        for d, m, mp, f, cl, cb, cr in TABLE_47_TERMS:
             arg = math.radians(d * D + m * M + mp * Mp + f * F)
             sl += cl * math.sin(arg)
             sb += cb * math.sin(arg)

@@ -18,6 +18,16 @@ The prayer time calculation methods, mathematical formulas, and computational st
 - **US Naval Observatory (USNO)** — Solar position algorithms and twilight calculations. Reference: [aa.usno.navy.mil](https://aa.usno.navy.mil/)
 - **PrayTimes.org** — Standard prayer time calculation methods and Fajr/Isha angle conventions. Reference: [praytimes.org](https://praytimes.org/)
 
+## Moon-sighting sources
+
+The crescent geometry and visibility criteria are derived from:
+
+- **Jean Meeus** — *Astronomical Algorithms* (2nd ed.), Ch. 47 low-precision lunar position (Tables 47.A/47.B); validated against Example 47.a.
+- **Fred Espenak (NASA)** — Delta-T polynomial for 2005–2050 (`62.92 + 0.32217·t + 0.005589·t²`, `t` = years since 2000), as published with the NASA eclipse predictions; known ~5–6 s high vs IERS observed values by 2024–2025.
+- **Bernard Yallop** — `q`-criterion and visibility zones A–F from geocentric ARCV and crescent width.
+- **Mohammad Odeh** — `V`-criterion and classes A–D from topocentric ARCV and crescent width, with the 6.4° elongation (Danjon) floor.
+- **MABIMS** (Malaysia, Brunei, Indonesia, Singapore) — 1992 rule (altitude ≥ 2° and elongation ≥ 3°, or age ≥ 8 h) and Neo-MABIMS 2021 (altitude ≥ 3° and elongation ≥ 6.4°).
+
 ## Geodesy and geomagnetism sources
 
 The Qibla direction, distance, and compass-heading calculations are derived from:

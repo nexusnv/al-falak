@@ -5,6 +5,18 @@ description: Version history for al-falak.
 
 # Changelog
 
+## Unreleased — phase 4 (moon-sighting)
+
+- `LunarCoordinates` (Meeus Ch.47 low-precision Moon position)
+- `crescent_geometry_at_sunset` → `CrescentGeometry` (elongation, geocentric/topocentric ARCV, azimuth difference, width, illumination, moonset lag, moon age)
+- `delta_t` provider (Espenak polynomial + IERS `override`; lunar path only;
+  calibrated 2005–2050, `UserWarning` outside that range)
+- Visibility criteria: `yallop_q`/`yallop_zone`, `odeh_v`/`odeh_class`, `is_mabims_1992`/`is_neo_mabims_2021`
+- New [Moon Sighting](/moon-sighting/) guide; no breaking API changes
+  from 1.1.0 (`CrescentGeometry` also exposes `sun_alt_deg` /
+  `moon_alt_topo_deg` so MABIMS callers pass a true altitude, not an
+  ARCV proxy; note `delta_t` validates `year` even when `override=` is set)
+
 ## 1.1.0 — phases 1–3 (geodesy, twilight markers, night divisions)
 
 > Scope: phases 1–3 only. Phase 4 (Hijri/moon-sighting) and later remain

@@ -70,21 +70,16 @@ def test_old_exact_boundaries():
     assert is_mabims_1992(0.0, 0.0, 7.999) is False
 
 
-# Sunset sun altitude by definition (-50'/60): ARCV is the moon-minus-sun
-# altitude DIFFERENCE, not the moon altitude, so raw arcv_topo_deg must NOT
-# be passed as alt_deg. CrescentGeometry does not store sun_alt, hence the
-# proxy moon_alt = arcv_topo + sunset sun altitude (~1 deg accurate; exact
-# threshold behaviour is pinned by the boundary tests above, not here).
-_SUNSET_SUN_ALT_DEG = -50.0 / 60.0
-
-
+# MABIMS takes the Moon's topocentric altitude, which
+# CrescentGeometry now exposes directly (no ARCV-minus-sunset proxy).
 def test_criteria_agreement_matrix():
     # Goldens recorded 2026-10-05 from a live run at local sunset (see
     # CrescentGeometry.crescent_geometry_at_sunset), verified sane: Makkah
-    # 2025-02-28 (Ramadan-eve crescent, ARCL ~8.4 deg, moon_alt ~6.5 deg)
+    # 2025-02-28 (Ramadan-eve crescent, ARCL ~8.4 deg, moon_alt ~6.2 deg)
     # is visible under both MABIMS rules (Odeh C: optical aid); KL on the
-    # same evening (ARCL ~6.2 deg, moon_alt ~4.3 deg, age ~10 h) passes only
-    # old-MABIMS via the age>=8 h branch; 2025-03-29 (solar-eclipse new
+    # same evening (ARCL ~6.2 deg, moon_alt ~3.9 deg, age ~10 h) passes
+    # old-MABIMS (alt/elong branch, and the age>=8 h branch) but not
+    # Neo-MABIMS (elongation below 6.4); 2025-03-29 (solar-eclipse new
     # moon) is invisible under every criterion (Yallop F, Odeh D).
     cases = [
         (date(2025, 2, 28), 3.1390, 101.6869, "F", "D", False, True),
@@ -97,7 +92,7 @@ def test_criteria_agreement_matrix():
         g = crescent_geometry_at_sunset(day, Coordinates(lat, lon))
         zone = yallop_zone(yallop_q(g.arcv_geo_deg, g.width_arcmin))
         odeh = odeh_class(odeh_v(g.arcv_topo_deg, g.width_arcmin), g.arcl_deg)
-        moon_alt = g.arcv_topo_deg + _SUNSET_SUN_ALT_DEG
+        moon_alt = g.moon_alt_topo_deg
         neo = is_neo_mabims_2021(moon_alt, g.arcl_deg)
         old = is_mabims_1992(moon_alt, g.arcl_deg, g.moon_age_days * 24.0)
         assert type(neo) is bool

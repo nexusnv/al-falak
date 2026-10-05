@@ -43,6 +43,10 @@ except AstronomicalError as e:
     print(f"Polar day/night: {e}")
 ```
 
+Also raised by `crescent_geometry_at_sunset` when the Sun does not set on
+that date (polar day/night), since there is no sunset to evaluate the
+crescent at.
+
 ### ConfigurationError
 
 Raised for invalid configuration:
@@ -71,6 +75,13 @@ except ValidationError as e:
     print(f"Invalid coordinates: {e}")
 ```
 
+Moon-sighting inputs follow the same rule: `crescent_geometry_at_sunset`
+rejects a non-`date` day (a `datetime` is accepted and its calendar date
+is used), a non-`Coordinates` location, or a non-finite
+`delta_t_override`, as do the `delta_t`, `yallop_*`, `odeh_*`, and
+`is_*mabims*` helpers for non-real or non-finite arguments (`odeh_v` and
+`yallop_q` additionally reject a negative crescent width).
+
 ## Error messages
 
 All errors include descriptive messages:
@@ -81,5 +92,6 @@ AstronomicalError: Unable to compute prayer times: sunrise, sunset, or solar tra
 
 ## See also
 
+- [Moon Sighting](/moon-sighting/) — crescent geometry error cases
 - [Polar Regions](/polar-regions/) — handling polar day/night
 - [API Reference](/api-reference/) — full API documentation
