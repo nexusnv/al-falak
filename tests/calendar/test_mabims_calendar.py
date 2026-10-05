@@ -155,6 +155,36 @@ def test_mabims_far_target_iterative_walk(
         mabims_module.resolve_month_start("MY", 1403, 3)
 
 
+def test_mabims_month_start_ordinal_rejects_pre_anchor() -> None:
+    # Defense in depth: the cached ordinal lookup itself refuses pre-1445H
+    # months even though every public caller validates first.
+    with pytest.raises(ValidationError, match="post-1445"):
+        mabims_module._month_start_ordinal("MY", 1444, 12)
+
+
+def test_mabims_from_gregorian_skips_pre_anchor_probe(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # A stale tabular seed still in Muharram for a 1 Safar 1445 target
+    # (2023-08-18 observed): the offset-0 probe misses, the -1 probe
+    # crosses the anchor and is skipped, and the +1 probe lands on day 1.
+    safar_start = date.fromordinal(mabims_module.resolve_month_start("MY", 1445, 2))
+    assert safar_start == date(2023, 8, 18)
+    real_seed = mabims_module._TABULAR_SEED
+
+    class _StaleSeed:
+        def from_gregorian(self, d: date) -> HijriDate:
+            return HijriDate(1445, 1, 15)
+
+        def to_gregorian(self, h: HijriDate) -> date:
+            return real_seed.to_gregorian(h)
+
+    monkeypatch.setattr(mabims_module, "_TABULAR_SEED", _StaleSeed())
+    assert MabimsCalendar(country="MY").from_gregorian(safar_start) == HijriDate(
+        1445, 2, 1
+    )
+
+
 def test_mabims_clear_cache_is_transparent() -> None:
     cal = MabimsCalendar(country="ID")
     before = cal.month_length(1446, 9)
