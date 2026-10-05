@@ -1,5 +1,6 @@
 """Tests for MabimsCalendar (Neo-MABIMS 2021, per-country) (phase-5 task 3)."""
 
+import importlib
 from datetime import date
 
 import pytest
@@ -9,7 +10,13 @@ from alfalak.astronomy.Mabims import is_mabims_1992, is_neo_mabims_2021
 from alfalak.calendar import MabimsCalendar, get_calendar
 from alfalak.calendar.HijriDate import HijriDate
 from alfalak.data.Coordinates import Coordinates
-from alfalak.exceptions import ConfigurationError
+from alfalak.exceptions import (
+    AstronomicalError,
+    ConfigurationError,
+    ValidationError,
+)
+
+mabims_module = importlib.import_module("alfalak.calendar.MabimsCalendar")
 
 # Announced month starts (civil Gregorian dates of Hijri day 1).
 # MY sources: Penyimpan Mohor Besar Raja-Raja announcements relayed by
@@ -113,3 +120,102 @@ def test_mabims_1992_vs_2021_flip_comment() -> None:
         is True
     )
     assert is_neo_mabims_2021(geometry.moon_alt_topo_deg, geometry.arcl_deg) is False
+
+
+def test_mabims_pre_anchor_raises_deferred() -> None:
+    # The walk is forward-only from the 1445-01 anchor (mirror UQU's 1423H
+    # epoch): a backward single-probe rule cannot reconstruct the true 29th
+    # evening (visible 30th eve vs visible 29th eve are indistinguishable),
+    # so pre-anchor inputs raise instead of returning a wrong date.
+    cal = MabimsCalendar(country="MY")
+    with pytest.raises(ValidationError, match="post-1445"):
+        cal.month_length(1444, 12)
+    with pytest.raises(ValidationError, match="post-1445"):
+        cal.to_gregorian(HijriDate(1444, 12, 15))
+    with pytest.raises(ValidationError, match="post-1445"):
+        cal.from_gregorian(date(2023, 7, 18))
+    # Anchor boundary itself resolves.
+    assert cal.month_length(1445, 1) == 30
+    assert cal.from_gregorian(date(2023, 7, 19)) == HijriDate(1445, 1, 1)
+
+
+def test_mabims_far_target_iterative_walk(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Beyond the 500-month cached headroom the driver walks iteratively
+    # forward from the anchor. The leaf rule is stubbed to isolate the
+    # driver's iteration/bounding logic (real lunar geometry is covered by
+    # the golden, round-trip, and guard tests); each stubbed month is
+    # 30 days, so a 502-month walk lands exactly 502*30 days out.
+    # Pre-anchor far targets raise the deferred ValidationError.
+    anchor = date(2023, 7, 19).toordinal()  # 1 Muharram 1445H observed.
+    monkeypatch.setattr(mabims_module, "_forward_month_length", lambda s, c: 30)
+    assert mabims_module.resolve_month_start("MY", 1486, 11) == anchor + 502 * 30
+    with pytest.raises(ValidationError, match="post-1445"):
+        mabims_module.resolve_month_start("MY", 1403, 3)
+
+
+def test_mabims_clear_cache_is_transparent() -> None:
+    cal = MabimsCalendar(country="ID")
+    before = cal.month_length(1446, 9)
+    mabims_module.clear_mabims_cache()
+    assert cal.month_length(1446, 9) == before
+
+
+def test_mabims_month_length_rejects_bad_inputs() -> None:
+    cal = MabimsCalendar(country="MY")
+    with pytest.raises(ValidationError):
+        cal.month_length("1446", 9)  # type: ignore[arg-type]
+    with pytest.raises(ValidationError):
+        cal.month_length(1446, "9")  # type: ignore[arg-type]
+    with pytest.raises(ValidationError):
+        cal.month_length(True, 9)  # type: ignore[arg-type]
+    with pytest.raises(ValidationError):
+        cal.month_length(1446, False)  # type: ignore[arg-type]
+    with pytest.raises(ValidationError):
+        cal.month_length(0, 1)
+    with pytest.raises(ValidationError):
+        cal.month_length(1446, 0)
+    with pytest.raises(ValidationError):
+        cal.month_length(1446, 13)
+
+
+def test_mabims_converters_reject_wrong_types() -> None:
+    cal = MabimsCalendar(country="MY")
+    with pytest.raises(ValidationError):
+        cal.from_gregorian("2025-03-01")  # type: ignore[arg-type]
+    with pytest.raises(ValidationError):
+        cal.to_gregorian("1446-09-01")  # type: ignore[arg-type]
+
+
+def test_mabims_to_gregorian_rejects_30th_of_29_day_month() -> None:
+    cal = MabimsCalendar(country="MY")
+    assert cal.month_length(1446, 3) == 29
+    with pytest.raises(ValidationError):
+        cal.to_gregorian(HijriDate(1446, 3, 30))
+
+
+def test_mabims_impossible_month_length_raises(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # A 28-day resolved month trips the 29-or-30 defense (synthetic probe:
+    # the Neo-MABIMS rule itself only ever yields 29/30).
+    start = date(2025, 3, 1).toordinal()
+
+    def spoofed(country: str, year: int, month: int) -> int:
+        return start if (year, month) == (1446, 9) else start + 28
+
+    monkeypatch.setattr(mabims_module, "resolve_month_start", spoofed)
+    with pytest.raises(AstronomicalError, match="expected 29 or 30"):
+        MabimsCalendar(country="MY").month_length(1446, 9)
+
+
+def test_mabims_from_gregorian_bounded_probe_exhaustion(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # No probed month contains the target (synthetic frozen resolver): the
+    # bounded probe fails loudly instead of widening silently.
+    frozen = date(2020, 1, 1).toordinal()
+    monkeypatch.setattr(mabims_module, "resolve_month_start", lambda c, y, m: frozen)
+    with pytest.raises(AstronomicalError, match="no Hijri month contains"):
+        MabimsCalendar(country="MY").from_gregorian(date(2025, 3, 1))

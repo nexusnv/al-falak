@@ -19,9 +19,13 @@ degrees, or moon age >= 8 hours). Neo-MABIMS 2021 (KBIR 2016, adopted
 
 Month starts resolve by walking forward from a fixed anchor
 (1 Muharram 1445H = 19 July 2023 Gregorian, observed in all four member
-countries) applying the rule month by month; dates before the anchor
-walk backward with tie-break conventions documented on
-``_backward_month_length``. Intermediate results cache in bounded
+countries) applying the rule month by month. The walk is forward-only:
+like UQU's 1423H epoch, the anchor is the support floor, and any input
+mapping before it raises ``ValidationError`` (deferred) instead of
+walking backward — a backward single-probe rule cannot reconstruct the
+true 29th evening (a visible 30th evening is indistinguishable from a
+visible 29th), so backward walking systematically misreads 30-day
+months as 29-day ones. Intermediate results cache in bounded
 ``functools.lru_cache`` tables (see ``clear_mabims_cache``).
 """
 
@@ -55,9 +59,13 @@ _COUNTRY_REFS: dict[str, Coordinates] = {
 _VALID_COUNTRIES = frozenset(_COUNTRY_REFS)
 
 # Anchor: 1 Muharram 1445H = 19 July 2023 (Gregorian civil date).
+# The anchor is the support floor: the walk is forward-only (mirror UQU's
+# 1423H epoch), and pre-anchor inputs raise ValidationError (deferred).
 _ANCHOR_YEAR = 1445
 _ANCHOR_MONTH = 1
 _ANCHOR_GREGORIAN = date(2023, 7, 19)
+
+_DEFERRED_MESSAGE = "MABIMS calendar supports post-1445 dates only"
 
 # Tabular seed for the containing-month search (same floor as tabular).
 _TABULAR_SEED = TabularCalendar()
@@ -92,23 +100,6 @@ def _forward_month_length(start_ordinal: int, country: str) -> int:
     return 29 if _neo_visible(start_ordinal + 28, country) else 30
 
 
-def _backward_month_length(next_start_ordinal: int, country: str) -> int:
-    """Length of the month ending the day before ``next_start_ordinal``.
-
-    Only the two hypotheses (29/30 days) exist, so only the evening
-    before the known start matters: a Neo-visible crescent that evening
-    means it was the 29th (29-day month), else the month completed
-    30 days. Case analysis behind the single probe: with r1 the rule on
-    the eve before the start and r2 the rule one evening earlier,
-    r1=True admits the 29-day hypothesis, r2=False admits the 30-day
-    one; r1 decides both ties -- a positive sighting is most plausibly
-    the 29th, while a doubtful (r1=False, r2=True) geometry completes
-    30 days per the classical doubt rule. Pre-anchor dates only; the
-    forward walk never needs this.
-    """
-    return 29 if _neo_visible(next_start_ordinal - 1, country) else 30
-
-
 def _previous_month(year: int, month: int) -> tuple[int, int]:
     return (year - 1, 12) if month == 1 else (year, month - 1)
 
@@ -121,20 +112,19 @@ def _next_month(year: int, month: int) -> tuple[int, int]:
 def _month_start_ordinal(country: str, year: int, month: int) -> int:
     """Gregorian ordinal of Hijri day 1 for ``(country, year, month)``.
 
-    Recursive single-step chain from the anchor: every intermediate
-    month start lands in the cache, so a full-year sweep costs one
-    rule evaluation per month. Deep (far from anchor) targets go
-    through ``resolve_month_start`` instead to bound stack use.
+    Recursive single-step forward chain from the anchor: every
+    intermediate month start lands in the cache, so a full-year sweep
+    costs one rule evaluation per month. Months before the anchor raise
+    ``ValidationError`` here as defense in depth. Deep (far from anchor)
+    targets go through ``resolve_month_start`` instead to bound stack use.
     """
+    if (year, month) < (_ANCHOR_YEAR, _ANCHOR_MONTH):
+        raise ValidationError(_DEFERRED_MESSAGE)
     if year == _ANCHOR_YEAR and month == _ANCHOR_MONTH:
         return _ANCHOR_GREGORIAN.toordinal()
-    if (year, month) > (_ANCHOR_YEAR, _ANCHOR_MONTH):
-        prev_year, prev_month = _previous_month(year, month)
-        prev_start = _month_start_ordinal(country, prev_year, prev_month)
-        return prev_start + _forward_month_length(prev_start, country)
-    next_year, next_month = _next_month(year, month)
-    next_start = _month_start_ordinal(country, next_year, next_month)
-    return next_start - _backward_month_length(next_start, country)
+    prev_year, prev_month = _previous_month(year, month)
+    prev_start = _month_start_ordinal(country, prev_year, prev_month)
+    return prev_start + _forward_month_length(prev_start, country)
 
 
 def _month_distance_from_anchor(year: int, month: int) -> int:
@@ -145,9 +135,12 @@ def resolve_month_start(country: str, year: int, month: int) -> int:
     """Gregorian ordinal of Hijri day 1, bounding recursion depth.
 
     Near-anchor targets use the cached chain; far targets walk
-    iteratively from the anchor (geometry stays cached, intermediate
-    month starts are not retained).
+    iteratively forward from the anchor (geometry stays cached,
+    intermediate month starts are not retained). Pre-anchor inputs raise
+    ``ValidationError`` (deferred).
     """
+    if (year, month) < (_ANCHOR_YEAR, _ANCHOR_MONTH):
+        raise ValidationError(_DEFERRED_MESSAGE)
     if abs(_month_distance_from_anchor(year, month)) <= (_MAX_CACHED_WALK_MONTHS):
         return _month_start_ordinal(country, year, month)
     current = _ANCHOR_GREGORIAN.toordinal()
@@ -155,9 +148,6 @@ def resolve_month_start(country: str, year: int, month: int) -> int:
     while (cy, cm) < (year, month):
         current += _forward_month_length(current, country)
         cy, cm = _next_month(cy, cm)
-    while (cy, cm) > (year, month):
-        current -= _backward_month_length(current, country)
-        cy, cm = _previous_month(cy, cm)
     return current
 
 
@@ -172,8 +162,10 @@ class MabimsCalendar(HijriCalendar):
 
     ``country`` is required, case-insensitive, normalized to upper;
     anything outside ``{"MY", "ID", "BN", "SG"}`` raises
-    ``ConfigurationError``. The old 1992 Labuan rule is not implemented
-    (see module docstring).
+    ``ConfigurationError``. Supported range starts at 1 Muharram 1445H
+    (Gregorian 2023-07-19, the walk anchor); earlier inputs raise
+    ``ValidationError`` (deferred). The old 1992 Labuan rule is not
+    implemented (see module docstring).
     """
 
     def __init__(self, country: str | None = None) -> None:
@@ -215,6 +207,8 @@ class MabimsCalendar(HijriCalendar):
             raise ValidationError(
                 f"MabimsCalendar month must be within [1, 12], got {month}."
             )
+        if (year, month) < (_ANCHOR_YEAR, _ANCHOR_MONTH):
+            raise ValidationError(_DEFERRED_MESSAGE)
         start = resolve_month_start(self._country, year, month)
         end = resolve_month_start(self._country, *_next_month(year, month))
         length = end - start
@@ -231,11 +225,14 @@ class MabimsCalendar(HijriCalendar):
     def from_gregorian(self, d: date) -> HijriDate:
         if not isinstance(d, date):
             raise ValidationError(f"MabimsCalendar needs a datetime.date, got {d!r}.")
+        if d < _ANCHOR_GREGORIAN:
+            raise ValidationError(_DEFERRED_MESSAGE)
         # Tabular seed: the true (observational) date sits within +/-4
         # days of it (spec section 4), hence within the seed month or its
         # immediate neighbours; probes at +/-2 months add wide margin.
-        # Exhaustion means the seed assumption broke: loud failure, never
-        # a silently extended window.
+        # Probes crossing the anchor raise ValidationError and are
+        # skipped (mirror UQU); exhaustion means the seed assumption
+        # broke: loud failure, never a silently extended window.
         seed = _TABULAR_SEED.from_gregorian(d)
         target = d.toordinal()
         probed: list[str] = []
@@ -248,8 +245,13 @@ class MabimsCalendar(HijriCalendar):
                     if step > 0
                     else _previous_month(year, month)
                 )
-            start = resolve_month_start(self._country, year, month)
-            end = resolve_month_start(self._country, *_next_month(year, month))
+            if (year, month) < (_ANCHOR_YEAR, _ANCHOR_MONTH):
+                continue  # Probe crossed the anchor; skip it.
+            try:
+                start = resolve_month_start(self._country, year, month)
+                end = resolve_month_start(self._country, *_next_month(year, month))
+            except ValidationError:
+                continue  # Probe crossed the anchor; skip it.
             probed.append(
                 f"{year}-{month:02d}=" f"{date.fromordinal(start).isoformat()}"
             )

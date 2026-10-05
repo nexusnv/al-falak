@@ -130,7 +130,13 @@ country, pinned at 4 dp for v1 (documented as proxies, not per-zone truth):
 Rule on the 29th evening at the country ref, via existing
 `crescent_geometry_at_sunset` + `is_neo_mabims_2021(moon_alt_topo_deg, arcl_deg)`:
 `alt >= 3.0° and elong >= 6.4°` at local sunset → new month next day, else 30 days.
-Month walking identical in structure to §3.3 with the country ref substituted. Old
+Month walking is forward-only from the anchor 1 Muharram 1445H = 19 July 2023
+(observed in all four member countries), identical in structure to §3.3 with the
+country ref substituted: the anchor is the support floor, and any input mapping
+before it raises `ValidationError` (deferred, mirror of the UQU pre-1423H guard).
+Backward walking is explicitly out of scope — a backward single-probe rule cannot
+reconstruct the true 29th evening (a visible 30th evening is indistinguishable from
+a visible 29th), so it systematically misreads 30-day months as 29-day ones. Old
 1992 Labuan rule (`2°/3°-or-8 h`) is not implemented; the docstring records it as the
 superseded predecessor for migration context.
 
@@ -195,8 +201,11 @@ correction only); the reverse direction is always the unshifted calendar rule.
   `1900-01-01..2100-12-31`); UQU accepts only inputs mapping on/after the 1423H
   epoch (Gregorian `>= 2002-03-15`; anything earlier — including a month-walk probe
   that would cross the epoch — raises the explicit "deferred" message);
-  MABIMS accepts the same Gregorian floor as tabular, with golden coverage
-  `1900-01-01..2100-12-31` (geometry outside the golden window is untested and
+  MABIMS accepts only inputs mapping on/after the 1445H anchor
+  (Gregorian `>= 2023-07-19`; anything earlier — including a month-walk probe
+  that would cross the anchor — raises the explicit deferred
+  "MABIMS calendar supports post-1445 dates only" message, mirror of the UQU
+  guard; geometry outside the golden window is untested and
   implementers must not silently extrapolate without a cited announcement);
   UQU pre-1423H input
   (explicit "deferred" message); computed 30th of a 29-day month.
@@ -225,7 +234,8 @@ correction only); the reverse direction is always the unshifted calendar rule.
   listed in-test (not hidden); pre-1423H input raises; no polar case (Makkah never polar).
 - MABIMS: per-country Ramadan/Syawal over 1–2 years vs MY/ID announcements, deltas
   listed; same-eve 1992-vs-2021 flip documented in a test comment; all four country refs
-  produce `month_length in {29, 30}` over a full Hijri year.
+  produce `month_length in {29, 30}` over a full Hijri year; pre-1445H input raises
+  (forward-only walk from the 1445 anchor; backward walking deferred as unsound).
 - Bridge: same civil date at Maghrib−5 min and Maghrib+5 min maps to successive Hijri
   days when on, the same day when off; naive-datetime-as-UTC documented in-test.
 - Offsets: ±1/±2 shifts with month-boundary carry verified; unknown keys and value 0
