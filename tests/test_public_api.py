@@ -3,6 +3,15 @@ import pytest
 import alfalak
 from alfalak import PrayerTimes as RootPrayerTimes
 from alfalak import Qibla, SunnahTimes
+from alfalak.astronomy.CrescentGeometry import (
+    CrescentGeometry,
+    crescent_geometry_at_sunset,
+)
+from alfalak.astronomy.DeltaT import delta_t
+from alfalak.astronomy.LunarCoordinates import LunarCoordinates
+from alfalak.astronomy.Mabims import is_mabims_1992, is_neo_mabims_2021
+from alfalak.astronomy.Odeh import odeh_class, odeh_v
+from alfalak.astronomy.Yallop import yallop_q, yallop_zone
 from alfalak.exceptions import (
     AlFalakError,
     AstronomicalError,
@@ -39,6 +48,16 @@ def test_root_exports_match_all():
         "PrayerAdjustments",
         "Coordinates",
         "Prayer",
+        "LunarCoordinates",
+        "CrescentGeometry",
+        "crescent_geometry_at_sunset",
+        "delta_t",
+        "yallop_q",
+        "yallop_zone",
+        "odeh_v",
+        "odeh_class",
+        "is_neo_mabims_2021",
+        "is_mabims_1992",
     ]
     assert {
         "AlFalakError": AlFalakError,
@@ -56,6 +75,16 @@ def test_root_exports_match_all():
         "PrayerAdjustments": PrayerAdjustments,
         "Coordinates": Coordinates,
         "Prayer": Prayer,
+        "LunarCoordinates": LunarCoordinates,
+        "CrescentGeometry": CrescentGeometry,
+        "crescent_geometry_at_sunset": crescent_geometry_at_sunset,
+        "delta_t": delta_t,
+        "yallop_q": yallop_q,
+        "yallop_zone": yallop_zone,
+        "odeh_v": odeh_v,
+        "odeh_class": odeh_class,
+        "is_neo_mabims_2021": is_neo_mabims_2021,
+        "is_mabims_1992": is_mabims_1992,
     } == {name: getattr(alfalak, name) for name in alfalak.__all__}
     assert alfalak.PrayerTimes is RootPrayerTimes
 
