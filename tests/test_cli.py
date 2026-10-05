@@ -1,3 +1,4 @@
+import re
 import subprocess
 import sys
 
@@ -226,3 +227,63 @@ def test_cli_hijri_help_states_distinctions(capsys):
     assert "UMM_AL_QURA" in text  # calendar-vs-prayer-preset distinction
     assert "1-2" in text  # tabular-vs-observed caveat
     assert "UTC" in text  # naive wall-clock treated as UTC
+
+
+def test_cli_hijri_invalid_time_rejected():
+    with pytest.raises(SystemExit) as excinfo:
+        main(
+            [
+                "hijri",
+                "--date",
+                "2025-03-01",
+                "--calendar",
+                "tabular",
+                "--sunset-transition",
+                "--lat",
+                "3.1390",
+                "--lon",
+                "101.6869",
+                "--time",
+                "bogus",
+            ]
+        )
+    assert excinfo.value.code == 2
+
+
+def test_cli_hijri_defaults_to_today(capsys):
+    main(["hijri", "--calendar", "tabular"])
+    out = capsys.readouterr().out
+    assert re.fullmatch(r"hijri=\d{4}-\d{2}-\d{2}\ncalendar=tabular\n", out)
+
+
+def test_cli_hijri_rejects_bad_date():
+    with pytest.raises(SystemExit) as excinfo:
+        main(["hijri", "--date", "not-a-date", "--calendar", "tabular"])
+    assert excinfo.value.code == 2
+
+
+def test_cli_hijri_lat_lon_require_transition():
+    with pytest.raises(ConfigurationError, match="sunset-transition"):
+        main(
+            [
+                "hijri",
+                "--date",
+                "2025-03-01",
+                "--calendar",
+                "tabular",
+                "--lat",
+                "3.1390",
+                "--lon",
+                "101.6869",
+            ]
+        )
+
+
+def test_cli_main_guard(monkeypatch, capsys):
+    import runpy
+
+    monkeypatch.setattr(
+        sys, "argv", ["al-falak", "--latitude", "35", "--longitude", "-78"]
+    )
+    runpy.run_module("alfalak", run_name="__main__")
+    assert "fajr=" in capsys.readouterr().out

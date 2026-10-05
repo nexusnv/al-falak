@@ -168,3 +168,105 @@ def test_uqu_factory_returns_real_calendar() -> None:
     cal = get_calendar("uqu")
     assert isinstance(cal, UmmAlQuraCalendar)
     assert cal.name == "uqu"
+
+
+def test_uqu_month_length_rejects_bad_inputs() -> None:
+    cal = UmmAlQuraCalendar()
+    with pytest.raises(ValidationError):
+        cal.month_length("1446", 9)  # type: ignore[arg-type]
+    with pytest.raises(ValidationError):
+        cal.month_length(1446, "9")  # type: ignore[arg-type]
+    with pytest.raises(ValidationError):
+        cal.month_length(True, 9)  # type: ignore[arg-type]
+    with pytest.raises(ValidationError):
+        cal.month_length(1446, False)  # type: ignore[arg-type]
+    with pytest.raises(ValidationError):
+        cal.month_length(0, 1)
+    with pytest.raises(ValidationError):
+        cal.month_length(1446, 0)
+    with pytest.raises(ValidationError):
+        cal.month_length(1446, 13)
+
+
+def test_uqu_converters_reject_wrong_types() -> None:
+    cal = UmmAlQuraCalendar()
+    with pytest.raises(ValidationError):
+        cal.from_gregorian("2025-03-01")  # type: ignore[arg-type]
+    with pytest.raises(ValidationError):
+        cal.to_gregorian("1446-09-01")  # type: ignore[arg-type]
+
+
+def test_uqu_month_start_ordinal_rejects_pre_epoch() -> None:
+    # Defense in depth: the cached ordinal lookup itself refuses pre-1423H
+    # months even though every public caller validates first.
+    with pytest.raises(ValidationError, match="post-1423H"):
+        uqu_module._month_start_ordinal(1422, 12)
+
+
+def test_uqu_month_start_window_guard(monkeypatch: pytest.MonkeyPatch) -> None:
+    # A tabular seed outside the +/-4-day window trips the month-start
+    # guard instead of returning a wrong date.
+
+    class _FarSeed:
+        def to_gregorian(self, h: HijriDate) -> date:
+            return date(2025, 6, 1)
+
+    monkeypatch.setattr(uqu_module, "_TABULAR_SEED", _FarSeed())
+    with pytest.raises(AstronomicalError, match="search exhausted"):
+        uqu_module._month_start(1446, 9)
+
+
+def test_uqu_from_gregorian_clamps_stale_tabular_seed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # The real tabular seed coincides with the UQU epoch at 2002-03-15, so
+    # a pre-1423H seed is unreachable through it; a synthetic stale seed
+    # exercises the epoch-clamp defense (seed := 1423-01-01).
+    real = uqu_module._TABULAR_SEED
+
+    class _StaleSeed:
+        def from_gregorian(self, d: date) -> HijriDate:
+            return HijriDate(1422, 12, 30)
+
+        def to_gregorian(self, h: HijriDate) -> date:
+            return real.to_gregorian(h)
+
+    monkeypatch.setattr(uqu_module, "_TABULAR_SEED", _StaleSeed())
+    assert UmmAlQuraCalendar().from_gregorian(date(2002, 3, 16)) == HijriDate(
+        1423, 1, 2
+    )
+
+
+def test_uqu_from_gregorian_skips_invalid_candidate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # One poisoned month-start lookup is skipped; the search still lands on
+    # the true date (1 Ramadan 1446 = 2025-03-01, pinned by the spotcheck).
+    cal = UmmAlQuraCalendar()
+    real = cal.to_gregorian
+    calls = 0
+
+    def flaky(candidate: HijriDate) -> date:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise ValidationError("synthetic invalid candidate")
+        return real(candidate)
+
+    monkeypatch.setattr(cal, "to_gregorian", flaky)
+    assert cal.from_gregorian(date(2025, 3, 1)) == HijriDate(1446, 9, 1)
+    assert calls > 1
+
+
+def test_uqu_from_gregorian_exhausted_search_reports_window(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Every probe crosses the epoch (synthetic total crossing): the loop
+    # skips them all and the exhausted search names the window, falling
+    # back to the seed for both bounds.
+    def always_crossed(h: HijriDate, delta: int) -> HijriDate:
+        raise ValidationError("synthetic epoch crossing")
+
+    monkeypatch.setattr(uqu_module, "_shift_hijri", always_crossed)
+    with pytest.raises(AstronomicalError, match="search exhausted"):
+        UmmAlQuraCalendar().from_gregorian(date(2025, 3, 1))

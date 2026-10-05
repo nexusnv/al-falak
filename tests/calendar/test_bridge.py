@@ -138,3 +138,8 @@ def test_bridge_offsets_applied_last_via_duck_typing() -> None:
     )
     assert result == cal.from_gregorian(DAY.date())
     assert calls == [(result, cal)]
+
+
+def test_bridge_offsets_without_apply_raises() -> None:
+    with pytest.raises(ConfigurationError):
+        gregorian_to_hijri(DAY, calendar=TabularCalendar(), offsets=object())

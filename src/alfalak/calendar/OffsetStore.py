@@ -86,7 +86,10 @@ class OffsetStore:
 
     def __init__(self, offsets: dict[str, int] | None = None) -> None:
         raw: dict[Any, Any] = dict(offsets) if offsets is not None else {}
-        if not isinstance(raw, dict):
+        # Defensive: dict() above is total, so raw is always a dict; the
+        # guard stays as documentation, excluded from coverage like the
+        # unreachable guard in PrayerTimes.
+        if not isinstance(raw, dict):  # pragma: no cover - dict() is total
             raise ConfigurationError(
                 f"OffsetStore needs a dict[str, int] mapping, got {offsets!r}."
             )

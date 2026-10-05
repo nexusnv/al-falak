@@ -140,3 +140,25 @@ def test_tabular_month_length_rejects_bad_inputs() -> None:
         cal.month_length(1446, 13)
     with pytest.raises(ValidationError):
         cal.month_length(0, 1)
+    with pytest.raises(ValidationError):
+        cal.month_length("1446", 1)  # type: ignore[arg-type]
+    with pytest.raises(ValidationError):
+        cal.month_length(1446, "1")  # type: ignore[arg-type]
+    with pytest.raises(ValidationError):
+        cal.month_length(True, 1)  # type: ignore[arg-type]
+    with pytest.raises(ValidationError):
+        cal.month_length(1446, False)  # type: ignore[arg-type]
+
+
+def test_tabular_from_gregorian_rejects_non_date() -> None:
+    cal = TabularCalendar()
+    with pytest.raises(ValidationError):
+        cal.from_gregorian("2025-03-01")  # type: ignore[arg-type]
+    with pytest.raises(ValidationError):
+        cal.from_gregorian(None)  # type: ignore[arg-type]
+
+
+def test_tabular_to_gregorian_rejects_non_hijri() -> None:
+    cal = TabularCalendar()
+    with pytest.raises(ValidationError):
+        cal.to_gregorian("1446-09-01")  # type: ignore[arg-type]

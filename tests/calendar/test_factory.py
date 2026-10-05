@@ -1,5 +1,8 @@
 """Tests for the calendar factory / registry sentinels (phase-5 task 1)."""
 
+import sys
+from datetime import date
+
 import pytest
 
 from alfalak.calendar import (
@@ -8,6 +11,8 @@ from alfalak.calendar import (
     TabularCalendar,
     get_calendar,
 )
+from alfalak.calendar.HijriCalendar import _DeferredCalendar
+from alfalak.calendar.HijriDate import HijriDate
 from alfalak.exceptions import ConfigurationError, ValidationError
 
 
@@ -64,3 +69,54 @@ def test_calendars_registry_keys() -> None:
     assert CALENDARS["tabular"] is TabularCalendar
     assert issubclass(CALENDARS["uqu"], HijriCalendar)
     assert issubclass(CALENDARS["mabims"], HijriCalendar)
+
+
+class _BareCalendar(HijriCalendar):
+    """Minimal subclass delegating to the ABC bodies (covers them)."""
+
+    @property
+    def name(self) -> str:
+        return super().name
+
+    def from_gregorian(self, d: date) -> HijriDate:
+        return super().from_gregorian(d)
+
+    def to_gregorian(self, h: HijriDate) -> date:
+        return super().to_gregorian(h)
+
+    def month_length(self, year: int, month: int) -> int:
+        return super().month_length(year, month)
+
+
+def test_abstract_bodies_raise_not_implemented() -> None:
+    bare = _BareCalendar()
+    with pytest.raises(NotImplementedError):
+        _ = bare.name
+    with pytest.raises(NotImplementedError):
+        bare.from_gregorian(date(2025, 3, 1))
+    with pytest.raises(NotImplementedError):
+        bare.to_gregorian(HijriDate(1446, 9, 1))
+    with pytest.raises(NotImplementedError):
+        bare.month_length(1446, 9)
+
+
+def test_deferred_calendar_reports_registered_but_unimplemented() -> None:
+    cal = _DeferredCalendar("mabims")
+    assert cal.name == "mabims"
+    with pytest.raises(ConfigurationError, match="not implemented"):
+        cal.from_gregorian(date(2025, 3, 1))
+    with pytest.raises(ConfigurationError, match="not implemented"):
+        cal.to_gregorian(HijriDate(1446, 9, 1))
+    with pytest.raises(ConfigurationError, match="not implemented"):
+        cal.month_length(1446, 9)
+
+
+def test_factory_mabims_rule_missing_returns_deferred(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setitem(sys.modules, "alfalak.calendar.MabimsCalendar", None)
+    cal = get_calendar("mabims", country="MY")
+    assert isinstance(cal, _DeferredCalendar)
+    assert cal.name == "mabims"
+    with pytest.raises(ConfigurationError, match="not implemented"):
+        cal.from_gregorian(date(2025, 3, 1))

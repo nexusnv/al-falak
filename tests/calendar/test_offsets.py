@@ -9,7 +9,7 @@ from alfalak.calendar.HijriDate import HijriDate
 from alfalak.calendar.OffsetStore import OffsetStore
 from alfalak.calendar.TabularCalendar import TabularCalendar
 from alfalak.calendar.bridge import gregorian_to_hijri
-from alfalak.exceptions import ConfigurationError
+from alfalak.exceptions import ConfigurationError, ValidationError
 
 
 def test_offsets_plus1_minus2_month_boundary_carry() -> None:
@@ -149,3 +149,27 @@ def test_offsets_from_file_alias_matches_from_json(tmp_path: object) -> None:
     cal = TabularCalendar()
     hijri = HijriDate(1446, 2, 15)
     assert via_json.apply(hijri, cal) == via_file.apply(hijri, cal)
+
+
+def test_offsets_from_dict_rejects_non_dict() -> None:
+    with pytest.raises(ConfigurationError):
+        OffsetStore.from_dict(["1446-02"])  # type: ignore[arg-type]
+    with pytest.raises(ConfigurationError):
+        OffsetStore.from_dict("1446-02")  # type: ignore[arg-type]
+
+
+def test_offsets_non_utf8_file_raises(tmp_path: object) -> None:
+    from pathlib import Path
+
+    assert isinstance(tmp_path, Path)
+    path = tmp_path / "offsets.json"
+    path.write_bytes(b'{"1446-02": \xff}')
+    with pytest.raises(ConfigurationError) as excinfo:
+        OffsetStore.from_json(path)
+    assert str(path) in str(excinfo.value)
+
+
+def test_offsets_apply_rejects_non_hijri() -> None:
+    store = OffsetStore.from_dict({"1446-02": 1})
+    with pytest.raises(ValidationError):
+        store.apply("1446-02-15", TabularCalendar())  # type: ignore[arg-type]
