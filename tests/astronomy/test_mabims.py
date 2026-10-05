@@ -75,15 +75,18 @@ def test_old_exact_boundaries():
 def test_criteria_agreement_matrix():
     # Goldens recorded 2026-10-05 from a live run at local sunset (see
     # CrescentGeometry.crescent_geometry_at_sunset), verified sane: Makkah
-    # 2025-02-28 (Ramadan-eve crescent, ARCL ~8.4 deg, moon_alt ~6.2 deg)
-    # is visible under both MABIMS rules (Odeh C: optical aid); KL on the
-    # same evening (ARCL ~6.2 deg, moon_alt ~3.9 deg, age ~10 h) passes
+    # 2025-02-28 (Ramadan-eve crescent, ARCL ~8.4 deg, moon_alt ~6.5 deg,
+    # q ~-0.24) is visible under both MABIMS rules (Yallop E: beyond
+    # conventional telescopes at sunset, Odeh C: optical aid — sunset q is
+    # conservative since ARCV keeps growing after sunset); KL on the same
+    # evening (ARCL ~6.2 deg, moon_alt ~4.3 deg, age ~10 h) passes
     # old-MABIMS (alt/elong branch, and the age>=8 h branch) but not
     # Neo-MABIMS (elongation below 6.4); 2025-03-29 (solar-eclipse new
     # moon) is invisible under every criterion (Yallop F, Odeh D).
+    # The 1992 age input is the age *at moonset*, per the rule's letter.
     cases = [
         (date(2025, 2, 28), 3.1390, 101.6869, "F", "D", False, True),
-        (date(2025, 2, 28), 21.4225, 39.8262, "F", "C", True, True),
+        (date(2025, 2, 28), 21.4225, 39.8262, "E", "C", True, True),
         (date(2025, 3, 29), 3.1390, 101.6869, "F", "D", False, False),
         (date(2025, 3, 29), 21.4225, 39.8262, "F", "D", False, False),
     ]
@@ -93,8 +96,11 @@ def test_criteria_agreement_matrix():
         zone = yallop_zone(yallop_q(g.arcv_geo_deg, g.width_arcmin))
         odeh = odeh_class(odeh_v(g.arcv_topo_deg, g.width_arcmin), g.arcl_deg)
         moon_alt = g.moon_alt_topo_deg
+        assert math.isfinite(g.moon_age_at_moonset_days)
         neo = is_neo_mabims_2021(moon_alt, g.arcl_deg)
-        old = is_mabims_1992(moon_alt, g.arcl_deg, g.moon_age_days * 24.0)
+        old = is_mabims_1992(
+            moon_alt, g.arcl_deg, g.moon_age_at_moonset_days * 24.0
+        )
         assert type(neo) is bool
         assert type(old) is bool
         assert math.isfinite(moon_alt)

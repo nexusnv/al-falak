@@ -4,7 +4,10 @@ Implements the low-precision geocentric lunar position: mean elements
 (L', D, M, M', F) plus the periodic terms of Table 47.A (longitude and
 distance, 60 rows) and Table 47.B (latitude, 60 rows), merged below into a
 single list. Units as printed in the book: angle coefficients in 1e-6
-degree, distance coefficients in metres (0.001 km).
+degree, distance coefficients in metres (0.001 km). Each row's
+coefficients are scaled by E^|m| (eq. 47.6, m the row's solar-anomaly
+multiplier), and the Venus/Jupiter/Earth-figure additive corrections
+(p. 338) are applied to longitude and latitude.
 
 Validated against Meeus Example 47.a (JDE 2448724.5 -> λ=133.167265°,
 β=-3.229126°, Δ=368409.7 km).
@@ -148,8 +151,10 @@ TABLE_47_TERMS: list[tuple[int, int, int, int, int, int, int]] = [
 ]
 
 # Backwards-compatible alias: the merged list was previously (mis)named
-# TABLE_47A even though it holds Tables 47.A and 47.B. Same object (not a
-# copy) so monkeypatching either name affects the computation.
+# TABLE_47A even though it holds Tables 47.A and 47.B. Same list object,
+# so in-place edits (append/extend) are visible under both names;
+# rebinding one name does not affect the other (standard module-global
+# semantics). The computation always reads TABLE_47_TERMS.
 TABLE_47A = TABLE_47_TERMS
 
 
@@ -164,12 +169,41 @@ class LunarCoordinates:
         M = unwind_angle(357.5291092 + 35999.0502909 * T - 0.0001536 * T * T)
         Mp = unwind_angle(134.9633964 + 477198.8675055 * T + 0.0087414 * T * T)
         F = unwind_angle(93.2720950 + 483202.0175233 * T - 0.0036539 * T * T)
+        # Eccentricity factor for terms holding the solar mean anomaly
+        # (Meeus eq. 47.6): E^|m| with m the row's M coefficient.
+        e_factor_base = 1.0 - 0.002516 * T - 0.0000074 * T * T
+        e_factor_sq = e_factor_base * e_factor_base
         sl = sb = sr = 0.0
         for d, m, mp, f, cl, cb, cr in TABLE_47_TERMS:
             arg = math.radians(d * D + m * M + mp * Mp + f * F)
-            sl += cl * math.sin(arg)
-            sb += cb * math.sin(arg)
-            sr += cr * math.cos(arg)
+            m_abs = abs(m)
+            e_factor = (
+                e_factor_base if m_abs == 1 else (e_factor_sq if m_abs == 2 else 1.0)
+            )
+            sl += e_factor * cl * math.sin(arg)
+            sb += e_factor * cb * math.sin(arg)
+            sr += e_factor * cr * math.cos(arg)
+        # Additive Venus/Jupiter/Earth-figure corrections (Meeus p. 338),
+        # in 1e-6 degree like the table sums above.
+        a1 = math.radians(unwind_angle(119.75 + 131.849 * T))
+        a2 = math.radians(unwind_angle(53.09 + 479264.290 * T))
+        a3 = math.radians(unwind_angle(313.45 + 481266.484 * T))
+        lp_rad = math.radians(Lp)
+        f_rad = math.radians(F)
+        mp_rad = math.radians(Mp)
+        sl += (
+            3958.0 * math.sin(a1)
+            + 1962.0 * math.sin(lp_rad - f_rad)
+            + 318.0 * math.sin(a2)
+        )
+        sb += (
+            -2235.0 * math.sin(lp_rad)
+            + 382.0 * math.sin(a3)
+            + 175.0 * math.sin(a1 - f_rad)
+            + 175.0 * math.sin(a1 + f_rad)
+            + 127.0 * math.sin(lp_rad - mp_rad)
+            - 115.0 * math.sin(lp_rad + mp_rad)
+        )
         self.longitude: float = unwind_angle(Lp + sl / 1e6)
         self.latitude: float = sb / 1e6
         self.distance_km: float = 385000.56 + sr / 1000.0

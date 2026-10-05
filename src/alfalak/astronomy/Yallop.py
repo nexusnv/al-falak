@@ -1,10 +1,11 @@
 """Yallop crescent-visibility criterion (best-time q and zones A-F).
 
 q measures how far the geocentric arc of vision (ARCV, in degrees)
-lies above the width-dependent visibility limit curve::
+lies above the width-dependent visibility limit curve, scaled by 10
+(Yallop 1997, NAO TN No.69, eq. 6.1)::
 
     limit = -0.1018*w^3 + 0.7319*w^2 - 6.3226*w + 11.8371
-    q = arcv_geo_deg - limit
+    q = (arcv_geo_deg - limit) / 10
 
 with ``w`` the topocentric crescent width in arcminutes. Positive q
 favours visibility; the zone maps q to the Yallop visibility class
@@ -25,7 +26,8 @@ def yallop_q(arcv_geo_deg: float, width_arcmin: float) -> float:
         )
     w = max(width, 1e-6)
     limit = -0.1018 * w**3 + 0.7319 * w**2 - 6.3226 * w + 11.8371
-    return arcv - limit
+    # Yallop (1997) eq. 6.1 scales q by 1/10 to confine it roughly to [-1, 1].
+    return (arcv - limit) / 10.0
 
 
 def yallop_zone(q: float) -> str:

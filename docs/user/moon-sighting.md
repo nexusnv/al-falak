@@ -27,7 +27,7 @@ print(f"moon age: {geometry.moon_age_days * 24:.1f} h")
 
 ```
 elongation: 6.17°
-moonset lag: 0.39 h after sunset
+moonset lag: 0.41 h after sunset
 moon age: 10.0 h
 ```
 
@@ -44,7 +44,8 @@ moon age: 10.0 h
 | `width_arcmin` | Crescent width in arcminutes |
 | `illumination` | Illuminated fraction of the lunar disc, [0, 1] |
 | `lag_hours` | Sunset-to-moonset hours (negative = Moon sets first; `NaN` = no moonset) |
-| `moon_age_days` | Days since the previous new moon |
+| `moon_age_days` | Days since the previous new moon (at sunset) |
+| `moon_age_at_moonset_days` | Moon age at moonset (`NaN` = no moonset) — the MABIMS 1992 age input |
 | `used_delta_t_s` | Delta-T value used for the TT conversion |
 | `sunset_jd_utc` | Julian Date (UTC) of local sunset |
 
@@ -59,12 +60,13 @@ from alfalak import (
 q = yallop_q(geometry.arcv_geo_deg, geometry.width_arcmin)
 v = odeh_v(geometry.arcv_topo_deg, geometry.width_arcmin)
 moon_alt = geometry.moon_alt_topo_deg
+age_hours = geometry.moon_age_at_moonset_days * 24.0
 
 print(yallop_zone(q))                                        # 'F' for this evening
 print(odeh_class(v, geometry.arcl_deg))                      # 'D' for this evening
 print(is_neo_mabims_2021(moon_alt, geometry.arcl_deg))       # False
 print(is_mabims_1992(moon_alt, geometry.arcl_deg,
-                     geometry.moon_age_days * 24.0))          # True (age branch)
+                     age_hours))                             # True (age branch)
 ```
 
 ### Yallop
@@ -105,11 +107,16 @@ Two presets from the Malaysia–Brunei–Indonesia–Singapore (MABIMS) practice
 - **Neo-MABIMS 2021:** visible when altitude ≥ 3° and elongation ≥ 6.4°.
 
 Both take the Moon's **altitude**, not ARCV — pass
-`geometry.moon_alt_topo_deg` directly. (ARCV is the Moon-minus-Sun altitude
-difference; deriving altitude from it via `arcv_topo − 0.83°` bakes in a
-~0.3° systematic bias because the ephemeris runs at TT while sunset is
-defined at UTC, so don't use that proxy.) Near a threshold, even arcminute
-differences matter — treat boundary calls as uncertain.
+`geometry.moon_alt_topo_deg` directly. Altitudes use UTC-based sidereal
+time with the TT ephemeris, so no ARCV-minus-sunset proxy is needed (or
+wanted: near a threshold, even arcminute differences matter — treat
+boundary calls as uncertain).
+
+The 1992 age branch is defined **at moonset** — pass
+`geometry.moon_age_at_moonset_days * 24.0`, not the sunset age (they
+differ by the lag, up to ~1 h). When `lag_hours` is `NaN` (no moonset
+that date) the moonset age is likewise `NaN` and the age branch is
+unevaluable: rely on the altitude/elongation branch instead.
 
 ## Reading the results
 

@@ -52,6 +52,7 @@ class CrescentGeometry:
     illumination: float
     lag_hours: float
     moon_age_days: float
+    moon_age_at_moonset_days: float
     used_delta_t_s: float
     sunset_jd_utc: float
 
@@ -102,38 +103,30 @@ def _arcl_at_jd(julian_day_tt: float) -> float:
     )
 
 
-def _moonset_lag_hours(
+def _moonset_jd_utc(
     year: int,
     month: int,
     day_of_month: int,
     coordinates: Coordinates,
     delta_t_s: float,
 ) -> float:
-    """Hours from sunset to moonset.
+    """UTC Julian date of moonset on the civil date; NaN when none occurs.
 
-    Negative when the Moon sets before the Sun (no evening visibility
-    window); NaN when no moonset occurs on that civil date (e.g. a
-    circumpolar Moon).
-
-    Time-base note: the lunar transit/hour-angle interpolation is anchored
-    at TT midnight (``julian_day(...) + delta_t_s / 86400``) because the
-    lunar ephemeris takes TT, while ``sunset`` comes from ``SolarTime``
-    anchored at UTC midnight (the prayer path treats UTC as TT, good to
-    ~1 min). Both instants are fractions of the same civil date so the
-    difference cancels most of the ~70 s offset; the residual ephemeris
-    drift over that shift is ~0.01 deg, negligible for visibility scoring.
-    Absolute altitudes carry the full LST shift (~0.3 deg), which is why
-    ``CrescentGeometry`` stores them instead of assuming ``-0.833`` deg.
+    Time bases are kept physical: Earth rotation (sidereal time) runs on
+    UTC/UT1 while the lunar ephemeris runs on TT. The residual of sampling
+    the lunar RA/Dec triple 70 s off the UTC interpolation grid is ~0.01
+    deg, negligible for visibility scoring; using TT for the sidereal
+    argument instead would bias every altitude by ~0.3 deg.
     """
     jd_midnight_utc = julian_day(year, month, day_of_month)
     jd_midnight_tt = jd_midnight_utc + delta_t_s / 86400.0
-    solar_ref = SolarCoordinates(jd_midnight_tt)
+    sidereal_ref = SolarCoordinates(jd_midnight_utc)
     moon_prev = LunarCoordinates(jd_midnight_tt - 1.0)
     moon_day = LunarCoordinates(jd_midnight_tt)
     moon_next = LunarCoordinates(jd_midnight_tt + 1.0)
     approx = approximate_transit(
         coordinates.longitude,
-        solar_ref.apparent_sidereal_time,
+        sidereal_ref.apparent_sidereal_time,
         moon_day.right_ascension,
     )
     moonset = corrected_hour_angle(
@@ -141,7 +134,7 @@ def _moonset_lag_hours(
         _SUNSET_ALTITUDE_DEG,
         coordinates,
         True,
-        solar_ref.apparent_sidereal_time,
+        sidereal_ref.apparent_sidereal_time,
         moon_day.right_ascension,
         moon_prev.right_ascension,
         moon_next.right_ascension,
@@ -149,10 +142,9 @@ def _moonset_lag_hours(
         moon_prev.declination,
         moon_next.declination,
     )
-    sunset = SolarTime(DateComponents(year, month, day_of_month), coordinates).sunset
-    if math.isnan(moonset) or math.isnan(sunset):
+    if math.isnan(moonset):
         return math.nan
-    return moonset - sunset
+    return jd_midnight_utc + moonset / 24.0
 
 
 def _moon_age_days(julian_day_tt: float) -> float:
@@ -196,6 +188,12 @@ def crescent_geometry_at_sunset(
 
     A ``datetime`` is accepted and its calendar date is used (the time
     component is ignored).
+
+    ``lag_hours`` is negative when the Moon sets before the Sun and NaN
+    when no moonset occurs on that civil date. ``moon_age_at_moonset_days``
+    is the sunset age advanced by the lag (NaN when there is no moonset):
+    feed it — not ``moon_age_days`` — to the MABIMS 1992 age branch, whose
+    rule is defined at moonset.
     """
     if not isinstance(day, date):
         raise ValidationError(f"day must be a datetime.date, got {day!r}.")
@@ -221,7 +219,12 @@ def crescent_geometry_at_sunset(
 
     sun = SolarCoordinates(jd_tt)
     moon = LunarCoordinates(jd_tt)
-    lst = unwind_angle(sun.apparent_sidereal_time + coordinates.longitude)
+    # Earth rotation on UTC/UT1, orbital ephemeris on TT: the local sidereal
+    # time must come from the UTC instant, not the TT one. Evaluating LST
+    # ~70 s of Delta-T too far ahead would bias both altitudes by ~0.3 deg
+    # in the same direction (ARCV mostly cancels, absolute altitudes don't).
+    sun_utc = SolarCoordinates(jd_sunset_utc)
+    lst = unwind_angle(sun_utc.apparent_sidereal_time + coordinates.longitude)
 
     sun_alt, sun_az = _altaz(
         coordinates.latitude, lst, sun.right_ascension, sun.declination
@@ -250,8 +253,24 @@ def crescent_geometry_at_sunset(
     width = semi_diameter_arcmin * (1.0 - math.cos(math.radians(arcl)))
     illumination = (1.0 - math.cos(math.radians(arcl))) / 2.0
 
-    lag_hours = _moonset_lag_hours(year, month, day_of_month, coordinates, dt)
+    moonset_jd_utc = _moonset_jd_utc(year, month, day_of_month, coordinates, dt)
     moon_age = _moon_age_days(jd_tt)
+
+    lag_hours: float
+    moon_age_at_moonset: float
+    if math.isnan(moonset_jd_utc):
+        # No moonset on this civil date (e.g. circumpolar Moon): no
+        # sunset-to-moonset window, and the MABIMS age-at-moonset is
+        # undefined (NaN fails loud in the predicates, never silently).
+        lag_hours = math.nan
+        moon_age_at_moonset = math.nan
+    else:
+        lag_hours = (moonset_jd_utc - julian_day(year, month, day_of_month)) * 24.0
+        lag_hours -= st.sunset
+        # Age is a time difference from a fixed conjunction instant, so the
+        # moonset age is exactly the sunset age plus the lag. Same 0.1-day
+        # reporting floor as the sunset age.
+        moon_age_at_moonset = max(_MOON_AGE_MIN_DAYS, moon_age + lag_hours / 24.0)
 
     return CrescentGeometry(
         arcl_deg=arcl,
@@ -264,6 +283,7 @@ def crescent_geometry_at_sunset(
         illumination=illumination,
         lag_hours=lag_hours,
         moon_age_days=moon_age,
+        moon_age_at_moonset_days=moon_age_at_moonset,
         used_delta_t_s=dt,
         sunset_jd_utc=jd_sunset_utc,
     )

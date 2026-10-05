@@ -40,9 +40,11 @@ def test_altitude_fields_consistent_with_arcv() -> None:
     assert geometry.moon_alt_topo_deg - geometry.sun_alt_deg == pytest.approx(
         geometry.arcv_topo_deg, rel=1e-12
     )
-    # Sun sits near (not exactly at) the -0.833 deg sunset depression:
-    # the ephemeris runs at TT while sunset is defined at UTC.
-    assert geometry.sun_alt_deg == pytest.approx(-50.0 / 60.0, abs=0.5)
+    # Sun sits at the -0.833 deg sunset depression: Earth rotation runs on
+    # UTC while only the ephemeris runs on TT, so the TT/UTC split leaves
+    # the Sun's altitude at its defining value (up to ephemeris drift over
+    # ~70 s, ~0.001 deg).
+    assert geometry.sun_alt_deg == pytest.approx(-50.0 / 60.0, abs=0.05)
 
 
 def test_polar_night_without_sunset_raises() -> None:
@@ -84,14 +86,31 @@ def test_moon_age_eclipse_day_hits_floor() -> None:
 
 
 def test_lag_negative_when_moon_sets_first() -> None:
-    # Eclipse evening over KL: the Moon sets ~3 minutes before the Sun
+    # Eclipse evening over KL: the Moon sets ~1-2 minutes before the Sun
     # (no evening visibility window). Must stay negative and not be
     # clamped to 0.0, which means "no moonset" below.
     geometry = crescent_geometry_at_sunset(
         date(2025, 3, 29), Coordinates(3.1390, 101.6869)
     )
     assert geometry.lag_hours < 0.0
-    assert geometry.lag_hours == pytest.approx(-0.044, abs=0.05)
+    assert geometry.lag_hours == pytest.approx(-0.023, abs=0.05)
+
+
+def test_moon_age_at_moonset_advances_sunset_age_by_lag() -> None:
+    # The 1992 MABIMS age branch is defined at moonset: the stored
+    # moonset age is exactly the sunset age plus the lag (same 0.1-day
+    # reporting floor). NaN lag (no moonset) gives NaN age.
+    geometry = crescent_geometry_at_sunset(
+        date(2025, 2, 28), Coordinates(3.1390, 101.6869)
+    )
+    assert geometry.moon_age_at_moonset_days == pytest.approx(
+        max(0.1, geometry.moon_age_days + geometry.lag_hours / 24.0), rel=1e-12
+    )
+    assert geometry.moon_age_at_moonset_days > geometry.moon_age_days
+    no_moonset = crescent_geometry_at_sunset(
+        date(2025, 1, 15), Coordinates(69.6492, 18.9553)
+    )
+    assert math.isnan(no_moonset.moon_age_at_moonset_days)
 
 
 def test_lag_nan_when_moon_never_sets() -> None:

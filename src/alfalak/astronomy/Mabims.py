@@ -18,7 +18,15 @@ def is_neo_mabims_2021(alt_deg: float, elong_deg: float) -> bool:
 
 
 def is_mabims_1992(alt_deg: float, elong_deg: float, age_hours: float) -> bool:
-    """1992 MABIMS visibility: (alt >= 2 and elong >= 3) or age >= 8 hours."""
+    """1992 MABIMS visibility: (alt >= 2 and elong >= 3) or age >= 8 hours.
+
+    ``age_hours`` is the Moon's age at moonset (use
+    ``CrescentGeometry.moon_age_at_moonset_days * 24``); the sunset age is
+    up to ~1 h younger. Only apply the age branch post-conjunction: on a
+    pre-conjunction evening the age still counts from the *previous* new
+    moon (~29 days) and fires for a Moon with no evening window — check
+    ``lag_hours`` first (small positive lag, growing elongation).
+    """
     alt = require_finite_real(alt_deg, "alt_deg")
     elong = require_finite_real(elong_deg, "elong_deg")
     age = require_finite_real(age_hours, "age_hours")

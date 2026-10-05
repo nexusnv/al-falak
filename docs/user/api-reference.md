@@ -166,6 +166,7 @@ non-`date`/`Coordinates` inputs (or a non-finite override) raise
 | `illumination` | `float` | Illuminated fraction of the lunar disc [0, 1] |
 | `lag_hours` | `float` | Hours from sunset to moonset (negative when the Moon sets first; `NaN` when no moonset occurs on that date; large positives mean a gibbous/full Moon up well past sunset — the crescent signal is a small positive lag) |
 | `moon_age_days` | `float` | Days since the previous new moon (youngest hourly ARCL minimum over the prior 30 days) |
+| `moon_age_at_moonset_days` | `float` | Moon age at moonset (sunset age advanced by the lag; `NaN` when no moonset occurs) — feed this to the MABIMS 1992 age branch |
 | `used_delta_t_s` | `float` | Delta-T in seconds used for the TT conversion |
 | `sunset_jd_utc` | `float` | Julian Date (UTC) of local sunset |
 
