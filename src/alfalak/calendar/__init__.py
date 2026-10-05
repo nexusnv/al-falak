@@ -8,6 +8,7 @@ from alfalak.calendar.HijriCalendar import (
 from alfalak.calendar.HijriDate import HijriDate
 from alfalak.calendar.MabimsCalendar import MabimsCalendar
 from alfalak.calendar.TabularCalendar import TabularCalendar
+from alfalak.calendar.UmmAlQuraCalendar import UmmAlQuraCalendar
 
 __all__ = [
     "CALENDARS",
@@ -15,5 +16,6 @@ __all__ = [
     "HijriDate",
     "MabimsCalendar",
     "TabularCalendar",
+    "UmmAlQuraCalendar",
     "get_calendar",
 ]

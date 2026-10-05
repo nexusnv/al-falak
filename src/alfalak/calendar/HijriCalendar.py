@@ -108,14 +108,8 @@ def get_calendar(
 
         return TabularCalendar(adjustment_days=adjustment_days)
     if name == "uqu":
-        try:
-            # Module lands in a later increment; drop the ignores when it
-            # does. (type: ignore must sit on the import line itself.)
-            from alfalak.calendar.UmmAlQuraCalendar import (  # type: ignore[import-not-found]
-                UmmAlQuraCalendar,
-            )
-        except ImportError:
-            return _DeferredCalendar("uqu")
+        from alfalak.calendar.UmmAlQuraCalendar import UmmAlQuraCalendar
+
         return UmmAlQuraCalendar()
     try:
         from alfalak.calendar.MabimsCalendar import (  # type: ignore[import-not-found]
@@ -132,12 +126,12 @@ def get_calendar(
 # so later increments wire up without touching this file.
 from alfalak.calendar.MabimsCalendar import MabimsCalendar  # noqa: E402
 from alfalak.calendar.TabularCalendar import TabularCalendar  # noqa: E402
+from alfalak.calendar.UmmAlQuraCalendar import UmmAlQuraCalendar  # noqa: E402
 
 CALENDARS: dict[str, type[HijriCalendar]] = {
     "tabular": TabularCalendar,
-    # Provisional entries: replaced by the real rule classes when their
-    # modules land; keys are stable so registry-driven consumers
-    # (factory, CLI choices) need no changes.
-    "uqu": _DeferredCalendar,
+    # Keys are stable so registry-driven consumers (factory, CLI choices)
+    # need no changes as rule modules land.
+    "uqu": UmmAlQuraCalendar,
     "mabims": MabimsCalendar,
 }
