@@ -130,6 +130,7 @@ def get_calendar(
 # calendars import this module for the ABC; importing them any earlier
 # would be circular. Function-level imports inside get_calendar stay lazy
 # so later increments wire up without touching this file.
+from alfalak.calendar.MabimsCalendar import MabimsCalendar  # noqa: E402
 from alfalak.calendar.TabularCalendar import TabularCalendar  # noqa: E402
 
 CALENDARS: dict[str, type[HijriCalendar]] = {
@@ -138,5 +139,5 @@ CALENDARS: dict[str, type[HijriCalendar]] = {
     # modules land; keys are stable so registry-driven consumers
     # (factory, CLI choices) need no changes.
     "uqu": _DeferredCalendar,
-    "mabims": _DeferredCalendar,
+    "mabims": MabimsCalendar,
 }
