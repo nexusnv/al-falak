@@ -28,6 +28,14 @@ from alfalak import (
     AstronomicalError,
     ConfigurationError,
     ValidationError,
+    HijriDate,
+    HijriCalendar,
+    TabularCalendar,
+    UmmAlQuraCalendar,
+    MabimsCalendar,
+    OffsetStore,
+    gregorian_to_hijri,
+    get_calendar,
 )
 ```
 
@@ -350,6 +358,28 @@ AlFalakError (base)
 ├── ConfigurationError
 └── ValidationError
 ```
+
+## Hijri calendars
+
+```python
+get_calendar(name: str, country: str | None = None, adjustment_days: int = 0)
+gregorian_to_hijri(dt, calendar=..., coordinates=None, change_at_sunset=False)
+```
+
+`get_calendar` resolves `"tabular"`, `"uqu"`, or `"mabims"` to a
+`HijriCalendar`. `country` (one of `MY`, `ID`, `BN`, `SG`) is required for
+— and only for — `MabimsCalendar`; `adjustment_days` (in [-2, 2]) is
+accepted only by `TabularCalendar`. Misuse raises `ConfigurationError`.
+
+`gregorian_to_hijri` converts a Gregorian datetime to a `HijriDate` on the
+given calendar. With `change_at_sunset=True` the Hijri day rolls over at
+that day's Maghrib (needs `coordinates`; Maghrib uses default
+`CalculationParameters`). Naive datetimes are treated as UTC.
+
+Calendar notes: the `UmmAlQuraCalendar` date converter (1423H rule at
+Makkah) is not the `UMM_AL_QURA` prayer preset. `TabularCalendar` is
+arithmetic and routinely differs from observed months by ±1-2 days.
+`OffsetStore` applies per-month (`YYYY-MM`) day shifts loaded from JSON.
 
 ## See also
 

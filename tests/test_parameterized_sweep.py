@@ -20,13 +20,17 @@ from alfalak import (
     CalculationParameters,
     Coordinates,
     HighLatitudeRule,
+    HijriDate,
     Madhab,
     PolarCircleRule,
     PrayerAdjustments,
     PrayerTimes,
     Qibla,
     SunnahTimes,
+    TabularCalendar,
     ValidationError,
+    get_calendar,
+    gregorian_to_hijri,
 )
 from alfalak.calculation.MethodsParameters import METHODS_PARAMETERS
 from alfalak.exceptions import AstronomicalError, ConfigurationError
@@ -635,3 +639,52 @@ class TestGeneratedAngles:
             ),
         )
         assert pt_wide.fajr <= pt.fajr, case_id
+
+
+HIJRI_SEED = SEED + 10
+HIJRI_START = datetime(1900, 1, 1, tzinfo=timezone.utc)
+HIJRI_END = datetime(2100, 12, 31, tzinfo=timezone.utc)
+
+
+def gen_hijri_tabular_cases(n=24):
+    rng = random.Random(HIJRI_SEED)
+    span = (HIJRI_END - HIJRI_START).days
+    cases = []
+    for i in range(n):
+        day = HIJRI_START + timedelta(days=rng.randrange(span + 1))
+        cases.append((f"G-HIJ-{i:03d}", day))
+    return cases
+
+
+class TestGeneratedHijriTabular:
+    """Property P7 (tabular Hijri, Type IIa): Gregorian -> Hijri ->
+    Gregorian round-trips; leap pattern holds (11 leaps per 30-year
+    cycle); fixed anchors pin the epoch and a modern month start."""
+
+    @pytest.mark.parametrize("case_id,day", gen_hijri_tabular_cases())
+    def test_tabular_roundtrip(self, case_id, day):
+        cal = TabularCalendar()
+        hijri = cal.from_gregorian(day.date())
+        assert cal.to_gregorian(hijri) == day.date(), case_id
+        assert gregorian_to_hijri(day, calendar=cal) == hijri, case_id
+
+    def test_tabular_leap_pattern(self):
+        cal = TabularCalendar()
+        expected = {2, 5, 7, 10, 13, 16, 18, 21, 24, 26, 29}
+        for cycle_start in (1, 31, 1411):
+            leaps = {
+                year - cycle_start + 1
+                for year in range(cycle_start, cycle_start + 30)
+                if cal.month_length(year, 12) == 30
+            }
+            assert leaps == expected
+
+    def test_tabular_anchors(self):
+        cal = TabularCalendar()
+        assert cal.from_gregorian(datetime(622, 7, 19).date()) == HijriDate(1, 1, 1)
+        assert gregorian_to_hijri(
+            datetime(2025, 3, 1, tzinfo=timezone.utc), calendar=cal
+        ) == HijriDate(1446, 9, 1)
+
+    def test_tabular_factory_identity(self):
+        assert isinstance(get_calendar("tabular"), TabularCalendar)
