@@ -52,9 +52,11 @@ Factory / registry in `HijriCalendar.py`:
 - `CALENDARS: dict[str, type[HijriCalendar]] =
   {"tabular": TabularCalendar, "uqu": UmmAlQuraCalendar, "mabims": MabimsCalendar}`.
 - `get_calendar(name, *, country=None, adjustment_days=0) -> HijriCalendar`.
-  Strict parameters: `country` accepted only for `mabims` (required there, rejected
-  elsewhere); `adjustment_days` accepted only for `tabular` (rejected elsewhere).
-  Misuse raises `ConfigurationError`. Adding Turkish Diyanet later is one subclass plus
+  Sentinel semantics (defaults never raise): `country is not None` for a non-`mabims`
+  calendar raises; `country is None` for `mabims` raises (required there).
+  `adjustment_days != 0` for a non-`tabular` calendar raises; the default `0` is
+  accepted everywhere and ignored outside `tabular`. Any other misuse raises
+  `ConfigurationError`. Adding Turkish Diyanet later is one subclass plus
   one registry line; bridge, offsets, and CLI resolve through the factory and gain the
   new calendar with no core changes.
 
@@ -91,16 +93,22 @@ routine ±1–2 day tabular-vs-observed variance.
 
 ### 3.3 `UmmAlQuraCalendar()` (post-1423H only)
 
-Fixed reference: Makkah, reusing the existing `MAKKAH` constant from `Qibla.py`
-(21.4225241, 39.8261818; canonical statement at 4 dp per the Phase-1 correction).
+Fixed reference: Makkah, reusing the existing `MAKKAH` constant from
+`data/Constants.py` (21.4225241, 39.8261818; canonical statement at 4 dp per the
+Phase-1 correction; `Qibla.py` only re-exports it — calendars must not import
+it from `Qibla`).
 Rule (van Gent / KACST, in force since 1423H / 15 Mar 2002): on the 29th of each Hijri
 month, if geocentric conjunction occurred before Makkah sunset AND the moon sets after
 Makkah sunset, the next day is the 1st of the new month; otherwise the month completes
 30 days. Implementation over existing `CrescentGeometry` fields at Makkah on the 29th
-evening: moonset-after-sunset is `lag_hours > 0`; conjunction-before-sunset is
+evening: moonset-after-sunset is `lag_hours > 0` (NaN lag is impossible at Makkah;
+if `lag_hours` is ever NaN here, propagate `AstronomicalError` — never decide a
+month length from it); conjunction-before-sunset is
 `moon_age_days < 15.0` (post-conjunction age on a 29th evening is 0–30 h, pre-conjunction
 age is ~28.5–29.5 d, so the 15-day midpoint is a side discriminator, not a visibility
-threshold). Month length follows directly: visible-rule true → 29 days, else 30.
+threshold). The `_moon_age_days` search-failure sentinel (`30.0`) must not be treated
+as a 30-day month: if `moon_age_days >= 30.0 - eps`, raise `AstronomicalError`
+naming the date and Makkah location instead of deciding. Month length follows directly otherwise: visible-rule true → 29 days, else 30.
 `from_gregorian`/`to_gregorian` walk month-starts from a tabular seed (bounded local
 search, §4). Any input mapping before the 1423H epoch raises
 `ValidationError("Umm al-Qura calendar supports post-1423H dates only")` — explicit
@@ -132,9 +140,15 @@ Date-only calendars speak `date`: `calendar.from_gregorian(d)` and
 `calendar.to_gregorian(h)`. Observational calendars resolve month-starts by evaluating
 their predicate on successive 29th evenings: starting from the tabular estimate for the
 target (±4-day search window, 1-day steps), find month-start dates, then select the
-containing month. Month-start JDs cache per `(calendar name, country, adjustment_days, hijri-year)` in a
-module-level dict; `CrescentGeometry` results cache per `(date, lat, lon)` because the
-lunar age backward search dominates cost (pure-Python, stdlib only; no new deps).
+containing month. If no month-start is found inside the window, raise
+`AstronomicalError` naming the tabular seed date, the window bounds, and the calendar
+key — never silently extend the window. Month-start results cache per Hijri month
+under key `(calendar name, country, adjustment_days, hijri-year, hijri-month)` in a
+`functools.lru_cache(maxsize=...)` (bounded; plus a `clear` hook for tests);
+`CrescentGeometry` results cache per `(date-iso, rounded lat/lon)` via `lru_cache`
+for the same reason — the lunar age backward search dominates cost (pure-Python,
+stdlib only; no new deps). Unbounded module-level dicts with raw-float keys are
+explicitly out of scope.
 
 Datetime handling lives in one free function in `bridge.py`:
 
@@ -144,30 +158,58 @@ change_at_sunset: bool = False, offsets: OffsetStore | None = None) -> HijriDate
 
 Default civil (`change_at_sunset=False`): uses `dt.date()` directly. When `True`,
 `coordinates` is required (`ConfigurationError` otherwise); the bridge computes that
-day's Maghrib via `PrayerTimes(coordinates, dt, params).maghrib` and advances the civil
+day's Maghrib via `PrayerTimes(coordinates, dt, calculation_parameters=params).maghrib`
+(keyword form — the third positional is `calculation_method`, not params; only the
+date part of `dt` feeds the prayer computation) and advances the civil
 date by one when `dt >= maghrib`, then delegates to `calendar.from_gregorian`.
-Naive datetimes are treated as UTC (matching the current prayer CLI convention);
-aware datetimes compare in their own frame against the Maghrib instant.
+Naive datetimes are normalized to UTC first (`dt.replace(tzinfo=timezone.utc)`) so the
+`>=` comparison never mixes naive and aware datetimes; aware datetimes compare in
+their own frame against the Maghrib instant (which is tz-aware UTC). This naive-as-UTC
+rule is new bridge semantics (the prayer CLI only ever uses the date part, so it sets
+no comparison precedent). Aware datetimes
+are strongly preferred when `change_at_sunset=True`: a naive local-time input misplaces
+Maghrib by its UTC offset, so the docstring and CLI help carry this warning.
+A polar `AstronomicalError` from the Maghrib computation propagates unwrapped
+(consistent with §5); the bridge adds no polar fallback.
 
 Offsets apply last and win. `OffsetStore` wraps `dict[str, int]` mapping `"YYYY-MM"`
 of the *computed* Hijri month to a shift in `{-2, -1, 1, 2}`. If the computed date's
-month carries an entry, the date shifts by N days through the same calendar's JD
-arithmetic (carrying across month boundaries via `month_length`). Lookup is
+month carries an entry, the date shifts by N Hijri days via Hijri-day arithmetic:
+step day-by-day using the same calendar's `month_length` (day 30 of a 29-day month
+rolls to day 1 of the next month; day 1 minus 1 rolls to the last day of the previous
+month, whose length is looked up on that month). This is intentionally not
+`to_gregorian(h) + N days → from_gregorian`: the Gregorian round-trip would re-run
+the observational predicate and could double-apply month-start logic. The shift applies
+once; no re-lookup of the shifted date occurs. Lookup is
 post-computation so tabular and observational paths share one override mechanism.
+`to_gregorian` ignores `OffsetStore` entirely (offsets are a Gregorian→Hijri display
+correction only); the reverse direction is always the unshifted calendar rule.
 
 ## 5. Error handling (existing `AlFalakError` hierarchy)
 
 - `ValidationError`: `HijriDate` field violations; `adjustment_days` outside [-2, 2];
-  `from_gregorian`/`to_gregorian` outside the supported range; UQU pre-1423H input
+  `from_gregorian`/`to_gregorian` outside the supported range — defined as:
+  tabular accepts any Gregorian date mapping to Hijri `year >= 1`
+  (Gregorian `>= 622-07-19` proleptic per `CalendricalHelper.julian_day`;
+  pre-1582 dates are continuous proleptic, no reform jump; golden coverage is
+  `1900-01-01..2100-12-31`); UQU accepts only inputs mapping on/after the 1423H
+  epoch (Gregorian `>= 2002-03-15`; anything earlier — including a month-walk probe
+  that would cross the epoch — raises the explicit "deferred" message);
+  MABIMS accepts the same Gregorian floor as tabular, with golden coverage
+  `1900-01-01..2100-12-31` (geometry outside the golden window is untested and
+  implementers must not silently extrapolate without a cited announcement);
+  UQU pre-1423H input
   (explicit "deferred" message); computed 30th of a 29-day month.
 - `ConfigurationError`: unknown `--calendar`/`--country`; `country` supplied for a
-  non-MABIMS calendar or missing for MABIMS; `adjustment_days` supplied for a
+  non-MABIMS calendar or missing for MABIMS; non-zero `adjustment_days` supplied for a
   non-tabular calendar; `change_at_sunset=True` without coordinates; malformed offset
   file (unparseable JSON, non-object top level, key not matching `YYYY-MM` with month
   01–12, value not an int in {-2,-1,1,2} — including rejection of 0 as a config smell),
   with file path and offending key in the message.
 - `AstronomicalError`: propagated unwrapped from `crescent_geometry_at_sunset`
-  (polar no-sunset and undefined geometry), preserving location/date diagnostics.
+  (polar no-sunset and undefined geometry), preserving location/date diagnostics;
+  plus the §4 search-window exhaustion and the §3.3 moon-age-sentinel / NaN-lag cases.
+  The bridge's polar Maghrib failure propagates the same way.
 - Invariant: converters never return NaN, never silently clamp; every failure names the
   offending value.
 
@@ -203,16 +245,24 @@ CLI keeps the bare prayer invocation byte-identical (existing `tests/test_cli.py
 green) and adds a subcommand:
 
 `python -m alfalak hijri --date YYYY-MM-DD --calendar {tabular,uqu,mabims}
-[--country {MY,ID,BN,SG}] [--adjustment-days N] [--sunset-transition --lat --lon]
-[--offsets file.json]`
+[--country {MY,ID,BN,SG}] [--adjustment-days N] [--sunset-transition --lat --lon
+--time HH:MM[:SS]] [--offsets file.json]`
+
+Date-only `--date` without `--time` means civil-date conversion only: `--sunset-transition`
+requires `--time` (wall time at `--lat/--lon` combined with `--date` into a naive
+datetime treated as UTC per the bridge rule, with the same local-time-misplacement
+warning) because a bare date is midnight and would never
+trigger the post-Maghrib advance. `--time` without `--sunset-transition` raises
+`ConfigurationError`.
 
 Rules: `--country` required iff `--calendar mabims`; `--lat/--lon` required iff
-`--sunset-transition`; `--adjustment-days` accepted only with `--calendar tabular`;
+`--sunset-transition`; `--time` required iff `--sunset-transition`;
+`--adjustment-days` accepted only with `--calendar tabular` (non-zero elsewhere raises);
 `--date` defaults to today UTC. Sunset-transition Maghrib uses default
 `CalculationParameters` (MWL method); method selection for the bridge is deferred.
 Output is exactly two lines:
-`hijri=<YYYY-MM-DD>` and `calendar=<name>[-<COUNTRY>]`. `--help` states the
-UQU-calendar-vs-prayer-preset distinction and the tabular-vs-observed ±1–2 day caveat.
+`hijri=<YYYY-MM-DD>` and `calendar=<name>[-<COUNTRY>]`. `--help` states the UQU-calendar-vs-prayer-preset distinction, the tabular-vs-observed
+±1–2 day caveat, and the naive-datetime-treated-as-UTC warning for `--sunset-transition`.
 
 ## 8. Future calendars (Diyanet recipe)
 
