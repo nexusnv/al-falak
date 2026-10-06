@@ -72,9 +72,56 @@ UOIF
 JAKIM
 ```
 
+## Hijri conversion
+
+```bash
+python -m alfalak hijri --date 2025-03-01 --calendar tabular
+```
+
+Output (exactly two lines):
+
+```
+hijri=1446-09-01
+calendar=tabular
+```
+
+### Options
+
+| Option | Required | Default | Description |
+|---|---|---|---|
+| `--date` | No | Today (UTC) | Gregorian date as YYYY-MM-DD; also accepted before the subcommand (`--date X hijri ...`) |
+| `--calendar` | Yes | — | Hijri calendar rule: `tabular`, `uqu`, or `mabims` |
+| `--country` | With `mabims` only | — | MABIMS country: `MY`, `ID`, `BN`, `SG` (case-insensitive; required with `--calendar mabims`, rejected otherwise) |
+| `--adjustment-days` | No | `0` | Tabular day shift in [-2, 2] (only with `--calendar tabular`) |
+| `--sunset-transition` | No | Off | Roll the Hijri day over at Maghrib (requires `--lat`, `--lon`, `--time`) |
+| `--lat` / `--lon` | With `--sunset-transition` | — | Observer coordinates for sunset rollover (rejected without it) |
+| `--time` | With `--sunset-transition` | — | Wall-clock time as HH:MM[:SS] on `--date`; naive, treated as UTC (rejected without it) |
+| `--offsets` | No | — | JSON offset file (`{"YYYY-MM": shift}`) applied last |
+
+Per-country conversion prints a suffixed label:
+
+```bash
+python -m alfalak hijri --date 2025-03-02 --calendar mabims --country MY
+```
+
+```
+hijri=1446-09-01
+calendar=mabims-MY
+```
+
+Sunset rollover switches the Hijri day at Maghrib (default prayer
+parameters); `--offsets` applies official-correction shifts after the
+rule. `--date`/`--time` are naive wall-clock values treated as UTC —
+a local wall-clock time misplaces sunset rollover by the UTC offset.
+
+> The `uqu` calendar (1423H month-start rule at Makkah) is not the
+> `UMM_AL_QURA` prayer preset. `tabular` is arithmetic and routinely
+> differs from observed months by 1–2 days — never present it as an
+> observed date. See [Hijri Converter](/hijri-converter/).
+
 ## Error handling
 
-The CLI exits with code 2 for invalid input:
+The prayer-times command exits with code 2 for invalid input:
 
 ```bash
 $ python -m alfalak --latitude 35 --longitude -78 --method BOGUS
@@ -83,7 +130,15 @@ usage: al-falak [-h] --latitude LATITUDE --longitude LONGITUDE [--date DATE]
 al-falak: error: argument --method: invalid choice: 'BOGUS'
 ```
 
+The `hijri` subcommand follows the same convention: unknown calendars,
+bad dates/times, and `--latitude`/`--longitude` (use `--lat`/`--lon`
+with `--sunset-transition`) exit with code 2. Gate misuse (missing
+`--country` with `mabims`, `--country` without it, `--adjustment-days`
+outside `tabular`, `--time`/`--lat`/`--lon` without
+`--sunset-transition`) raises `ConfigurationError`.
+
 ## See also
 
 - [Getting Started](/getting-started/) — Python API usage
 - [Calculation Methods](/calculation-methods/) — method details
+- [Hijri Converter](/hijri-converter/) — Gregorian↔Hijri conversion rules

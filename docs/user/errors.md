@@ -82,6 +82,47 @@ is used), a non-`Coordinates` location, or a non-finite
 `is_*mabims*` helpers for non-real or non-finite arguments (`odeh_v` and
 `yallop_q` additionally reject a negative crescent width).
 
+## Hijri converter errors
+
+```python
+from datetime import date
+from alfalak import ValidationError, get_calendar
+
+try:
+    get_calendar("mabims", country="MY").from_gregorian(date(2020, 1, 1))
+except ValidationError as e:
+    print(f"Before support floor: {e}")
+```
+
+- **`ValidationError` — support floors and bad inputs.** Observational
+  calendars resolve month starts by walking forward from a verified
+  anchor; inputs mapping before the floor raise `ValidationError`
+  (deferred) instead of returning a wrong date: Umm al-Qura supports
+  Gregorian 2002-03-15 (1 Muharram 1423H) onward, MABIMS supports
+  1 Muharram 1445H (2023-07-19) onward, tabular rejects dates before
+  1 Muharram 1 AH (622-07-19 proleptic). Also raised for out-of-range
+  `HijriDate` fields, `adjustment_days` outside [-2, 2], bad
+  year/month in `month_length`, `datetime` passed to
+  `from_gregorian` (pass `d.date()` or use `gregorian_to_hijri`), and
+  days exceeding the rule's month length.
+- **`ConfigurationError` — factory and bridge misuse.**
+  `get_calendar` raises it for unknown keys, `country` without
+  (or missing with) `"mabims"`, and `adjustment_days` outside
+  `"tabular"`; `MabimsCalendar` for unknown country codes;
+  `gregorian_to_hijri` for `change_at_sunset=True` without
+  `coordinates` or an `offsets` object without an
+  `apply(hijri, calendar)` method; `OffsetStore` for bad keys
+  (not `"YYYY-MM"`), shifts outside {-2, -1, 1, 2} (zero included),
+  non-dict payloads, and unreadable/unparseable JSON files. The `hijri`
+  CLI surfaces the same gates (see [CLI Usage](/cli/)).
+- **`AstronomicalError` — undecidable months and polar sunset.**
+  Raised when a month start falls outside the ±4-day window around the
+  tabular seed (search exhausted — loud failure, never a silently
+  extended window), when Moon geometry at Makkah is unevaluable
+  (`NaN` lag or failed conjunction search), and when the bridge's
+  Maghrib lookup hits polar day/night (propagates unwrapped, no
+  fallback).
+
 ## Error messages
 
 All errors include descriptive messages:
@@ -92,6 +133,7 @@ AstronomicalError: Unable to compute prayer times: sunrise, sunset, or solar tra
 
 ## See also
 
+- [Hijri Converter](/hijri-converter/) — calendar rules and floors behind these errors
 - [Moon Sighting](/moon-sighting/) — crescent geometry error cases
 - [Polar Regions](/polar-regions/) — handling polar day/night
 - [API Reference](/api-reference/) — full API documentation

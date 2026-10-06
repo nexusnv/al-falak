@@ -363,23 +363,46 @@ AlFalakError (base)
 
 ```python
 get_calendar(name: str, country: str | None = None, adjustment_days: int = 0)
-gregorian_to_hijri(dt, calendar=..., coordinates=None, change_at_sunset=False)
+gregorian_to_hijri(
+    dt: datetime,
+    *,
+    calendar: HijriCalendar,
+    coordinates: Coordinates | None = None,
+    params: CalculationParameters | None = None,
+    change_at_sunset: bool = False,
+    offsets: OffsetStore | None = None,
+) -> HijriDate
 ```
 
 `get_calendar` resolves `"tabular"`, `"uqu"`, or `"mabims"` to a
 `HijriCalendar`. `country` (one of `MY`, `ID`, `BN`, `SG`) is required for
 — and only for — `MabimsCalendar`; `adjustment_days` (in [-2, 2]) is
-accepted only by `TabularCalendar`. Misuse raises `ConfigurationError`.
+accepted only by `TabularCalendar`. Misuse raises `ConfigurationError`;
+out-of-range `adjustment_days` raises `ValidationError`.
 
 `gregorian_to_hijri` converts a Gregorian datetime to a `HijriDate` on the
 given calendar. With `change_at_sunset=True` the Hijri day rolls over at
-that day's Maghrib (needs `coordinates`; Maghrib uses default
-`CalculationParameters`). Naive datetimes are treated as UTC.
+that day's Maghrib (needs `coordinates`, else `ConfigurationError`;
+Maghrib uses `params` or default `CalculationParameters`, and a polar
+`AstronomicalError` propagates unwrapped). Naive datetimes are treated
+as UTC. `offsets` (any object with `apply(hijri, calendar)`, else
+`ConfigurationError`) is applied last; `None` (default) skips it.
+
+Every calendar implements the same three methods over civil `date`s
+(`datetime` inputs raise `ValidationError` — pass `d.date()` or use the
+bridge):
+
+| Method | Returns | Description |
+|---|---|---|
+| `from_gregorian(d: date)` | `HijriDate` | Gregorian civil date → Hijri date; pre-floor inputs raise `ValidationError` |
+| `to_gregorian(h: HijriDate)` | `date` | Hijri date → Gregorian civil date; days past the rule's month length raise `ValidationError` |
+| `month_length(year, month)` | `int` | `29` or `30`; non-`int` years/months (incl. `bool`) and out-of-range months raise `ValidationError` |
 
 Calendar notes: the `UmmAlQuraCalendar` date converter (1423H rule at
-Makkah) is not the `UMM_AL_QURA` prayer preset. `TabularCalendar` is
-arithmetic and routinely differs from observed months by ±1-2 days.
-`OffsetStore` applies per-month (`YYYY-MM`) day shifts loaded from JSON.
+Makkah) is not the `UMM_AL_QURA` prayer preset. `MabimsCalendar`
+exposes its normalized `country`. `TabularCalendar` is arithmetic and
+routinely differs from observed months by ±1-2 days. `OffsetStore`
+applies per-month (`YYYY-MM`) day shifts loaded from JSON.
 
 Supported ranges and walk anchors: the observational calendars resolve
 month starts by walking forward from a verified anchor, and inputs
@@ -392,9 +415,45 @@ Muharram 1445H onward and walks from the same 2023-07-19 anchor.
 `TabularCalendar` is arithmetic and unbounded below by 1 Muharram 1 AH
 (622-07-19 proleptic).
 
+## HijriDate
+
+```python
+HijriDate(year: int, month: int, day: int)
+```
+
+Frozen, ordered value type without any calendar rule attached
+(`bool` and non-`int` fields raise `ValidationError`; year must be
+≥ 1, month in [1, 12], day in [1, 30] — the exact 29/30-day month
+length is enforced per calendar at conversion time).
+
+| Attribute/Method | Returns | Description |
+|---|---|---|
+| `year` / `month` / `day` | `int` | Hijri year / month (1–12) / day (1–30) |
+| `isoformat()` | `str` | Zero-padded `"YYYY-MM-DD"` |
+
+## OffsetStore
+
+```python
+OffsetStore(offsets: dict[str, int] | None = None)
+OffsetStore.from_dict(data: dict[str, int]) -> OffsetStore
+OffsetStore.from_json(path: str | PathLike) -> OffsetStore
+OffsetStore.from_file(path: str | PathLike) -> OffsetStore  # alias of from_json
+store.apply(hijri: HijriDate, calendar: HijriCalendar) -> HijriDate
+```
+
+Per-month Hijri-day shifts keyed by `"YYYY-MM"` of the *computed*
+month, values in {-2, -1, 1, 2} (zero and non-`int` values, bad keys,
+and non-dict payloads raise `ConfigurationError`; unreadable or
+unparseable files name the path). `apply` shifts by Hijri-day
+arithmetic on the same calendar's month lengths, once, with no
+re-lookup of the destination month; months without an entry pass
+through untouched. `to_gregorian` ignores the store (display
+correction for the Gregorian→Hijri direction only).
+
 ## See also
 
 - [Getting Started](/getting-started/) — quick start guide
 - [Calculation Methods](/calculation-methods/) — method details
+- [Hijri Converter](/hijri-converter/) — calendar rules and conversion walkthrough
 - [Moon Sighting](/moon-sighting/) — crescent geometry and visibility criteria
 - [Errors](/errors/) — error handling

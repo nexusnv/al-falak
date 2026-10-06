@@ -69,6 +69,10 @@ export default defineConfig({
           link: '/moon-sighting/',
         },
         {
+          label: 'Hijri Converter',
+          link: '/hijri-converter/',
+        },
+        {
           label: 'CLI Usage',
           link: '/cli/',
         },

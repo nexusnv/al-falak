@@ -5,6 +5,19 @@ description: Version history for al-falak.
 
 # Changelog
 
+## Unreleased — phase 5 (hijri converter)
+
+- `HijriDate` (frozen, ordered value type with zero-padded `isoformat()`)
+- `HijriCalendar` ABC + `get_calendar` factory (`"tabular"`, `"uqu"`, `"mabims"`; `country` required iff `mabims`, `adjustment_days` in [-2, 2] iff `tabular`, else `ConfigurationError`)
+- `TabularCalendar` (arithmetic Type IIa / "Kuwaiti" pattern; `adjustment_days` shift; epoch 1 Muharram 1 AH = 622-07-19 proleptic)
+- `UmmAlQuraCalendar` (1423H month-start rule at Makkah; support floor Gregorian 2002-03-15; modern targets walk from the verified 1445H anchor; distinct from the `UMM_AL_QURA` prayer preset)
+- `MabimsCalendar` (Neo-MABIMS 2021 at per-country `MY`/`ID`/`BN`/`SG` proxies; forward-only walk from the 1 Muharram 1445H anchor; announced dates may differ by ±1 day by design)
+- `gregorian_to_hijri` bridge (civil-date default; `change_at_sunset=True` rolls over at Maghrib with naive-as-UTC semantics and unwrapped polar `AstronomicalError`)
+- `OffsetStore` (per-month `"YYYY-MM"` shifts in {-2, -1, 1, 2} from dict/JSON, applied once and last; `to_gregorian` ignores it)
+- `hijri` CLI subcommand (two-line `hijri=`/`calendar=` output; `--country`, `--adjustment-days`, `--sunset-transition`, `--offsets`)
+- New [Hijri Converter](/hijri-converter/) guide; no breaking API changes
+- Offline/zero-dependency/deterministic computation recorded as project invariants (see `docs/adr/0001-offline-zero-dependency-deterministic.md`)
+
 ## Unreleased — phase 4 (moon-sighting)
 
 - `LunarCoordinates` (Meeus Ch.47 low-precision Moon position)

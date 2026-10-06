@@ -15,6 +15,8 @@
 - **Madhab selection** — Shafi (default) and Hanafi for Asr calculation
 - **Qibla direction** — degrees clockwise from north
 - **Sunnah times** — middle and last third of the night
+- **Moon sighting** — crescent geometry at sunset with Yallop, Odeh, and MABIMS visibility criteria
+- **Hijri converter** — Gregorian-to-Hijri dates via tabular, Umm al-Qura, and per-country MABIMS calendars, with sunset rollover and official-correction offsets
 - **CLI** — `python -m alfalak` for quick terminal output
 - **Fully typed** — PEP 561 `py.typed` marker, `mypy --disallow-untyped-defs` clean
 
@@ -124,6 +126,19 @@ prayer_times = PrayerTimes(
 )
 ```
 
+### Hijri Conversion
+
+```python
+from datetime import datetime, timezone
+from alfalak import get_calendar, gregorian_to_hijri
+
+hijri = gregorian_to_hijri(
+    datetime(2025, 3, 1, 12, 0, tzinfo=timezone.utc),
+    calendar=get_calendar("tabular"),
+)
+print(hijri.isoformat())  # 1446-09-01
+```
+
 ### Command Line
 
 ```bash
@@ -139,6 +154,17 @@ asr=2015-07-12T21:09:00+00:00
 maghrib=2015-07-13T00:32:00+00:00
 isha=2015-07-13T01:57:00+00:00
 ```
+
+```bash
+python -m alfalak hijri --date 2025-03-01 --calendar tabular
+```
+
+```
+hijri=1446-09-01
+calendar=tabular
+```
+
+See [the Hijri converter guide](docs/user/hijri-converter.md) for the Umm al-Qura and MABIMS calendars, sunset rollover, and official-correction offsets.
 
 ## API Reference
 
@@ -167,6 +193,7 @@ See [`src/example/`](src/example/) for comprehensive examples covering:
 - Polar region strategies
 - High latitude rules
 - Madhab selection
+- Moon sighting and Hijri conversion
 - CLI usage
 
 ## Development
