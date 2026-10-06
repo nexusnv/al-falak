@@ -7,7 +7,9 @@ description: Version history for al-falak.
 
 ## 1.2.0 — phases 4–5 (moon-sighting, hijri converter)
 
-No breaking API changes from 1.1.0.
+One behavioral breaking change from 1.1.0: `Coordinates` is now frozen —
+assigning to its fields raises `FrozenInstanceError`. Replace the instance
+instead of mutating it (e.g. `coords = Coordinates(new_lat, new_lon)`).
 
 ### Hijri converter (phase 5)
 
@@ -19,7 +21,7 @@ No breaking API changes from 1.1.0.
 - `gregorian_to_hijri` bridge (civil-date default; `change_at_sunset=True` rolls over at Maghrib with naive-as-UTC semantics and unwrapped polar `AstronomicalError`)
 - `OffsetStore` (per-month `"YYYY-MM"` shifts in {-2, -1, 1, 2} from dict/JSON, applied once and last; `to_gregorian` ignores it)
 - `hijri` CLI subcommand (two-line `hijri=`/`calendar=` output; `--country`, `--adjustment-days`, `--sunset-transition`, `--offsets`)
-- New [Hijri Converter](/hijri-converter/) guide; no breaking API changes
+- New [Hijri Converter](/hijri-converter/) guide; additive additions only
 - Offline/zero-dependency/deterministic computation recorded as project invariants (see `docs/adr/0001-offline-zero-dependency-deterministic.md`)
 
 ### Moon-sighting (phase 4)
@@ -29,8 +31,8 @@ No breaking API changes from 1.1.0.
 - `delta_t` provider (Espenak polynomial + IERS `override`; lunar path only;
   calibrated 2005–2050, `UserWarning` outside that range)
 - Visibility criteria: `yallop_q`/`yallop_zone`, `odeh_v`/`odeh_class`, `is_mabims_1992`/`is_neo_mabims_2021`
-- New [Moon Sighting](/moon-sighting/) guide; no breaking API changes
-  from 1.1.0 (`CrescentGeometry` also exposes `sun_alt_deg` /
+- New [Moon Sighting](/moon-sighting/) guide; additive additions only
+  (`CrescentGeometry` also exposes `sun_alt_deg` /
   `moon_alt_topo_deg` so MABIMS callers pass a true altitude, not an
   ARCV proxy; note `delta_t` validates `year` even when `override=` is set)
 - Correctness fixes from PR review: `yallop_q` applies the /10 scale of
@@ -40,7 +42,9 @@ No breaking API changes from 1.1.0.
   age branch defined at moonset
 
 - `Coordinates` is now frozen: the shared `MAKKAH` singleton cannot be
-  mutated in place (closes #47)
+  mutated in place (closes #47). Callers that assigned to
+  `latitude`/`longitude` must construct a new instance instead
+  (raises `FrozenInstanceError` otherwise)
 
 ## 1.1.0 — phases 1–3 (geodesy, twilight markers, night divisions)
 

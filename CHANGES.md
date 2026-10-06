@@ -3,8 +3,10 @@
 ## 1.2.0 — 2026-10-06 (phases 4–5: moon-sighting, Hijri converter)
 
 > Scope: this release lands milestone phases 4–5 (lunar ephemeris and
-> visibility criteria, Hijri calendars and sunset bridge). No breaking
-> API changes from 1.1.0.
+> visibility criteria, Hijri calendars and sunset bridge). One behavioral
+> breaking change from 1.1.0: `Coordinates` is now frozen — assigning to
+> its fields raises `FrozenInstanceError`; construct a new instance
+> instead of mutating (e.g. `coords = Coordinates(new_lat, new_lon)`).
 
 * Phase 4 — moon-sighting:
   * Add `LunarCoordinates` (Meeus Ch.47 low-precision Moon position).
@@ -45,7 +47,9 @@
     record offline/zero-dependency/deterministic computation as
     project invariants (`docs/adr/0001-offline-zero-dependency-deterministic.md`).
 * Fix: `Coordinates` is now a frozen dataclass — the shared `MAKKAH`
-  singleton can no longer be mutated in place (closes #47).
+  singleton can no longer be mutated in place (closes #47). Callers
+  that assigned to `latitude`/`longitude` must construct a new instance
+  instead (raises `FrozenInstanceError` otherwise).
 * Docs: `docs/user/` topical pages cover every new calendar/criterion
   (`moon-sighting`, `hijri-converter`, `api-reference`, `cli`,
   `citations`, `errors`); `docs/user/v1.0.0/` frozen snapshot untouched.
