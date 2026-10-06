@@ -13,7 +13,7 @@ Accepted
 `al-falak` is an offline Islamic-astronomy library: coordinates + date +
 method parameters go in, prayer times and Hijri dates come out, with no
 network calls and no runtime dependencies beyond the Python standard
-library. The phase-5 Hijri converter raised the question explicitly:
+library. Building the Hijri converter raised the question explicitly:
 month-start resolution by forward-walking an observational rule from an
 epoch costs ~30s cold for modern UQU dates, and two tempting shortcuts
 appeared — ship a precomputed month-start table, or speed up the
