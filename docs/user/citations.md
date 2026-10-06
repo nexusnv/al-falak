@@ -28,6 +28,15 @@ The crescent geometry and visibility criteria are derived from:
 - **Mohammad Odeh** — `V`-criterion and classes A–D from topocentric ARCV and crescent width, with the 6.4° elongation (Danjon) floor.
 - **MABIMS** (Malaysia, Brunei, Indonesia, Singapore) — 1992 rule (altitude ≥ 2° and elongation ≥ 3°, or age ≥ 8 h) and Neo-MABIMS 2021 (altitude ≥ 3° and elongation ≥ 6.4°).
 
+## Hijri calendar sources
+
+The calendar rules and cross-check oracles behind the converter are:
+
+- **Umm al-Qura 1423H rule** — month-start rule in force since 1423H / 15 Mar 2002 (geocentric conjunction before Makkah sunset and moonset after Makkah sunset → new month; see R. H. van Gent's survey of the Umm al-Qura variants and KACST publications). Earlier variants (1392H scheme, 1420–1422H interim criteria) are out of scope.
+- **Neo-MABIMS 2021** — criteria adopted at the 2016 KBIR (Informal Meeting of MABIMS Ministers of Religion) and enforced from 2021: at local sunset, topocentric lunar altitude ≥ 3° and elongation ≥ 6.4°. Supersedes the 1992 Labuan rule (listed above, not implemented).
+- **Tabular Type IIa ("Kuwaiti") pattern** — 30-year arithmetic cycle with 11 leap years (years 2, 5, 7, 10, 13, 16, 18, 21, 24, 26, 29); the same construction underlying e.g. Microsoft .NET `HijriCalendar` before per-install `HijriAdjustment`.
+- **Cross-check oracles** — published Umm al-Qura month starts cross-checked against the `hijri-converter` (v2.3.2) and `hijridate` UQU tables over 1445–1446H; MABIMS spot checks against JAKIM / Penyimpan Mohor Besar Malaysia and Kemenag Indonesia announcements (±1 day proxy variance documented).
+
 ## Geodesy and geomagnetism sources
 
 The Qibla direction, distance, and compass-heading calculations are derived from:

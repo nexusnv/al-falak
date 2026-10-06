@@ -16,6 +16,13 @@ from alfalak.calculation.HighLatitudeRule import HighLatitudeRule
 from alfalak.calculation.Madhab import Madhab
 from alfalak.calculation.PolarCircleRule import PolarCircleRule
 from alfalak.calculation.PrayerAdjustments import PrayerAdjustments
+from alfalak.calendar.HijriCalendar import HijriCalendar, get_calendar
+from alfalak.calendar.HijriDate import HijriDate
+from alfalak.calendar.MabimsCalendar import MabimsCalendar
+from alfalak.calendar.OffsetStore import OffsetStore
+from alfalak.calendar.TabularCalendar import TabularCalendar
+from alfalak.calendar.UmmAlQuraCalendar import UmmAlQuraCalendar
+from alfalak.calendar.bridge import gregorian_to_hijri
 from alfalak.data.Coordinates import Coordinates
 from alfalak.data.Prayer import Prayer
 from alfalak.exceptions import (
@@ -51,4 +58,12 @@ __all__ = [
     "odeh_class",
     "is_neo_mabims_2021",
     "is_mabims_1992",
+    "HijriDate",
+    "HijriCalendar",
+    "TabularCalendar",
+    "UmmAlQuraCalendar",
+    "MabimsCalendar",
+    "OffsetStore",
+    "gregorian_to_hijri",
+    "get_calendar",
 ]

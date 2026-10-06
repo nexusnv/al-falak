@@ -29,13 +29,21 @@ from alfalak import (
     ConfigurationError,
     Coordinates,
     HighLatitudeRule,
+    HijriCalendar,
+    HijriDate,
+    MabimsCalendar,
     Madhab,
+    OffsetStore,
     PolarCircleRule,
     Prayer,
     PrayerTimes,
     Qibla,
     SunnahTimes,
+    TabularCalendar,
+    UmmAlQuraCalendar,
     ValidationError,
+    get_calendar,
+    gregorian_to_hijri,
 )
 from alfalak.__main__ import main
 from alfalak.Qibla import MAKKAH
@@ -716,3 +724,77 @@ def test_cli_domain_error_characterization():
     )
     assert result.returncode != 0
     assert "ValidationError" in result.stderr
+
+
+# ---------------------------------------------------------------------------
+# BB-HIJRI-*: Hijri public seam (phase 5 task 6). Oracle: reviewed anchors
+# (tests/calendar/test_tabular.py) + factory error contract
+# (HijriCalendar.get_calendar) + CLI two-line contract. Label: contract.
+# ---------------------------------------------------------------------------
+
+
+def test_hijri_root_exports_resolve():
+    # BB-HIJRI-01. The eight Hijri names are importable from the root and
+    # listed in __all__.
+    import alfalak
+
+    assert alfalak.HijriDate is HijriDate
+    assert alfalak.HijriCalendar is HijriCalendar
+    assert alfalak.TabularCalendar is TabularCalendar
+    assert alfalak.UmmAlQuraCalendar is UmmAlQuraCalendar
+    assert alfalak.MabimsCalendar is MabimsCalendar
+    assert alfalak.OffsetStore is OffsetStore
+    assert alfalak.gregorian_to_hijri is gregorian_to_hijri
+    assert alfalak.get_calendar is get_calendar
+    for name in (
+        "HijriDate",
+        "HijriCalendar",
+        "TabularCalendar",
+        "UmmAlQuraCalendar",
+        "MabimsCalendar",
+        "OffsetStore",
+        "gregorian_to_hijri",
+        "get_calendar",
+    ):
+        assert name in alfalak.__all__, name
+
+
+def test_hijri_tabular_anchor_via_bridge():
+    # BB-HIJRI-02. Source: test_tabular_ramadan_1446_anchor_is_tabular_value.
+    hijri = gregorian_to_hijri(
+        datetime(2025, 3, 1, tzinfo=timezone.utc), calendar=TabularCalendar()
+    )
+    assert hijri == HijriDate(1446, 9, 1)
+
+
+def test_hijri_factory_rejects_misuse():
+    # BB-HIJRI-03. Oracle: get_calendar ConfigurationError contract.
+    with pytest.raises(ConfigurationError):
+        get_calendar("bogus")
+    with pytest.raises(ConfigurationError, match="(?i)country"):
+        get_calendar("mabims")
+    with pytest.raises(ConfigurationError, match="(?i)country"):
+        get_calendar("tabular", country="MY")
+    with pytest.raises(ConfigurationError, match="(?i)adjustment"):
+        get_calendar("uqu", adjustment_days=1)
+
+
+def test_hijri_cli_subprocess_two_lines():
+    # BB-HIJRI-04. Oracle: CLI two-line contract (hijri=/calendar=).
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "alfalak",
+            "hijri",
+            "--date",
+            "2025-03-01",
+            "--calendar",
+            "tabular",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert result.returncode == 0
+    assert result.stdout == "hijri=1446-09-01\ncalendar=tabular\n"

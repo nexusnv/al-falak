@@ -26,6 +26,7 @@ An offline Python library for calculating Islamic prayer times. A community-main
 | Calculate Qibla direction | |
 | Calculate Sunnah night markers | |
 | Compute crescent geometry at sunset | Judge actual visibility (weather, optics, local ruling) |
+| Convert Gregorian dates to Hijri (tabular, Umm al-Qura, MABIMS) | Rule on observed months (proxies differ from announcements by design) |
 | Provide a CLI | |
 
 ## At a glance
@@ -54,6 +55,7 @@ print(f"Maghrib: {prayer_times.maghrib.strftime('%H:%M')}")
 | Compare calculation methods | [Calculation Methods](/calculation-methods/) |
 | Handle polar regions | [Polar Regions](/polar-regions/) |
 | Predict the new crescent | [Moon Sighting](/moon-sighting/) |
+| Convert Gregorian dates to Hijri | [Hijri Converter](/hijri-converter/) |
 | Use the CLI | [CLI Usage](/cli/) |
 | See all public APIs | [API Reference](/api-reference/) |
 | Migrate from adhanpy | [Migration](/migration/) |

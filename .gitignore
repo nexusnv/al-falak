@@ -19,6 +19,9 @@ env/
 .coverage
 htmlcov/
 
+# Black-box evidence reports (generated per sweep, not shipped)
+test-reports/
+
 # Type checking
 .mypy_cache/
 .ruff_cache/

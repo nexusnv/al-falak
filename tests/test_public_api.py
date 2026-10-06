@@ -26,6 +26,16 @@ from alfalak.calculation import (
     PolarCircleRule,
     PrayerAdjustments,
 )
+from alfalak.calendar import (
+    HijriCalendar,
+    HijriDate,
+    MabimsCalendar,
+    OffsetStore,
+    TabularCalendar,
+    UmmAlQuraCalendar,
+    get_calendar,
+    gregorian_to_hijri,
+)
 from alfalak.data import Coordinates, NightPortions, Prayer, ShadowLength
 from alfalak.PrayerTimes import PrayerTimes
 from alfalak.util.DateComponents import DateComponents
@@ -58,6 +68,14 @@ def test_root_exports_match_all():
         "odeh_class",
         "is_neo_mabims_2021",
         "is_mabims_1992",
+        "HijriDate",
+        "HijriCalendar",
+        "TabularCalendar",
+        "UmmAlQuraCalendar",
+        "MabimsCalendar",
+        "OffsetStore",
+        "gregorian_to_hijri",
+        "get_calendar",
     ]
     assert {
         "AlFalakError": AlFalakError,
@@ -85,8 +103,40 @@ def test_root_exports_match_all():
         "odeh_class": odeh_class,
         "is_neo_mabims_2021": is_neo_mabims_2021,
         "is_mabims_1992": is_mabims_1992,
+        "HijriDate": HijriDate,
+        "HijriCalendar": HijriCalendar,
+        "TabularCalendar": TabularCalendar,
+        "UmmAlQuraCalendar": UmmAlQuraCalendar,
+        "MabimsCalendar": MabimsCalendar,
+        "OffsetStore": OffsetStore,
+        "gregorian_to_hijri": gregorian_to_hijri,
+        "get_calendar": get_calendar,
     } == {name: getattr(alfalak, name) for name in alfalak.__all__}
     assert alfalak.PrayerTimes is RootPrayerTimes
+
+
+def test_public_api_lists_8_hijri_names():
+    names = [
+        "HijriDate",
+        "HijriCalendar",
+        "TabularCalendar",
+        "UmmAlQuraCalendar",
+        "MabimsCalendar",
+        "OffsetStore",
+        "gregorian_to_hijri",
+        "get_calendar",
+    ]
+    for name in names:
+        assert name in alfalak.__all__, name
+        assert getattr(alfalak, name) is not None, name
+    assert alfalak.HijriDate is HijriDate
+    assert alfalak.HijriCalendar is HijriCalendar
+    assert alfalak.TabularCalendar is TabularCalendar
+    assert alfalak.UmmAlQuraCalendar is UmmAlQuraCalendar
+    assert alfalak.MabimsCalendar is MabimsCalendar
+    assert alfalak.OffsetStore is OffsetStore
+    assert alfalak.gregorian_to_hijri is gregorian_to_hijri
+    assert alfalak.get_calendar is get_calendar
 
 
 def test_subpackage_exports():
