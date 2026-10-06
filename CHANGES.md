@@ -1,5 +1,61 @@
 # Changelog
 
+## 1.2.0 — 2026-10-06 (phases 4–5: moon-sighting, Hijri converter)
+
+> Scope: this release lands milestone phases 4–5 (lunar ephemeris and
+> visibility criteria, Hijri calendars and sunset bridge). One behavioral
+> breaking change from 1.1.0: `Coordinates` is now frozen — assigning to
+> its fields raises `FrozenInstanceError`; construct a new instance
+> instead of mutating (e.g. `coords = Coordinates(new_lat, new_lon)`).
+
+* Phase 4 — moon-sighting:
+  * Add `LunarCoordinates` (Meeus Ch.47 low-precision Moon position).
+  * Add `crescent_geometry_at_sunset` → `CrescentGeometry` (elongation,
+    geocentric/topocentric ARCV, azimuth difference, width,
+    illumination, moonset lag, moon age; evaluated at local sunset,
+    raises on polar no-sunset).
+  * Add `delta_t` provider (Espenak polynomial + IERS `override`;
+    lunar path only; calibrated 2005–2050, `UserWarning` outside).
+  * Add visibility criteria: `yallop_q`/`yallop_zone` (Yallop 1997
+    eq. 6.1 with /10 scale), `odeh_v`/`odeh_class` (Danjon floor),
+    `is_mabims_1992`/`is_neo_mabims_2021` (topocentric altitude input,
+    not ARCV proxy).
+  * Document the moon-sighting guide (`docs/user/moon-sighting.md`).
+* Phase 5 — Hijri converter:
+  * Add `HijriDate` (frozen, ordered value type with zero-padded
+    `isoformat()`).
+  * Add `HijriCalendar` ABC + `get_calendar` factory (`"tabular"`,
+    `"uqu"`, `"mabims"`; `country` required iff `mabims`,
+    `adjustment_days` in [-2, 2] iff `tabular`).
+  * Add `TabularCalendar` (arithmetic Type IIa / "Kuwaiti" pattern;
+    epoch 1 Muharram 1 AH = 622-07-19 proleptic).
+  * Add `UmmAlQuraCalendar` (1423H month-start rule at Makkah;
+    support floor Gregorian 2002-03-15; modern targets walk from the
+    verified 1445H anchor).
+  * Add `MabimsCalendar` (Neo-MABIMS 2021 at per-country `MY`/`ID`/
+    `BN`/`SG` proxies; forward-only walk from the 1 Muharram 1445H
+    anchor; announced dates may differ by ±1 day by design).
+  * Add `gregorian_to_hijri` bridge (civil-date default;
+    `change_at_sunset=True` rolls over at Maghrib; naive-as-UTC
+    semantics; unwrapped polar `AstronomicalError`).
+  * Add `OffsetStore` (per-month `"YYYY-MM"` shifts in {-2, -1, 1, 2}
+    from dict/JSON, applied once and last; `to_gregorian` ignores it).
+  * Add `hijri` CLI subcommand (two-line `hijri=`/`calendar=` output;
+    `--country`, `--adjustment-days`, `--sunset-transition`,
+    `--offsets`).
+  * Document the converter guide (`docs/user/hijri-converter.md`) and
+    record offline/zero-dependency/deterministic computation as
+    project invariants (`docs/adr/0001-offline-zero-dependency-deterministic.md`).
+* Fix: `Coordinates` is now a frozen dataclass — the shared `MAKKAH`
+  singleton can no longer be mutated in place (closes #47). Callers
+  that assigned to `latitude`/`longitude` must construct a new instance
+  instead (raises `FrozenInstanceError` otherwise).
+* Docs: `docs/user/` topical pages cover every new calendar/criterion
+  (`moon-sighting`, `hijri-converter`, `api-reference`, `cli`,
+  `citations`, `errors`); `docs/user/v1.0.0/` frozen snapshot untouched.
+* Tests: full suite green, `black --check src/` → `ruff check src/ tests/`
+  → `mypy src` → `pytest --cov-fail-under=95` green.
+
 ## 1.1.0 — 2026-10-03 (phases 1–3: geodesy, twilight markers, night divisions)
 
 > Scope: this release lands milestone phases 1–3 only (core geodesy,

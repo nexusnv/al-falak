@@ -5,7 +5,7 @@ import numbers
 from alfalak.exceptions import ValidationError
 
 
-@dataclass
+@dataclass(frozen=True)
 class Coordinates:
     latitude: float
     longitude: float
@@ -29,5 +29,7 @@ class Coordinates:
             )
         # Normalize: downstream float arithmetic (Qibla, SolarTime) cannot
         # consume Decimal/Fraction, so store plain floats post-validation.
-        self.latitude = float(self.latitude)
-        self.longitude = float(self.longitude)
+        # Frozen dataclass: use object.__setattr__ (direct assignment
+        # raises FrozenInstanceError here).
+        object.__setattr__(self, "latitude", float(self.latitude))
+        object.__setattr__(self, "longitude", float(self.longitude))
