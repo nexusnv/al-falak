@@ -18,6 +18,11 @@ moonset/elongation conditions and are explicitly out of scope. Only the
 (Gregorian 2002-03-15, 1 Muharram 1423H) raises ``ValidationError`` with
 the deferred message instead of returning a wrong date.
 
+Performance note: modern targets (at or after 1 Muharram 1445H =
+2023-07-19, an observed month start both this rule and the MABIMS rule
+agree on) walk forward from that anchor, not from 2002; only older
+targets walk the full chain from the epoch.
+
 Like every observational rule, Umm al-Qura month starts routinely differ
 from tabular (arithmetic) dates by +/-1-2 days. Never present Umm al-Qura
 output as a tabular date or vice versa.
@@ -44,9 +49,24 @@ from alfalak.exceptions import AstronomicalError, ValidationError
 _CALENDAR_KEY = "uqu"
 
 # First civil date under the current (1423H) rule: 1 Muharram 1423H.
+# The 1423H epoch is the SUPPORT FLOOR (the rule has been in force since
+# 1423H; earlier variants are out of scope), not the walk start for every
+# conversion: walking modern dates all the way from 2002 costs ~280
+# geometry evaluations per cold conversion.
 _EPOCH_GREGORIAN = date(2002, 3, 15)
 _EPOCH_HIJRI_YEAR = 1423
 _EPOCH_HIJRI_MONTH = 1
+
+# Walk anchor for modern targets: 1 Muharram 1445H = 19 July 2023
+# Gregorian, the same observed month start MabimsCalendar anchors on
+# (both rules agree 1 Muharram 1445H fell on 2023-07-19). Targets at or
+# after 1445H walk forward from here (~20 evaluations for current
+# dates); older targets still walk from the 1423H epoch. The published
+# 1445-1446 month-start goldens pin this anchor: a wrong anchor would
+# shift every downstream start and fail them.
+_FAST_ANCHOR_GREGORIAN = date(2023, 7, 19)
+_FAST_ANCHOR_YEAR = 1445
+_FAST_ANCHOR_MONTH = 1
 
 _DEFERRED_MESSAGE = "Umm al-Qura calendar supports post-1423H dates only"
 
@@ -134,46 +154,54 @@ def _decide_month_length(evening: date) -> int:
 def _month_start_ordinal(year: int, month: int) -> int:
     """Ordinal of the 1st of a Hijri month via the anchored walk.
 
-    Recursive single-step forward chain from the 1423H epoch: every
-    intermediate month start lands in the cache, so a full-year sweep
-    costs one rule evaluation per month. Callers must validate
-    ``(year, month)`` first; months before the 1423H anchor raise
-    ``ValidationError`` here as defense in depth. Deep (far from epoch)
-    targets go through ``_resolve_month_start`` instead to bound stack use.
+    Recursive single-step forward chain: every intermediate month start
+    lands in the cache, so a full-year sweep costs one rule evaluation
+    per month. The chain stops at the 1445H walk anchor for modern
+    targets and at the 1423H epoch for older ones; months before the
+    1423H anchor raise ``ValidationError`` here as defense in depth.
+    Deep (far from either anchor) targets go through
+    ``_resolve_month_start`` instead to bound stack use.
     """
     if (year, month) < (_EPOCH_HIJRI_YEAR, _EPOCH_HIJRI_MONTH):
         raise ValidationError(_DEFERRED_MESSAGE)
     if (year, month) == (_EPOCH_HIJRI_YEAR, _EPOCH_HIJRI_MONTH):
         return _EPOCH_GREGORIAN.toordinal()
+    if (year, month) == (_FAST_ANCHOR_YEAR, _FAST_ANCHOR_MONTH):
+        return _FAST_ANCHOR_GREGORIAN.toordinal()
     prev_year, prev_month = _prev_month(year, month)
     prev_start = _month_start_ordinal(prev_year, prev_month)
     return prev_start + _decide_month_length(date.fromordinal(prev_start + 28))
 
 
-def _month_distance_from_epoch(year: int, month: int) -> int:
-    return (year - _EPOCH_HIJRI_YEAR) * 12 + (month - _EPOCH_HIJRI_MONTH)
+def _month_distance_from_fast_anchor(year: int, month: int) -> int:
+    return (year - _FAST_ANCHOR_YEAR) * 12 + (month - _FAST_ANCHOR_MONTH)
 
 
 # Recursion headroom: the cached chain resolves one stack frame per
-# month from the epoch; beyond this distance the driver walks
+# month from the nearest anchor; beyond this distance the driver walks
 # iteratively instead (mirrors MabimsCalendar's 500-month headroom).
+# Targets between the 1423H epoch and the 1445H anchor are at most ~264
+# months from the epoch, so they always take the cached chain.
 _MAX_CACHED_WALK_MONTHS = 500
 
 
 def _resolve_month_start(year: int, month: int) -> int:
     """Ordinal of the 1st of a Hijri month, bounding recursion depth.
 
-    Near-epoch targets use the cached chain; far targets walk
-    iteratively forward from the epoch (geometry stays cached,
-    intermediate month starts are not retained). Pre-epoch inputs raise
+    Modern targets (at or after 1445H) use the cached chain from the
+    1445H walk anchor, or an iterative walk from that anchor when far;
+    older targets walk the cached chain from the 1423H epoch. Geometry
+    stays cached in both cases. Pre-epoch inputs raise
     ``ValidationError`` (deferred).
     """
     if (year, month) < (_EPOCH_HIJRI_YEAR, _EPOCH_HIJRI_MONTH):
         raise ValidationError(_DEFERRED_MESSAGE)
-    if _month_distance_from_epoch(year, month) <= _MAX_CACHED_WALK_MONTHS:
+    if (year, month) < (_FAST_ANCHOR_YEAR, _FAST_ANCHOR_MONTH):
         return _month_start_ordinal(year, month)
-    start = _EPOCH_GREGORIAN.toordinal()
-    walk_year, walk_month = _EPOCH_HIJRI_YEAR, _EPOCH_HIJRI_MONTH
+    if _month_distance_from_fast_anchor(year, month) <= _MAX_CACHED_WALK_MONTHS:
+        return _month_start_ordinal(year, month)
+    start = _FAST_ANCHOR_GREGORIAN.toordinal()
+    walk_year, walk_month = _FAST_ANCHOR_YEAR, _FAST_ANCHOR_MONTH
     while (walk_year, walk_month) != (year, month):
         start += _decide_month_length(date.fromordinal(start + 28))
         walk_year, walk_month = _next_month(walk_year, walk_month)

@@ -206,12 +206,22 @@ def test_uqu_from_gregorian_rejects_datetime() -> None:
 
 
 def test_uqu_month_starts_cache_intermediates() -> None:
-    # The anchored walk caches every intermediate month start, so one
-    # conversion populates the whole chain from the epoch (~280 entries
-    # for 1446H) instead of re-walking per probe.
+    # Modern targets walk from the 1445H anchor, not the 1423H epoch: one
+    # conversion populates ~20 cached month starts instead of ~280.
     clear_caches()
     UmmAlQuraCalendar().from_gregorian(date(2025, 3, 1))
-    assert uqu_module._month_start_ordinal.cache_info().currsize > 100
+    currsize = uqu_module._month_start_ordinal.cache_info().currsize
+    assert currsize < 60, currsize
+
+
+def test_uqu_pre_1445_target_walks_from_epoch() -> None:
+    # The 1423H support floor is unchanged: older targets still resolve
+    # via the full epoch walk and round-trip.
+    clear_caches()
+    cal = UmmAlQuraCalendar()
+    old = date(2010, 6, 15)
+    assert cal.to_gregorian(cal.from_gregorian(old)) == old
+    assert cal.month_length(1431, 6) in (29, 30)
 
 
 def test_uqu_walk_suppresses_delta_t_extrapolation_warning() -> None:

@@ -381,6 +381,17 @@ Makkah) is not the `UMM_AL_QURA` prayer preset. `TabularCalendar` is
 arithmetic and routinely differs from observed months by ±1-2 days.
 `OffsetStore` applies per-month (`YYYY-MM`) day shifts loaded from JSON.
 
+Supported ranges and walk anchors: the observational calendars resolve
+month starts by walking forward from a verified anchor, and inputs
+before the support floor raise `ValidationError` instead of returning a
+wrong date. `UmmAlQuraCalendar` supports Gregorian 2002-03-15 onward (1
+Muharram 1423H, when the current rule took effect); modern targets walk
+from the 1 Muharram 1445H anchor (2023-07-19). `MabimsCalendar`
+(Neo-MABIMS 2021, per-country `MY`/`ID`/`BN`/`SG` proxies) supports 1
+Muharram 1445H onward and walks from the same 2023-07-19 anchor.
+`TabularCalendar` is arithmetic and unbounded below by 1 Muharram 1 AH
+(622-07-19 proleptic).
+
 ## See also
 
 - [Getting Started](/getting-started/) — quick start guide
