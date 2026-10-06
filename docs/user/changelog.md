@@ -5,7 +5,11 @@ description: Version history for al-falak.
 
 # Changelog
 
-## Unreleased — phase 5 (hijri converter)
+## 1.2.0 — phases 4–5 (moon-sighting, hijri converter)
+
+No breaking API changes from 1.1.0.
+
+### Hijri converter (phase 5)
 
 - `HijriDate` (frozen, ordered value type with zero-padded `isoformat()`)
 - `HijriCalendar` ABC + `get_calendar` factory (`"tabular"`, `"uqu"`, `"mabims"`; `country` required iff `mabims`, `adjustment_days` in [-2, 2] iff `tabular`, else `ConfigurationError`)
@@ -18,7 +22,7 @@ description: Version history for al-falak.
 - New [Hijri Converter](/hijri-converter/) guide; no breaking API changes
 - Offline/zero-dependency/deterministic computation recorded as project invariants (see `docs/adr/0001-offline-zero-dependency-deterministic.md`)
 
-## Unreleased — phase 4 (moon-sighting)
+### Moon-sighting (phase 4)
 
 - `LunarCoordinates` (Meeus Ch.47 low-precision Moon position)
 - `crescent_geometry_at_sunset` → `CrescentGeometry` (elongation, geocentric/topocentric ARCV, azimuth difference, width, illumination, moonset lag, moon age)
@@ -34,6 +38,9 @@ description: Version history for al-falak.
   corrections of Meeus Ch.47; sidereal time runs on UTC with the ephemeris
   on TT; `CrescentGeometry.moon_age_at_moonset_days` feeds the MABIMS 1992
   age branch defined at moonset
+
+- `Coordinates` is now frozen: the shared `MAKKAH` singleton cannot be
+  mutated in place (closes #47)
 
 ## 1.1.0 — phases 1–3 (geodesy, twilight markers, night divisions)
 

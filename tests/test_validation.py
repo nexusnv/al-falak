@@ -150,3 +150,25 @@ def test_decimal_coordinates_normalized_to_float():
     assert Qibla(
         (Decimal("35.7750"), Decimal("-78.6336"))
     ).direction == pytest.approx(Qibla((35.7750, -78.6336)).direction)
+
+
+def test_coordinates_are_frozen():
+    import dataclasses
+
+    coords = Coordinates(35.7750, -78.6336)
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        coords.latitude = 0.0  # type: ignore[misc]
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        coords.longitude = 0.0  # type: ignore[misc]
+    # Value unchanged after failed mutation attempts.
+    assert (coords.latitude, coords.longitude) == (35.7750, -78.6336)
+
+
+def test_makkah_singleton_cannot_be_mutated():
+    import dataclasses
+
+    from alfalak.data.Constants import MAKKAH
+
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        MAKKAH.latitude = 0.0  # type: ignore[misc]
+    assert MAKKAH.latitude == pytest.approx(21.4225241)
