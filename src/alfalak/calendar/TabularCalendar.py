@@ -61,6 +61,8 @@ def _jd_to_gregorian(jd: float) -> date:
 
     Fliegel-Van Flandern inverse; proleptic by construction, matching
     ``CalendricalHelper.julian_day`` (which has no Julian-calendar branch).
+    Out-of-range results (beyond ``date.min``/``date.max``) raise
+    ``ValidationError``, never a bare ``ValueError``.
     """
     jdn = int(math.floor(jd + 0.5))
     v = jdn + 68569
@@ -73,7 +75,14 @@ def _jd_to_gregorian(jd: float) -> date:
     v = j // 11
     month = j + 2 - 12 * v
     year = 100 * (n - 49) + i + v
-    return date(year, month, day)
+    try:
+        return date(year, month, day)
+    except ValueError as exc:
+        raise ValidationError(
+            "TabularCalendar: Hijri date maps to Gregorian "
+            f"{year}-{month:02d}-{day:02d}, outside the representable "
+            f"Gregorian range ({exc})."
+        ) from exc
 
 
 class TabularCalendar(HijriCalendar):

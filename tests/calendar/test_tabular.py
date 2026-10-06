@@ -170,3 +170,9 @@ def test_tabular_to_gregorian_rejects_non_hijri() -> None:
     cal = TabularCalendar()
     with pytest.raises(ValidationError):
         cal.to_gregorian("1446-09-01")  # type: ignore[arg-type]
+
+
+def test_tabular_to_gregorian_out_of_range_raises_validation_error() -> None:
+    cal = TabularCalendar()
+    with pytest.raises(ValidationError, match="outside the representable"):
+        cal.to_gregorian(HijriDate(99999, 1, 1))

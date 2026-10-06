@@ -311,7 +311,18 @@ class UmmAlQuraCalendar(HijriCalendar):
                 f"the length ({length} days) of month {h.month} "
                 f"in year {h.year}."
             )
-        return _month_start(h.year, h.month) + timedelta(days=h.day - 1)
+        try:
+            return _month_start(h.year, h.month) + timedelta(days=h.day - 1)
+        except (ValueError, OverflowError) as exc:
+            # date.fromordinal / date arithmetic overflow for Hijri dates
+            # mapping outside date.min..date.max. (AstronomicalError and
+            # ValidationError are not ValueError subclasses and propagate
+            # untouched.)
+            raise ValidationError(
+                f"Umm al-Qura ('{_CALENDAR_KEY}'): Hijri date "
+                f"{h.isoformat()} maps outside the representable "
+                f"Gregorian range ({exc})."
+            ) from exc
 
     def from_gregorian(self, d: date) -> HijriDate:
         if isinstance(d, datetime):

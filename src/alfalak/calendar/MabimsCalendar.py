@@ -285,6 +285,16 @@ class MabimsCalendar(HijriCalendar):
                 f"the length ({length} days) of month {h.month} "
                 f"in year {h.year}."
             )
-        return date.fromordinal(
-            resolve_month_start(self._country, h.year, h.month) + h.day - 1
-        )
+        try:
+            return date.fromordinal(
+                resolve_month_start(self._country, h.year, h.month) + h.day - 1
+            )
+        except (ValueError, OverflowError) as exc:
+            # fromordinal overflow for Hijri dates mapping outside
+            # date.min..date.max. (ValidationError/AstronomicalError are
+            # not ValueError subclasses and propagate untouched.)
+            raise ValidationError(
+                f"MabimsCalendar({self._country}): Hijri date "
+                f"{h.isoformat()} maps outside the representable "
+                f"Gregorian range ({exc})."
+            ) from exc

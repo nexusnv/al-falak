@@ -143,3 +143,31 @@ def test_bridge_offsets_applied_last_via_duck_typing() -> None:
 def test_bridge_offsets_without_apply_raises() -> None:
     with pytest.raises(ConfigurationError):
         gregorian_to_hijri(DAY, calendar=TabularCalendar(), offsets=object())
+
+
+def test_bridge_same_instant_agrees_across_tz_labels() -> None:
+    # Regression: the sunset civil date is normalized to UTC, so the same
+    # absolute instant maps to the same Hijri date regardless of dt's tz.
+    from zoneinfo import ZoneInfo
+
+    cal = TabularCalendar()
+    dt_ny = datetime(2025, 3, 15, 12, 0, tzinfo=ZoneInfo("America/New_York"))
+    dt_tokyo = dt_ny.astimezone(ZoneInfo("Asia/Tokyo"))
+    assert dt_ny.date() != dt_tokyo.date()  # labels straddle midnight
+    assert gregorian_to_hijri(
+        dt_ny, calendar=cal, coordinates=KL, params=PARAMS, change_at_sunset=True
+    ) == gregorian_to_hijri(
+        dt_tokyo, calendar=cal, coordinates=KL, params=PARAMS, change_at_sunset=True
+    )
+
+
+def test_bridge_date_not_datetime_raises_validation_error() -> None:
+    from datetime import date
+
+    from alfalak.exceptions import ValidationError
+
+    with pytest.raises(ValidationError):
+        gregorian_to_hijri(
+            date(2025, 3, 1),  # type: ignore[arg-type]
+            calendar=TabularCalendar(),
+        )

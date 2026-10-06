@@ -208,3 +208,18 @@ def test_offsets_from_json_rejects_non_path() -> None:
         OffsetStore.from_json(None)  # type: ignore[arg-type]
     with pytest.raises(ConfigurationError):
         OffsetStore.from_json(123)  # type: ignore[arg-type]
+
+
+def test_offsets_noncanonical_key_rejected() -> None:
+    # Padded ("01446-09") and non-ASCII-digit keys would never match the
+    # canonical lookup in apply(); reject them instead of silently no-op.
+    with pytest.raises(ConfigurationError) as excinfo:
+        OffsetStore.from_dict({"01446-09": 1})
+    assert "01446-09" in str(excinfo.value)
+    with pytest.raises(ConfigurationError):
+        OffsetStore.from_dict({"٢٠٢٥-٠٩": 1})
+
+
+def test_offsets_nul_byte_path_raises_configuration_error() -> None:
+    with pytest.raises(ConfigurationError):
+        OffsetStore.from_json("/tmp/\x00offsets.json")

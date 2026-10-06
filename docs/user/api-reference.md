@@ -362,7 +362,7 @@ AlFalakError (base)
 ## Hijri calendars
 
 ```python
-get_calendar(name: str, country: str | None = None, adjustment_days: int = 0)
+get_calendar(name: str, *, country: str | None = None, adjustment_days: int = 0)
 gregorian_to_hijri(
     dt: datetime,
     *,
@@ -388,7 +388,8 @@ Maghrib uses `params` or default `CalculationParameters`, and a polar
 as UTC. `offsets` (any object with `apply(hijri, calendar)`, else
 `ConfigurationError`) is applied last; `None` (default) skips it.
 
-Every calendar implements the same three methods over civil `date`s
+Every calendar implements the same three conversion methods over civil `date`s
+(plus a `name` property holding the registry key)
 (`datetime` inputs raise `ValidationError` — pass `d.date()` or use the
 bridge):
 

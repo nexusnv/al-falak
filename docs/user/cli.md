@@ -131,11 +131,12 @@ al-falak: error: argument --method: invalid choice: 'BOGUS'
 ```
 
 The `hijri` subcommand follows the same convention: unknown calendars,
-bad dates/times, and `--latitude`/`--longitude` (use `--lat`/`--lon`
-with `--sunset-transition`) exit with code 2. Gate misuse (missing
+bad dates/times, `--latitude`/`--longitude` (use `--lat`/`--lon`
+with `--sunset-transition`), and gate misuse (missing
 `--country` with `mabims`, `--country` without it, `--adjustment-days`
 outside `tabular`, `--time`/`--lat`/`--lon` without
-`--sunset-transition`) raises `ConfigurationError`.
+`--sunset-transition`, unreadable `--offsets` files, out-of-range
+coordinates, pre-floor dates) all exit with code 2 via an argparse error.
 
 ## See also
 

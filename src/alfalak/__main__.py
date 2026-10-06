@@ -6,7 +6,7 @@ from alfalak import CalculationMethod, Prayer, PrayerTimes
 from alfalak.calendar import OffsetStore, get_calendar
 from alfalak.calendar.bridge import gregorian_to_hijri
 from alfalak.data import Coordinates
-from alfalak.exceptions import ConfigurationError
+from alfalak.exceptions import ConfigurationError, ValidationError
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -193,7 +193,10 @@ def main(argv: list[str] | None = None) -> None:
                 "--latitude/--longitude are not used with the hijri "
                 "subcommand; pass --lat/--lon with --sunset-transition."
             )
-        _run_hijri(args, parser)
+        try:
+            _run_hijri(args, parser)
+        except (ConfigurationError, ValidationError) as exc:
+            parser.error(str(exc))
         return
 
     if args.latitude is None or args.longitude is None:

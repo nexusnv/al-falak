@@ -31,13 +31,17 @@ from alfalak.exceptions import ConfigurationError, ValidationError
 
 _ALLOWED_SHIFTS = frozenset({-2, -1, 1, 2})
 
-_KEY_RE = re.compile(r"^(\d{4,})-(\d{2})$")
+_KEY_RE = re.compile(r"^([0-9]{4,})-([0-9]{2})$")
 
 
 def _check_key(key: object) -> tuple[int, int]:
     """Validate an offset key, returning ``(year, month)``.
 
-    Raises :class:`ConfigurationError` naming the offending key.
+    Only canonical ASCII ``YYYY-MM`` keys are accepted: the string must
+    round-trip through ``f"{year:04d}-{month:02d}"`` exactly, so padded
+    (``01446-09``) or non-ASCII-digit keys are rejected instead of being
+    stored under a form ``apply`` would never look up. Raises
+    :class:`ConfigurationError` naming the offending key.
     """
     if not isinstance(key, str) or (match := _KEY_RE.match(key)) is None:
         raise ConfigurationError(
@@ -47,6 +51,12 @@ def _check_key(key: object) -> tuple[int, int]:
     if year < 1 or not 1 <= month <= 12:
         raise ConfigurationError(
             f"Invalid offset key {key!r}: expected 'YYYY-MM' with month 01-12."
+        )
+    if key != f"{year:04d}-{month:02d}":
+        raise ConfigurationError(
+            f"Invalid offset key {key!r}: expected canonical 'YYYY-MM' "
+            f"(got non-canonical zero-padding; use "
+            f"'{year:04d}-{month:02d}')."
         )
     return year, month
 
@@ -130,6 +140,13 @@ class OffsetStore:
         except UnicodeDecodeError as exc:
             raise ConfigurationError(
                 f"Invalid offset file {path_str!r}: not valid UTF-8 ({exc})."
+            ) from exc
+        except ValueError as exc:
+            # json.JSONDecodeError / UnicodeDecodeError (both ValueError
+            # subclasses) are handled above; what remains from this block
+            # is open() rejecting the path itself (e.g. embedded NUL).
+            raise ConfigurationError(
+                f"Invalid offset file {path_str!r}: not a valid path ({exc})."
             ) from exc
         if not isinstance(data, dict):
             raise ConfigurationError(

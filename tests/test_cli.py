@@ -4,7 +4,6 @@ import sys
 
 import pytest
 from alfalak.__main__ import main
-from alfalak.exceptions import ConfigurationError
 
 
 def test_cli_prints_iso_times(capsys):
@@ -142,9 +141,10 @@ def test_cli_hijri_top_level_date_before_subcommand(capsys):
 
 
 def test_cli_hijri_country_required_iff_mabims():
-    with pytest.raises(ConfigurationError, match="(?i)country"):
+    with pytest.raises(SystemExit) as excinfo:
         main(["hijri", "--date", "2025-03-01", "--calendar", "mabims"])
-    with pytest.raises(ConfigurationError, match="(?i)country"):
+    assert excinfo.value.code == 2
+    with pytest.raises(SystemExit) as excinfo:
         main(
             [
                 "hijri",
@@ -156,6 +156,7 @@ def test_cli_hijri_country_required_iff_mabims():
                 "MY",
             ]
         )
+    assert excinfo.value.code == 2
 
 
 def test_cli_hijri_country_case_insensitive(capsys):
@@ -194,15 +195,44 @@ def test_cli_hijri_rejects_top_level_coordinates():
 
 def test_cli_hijri_time_required_iff_transition():
     base = ["hijri", "--date", "2025-03-01", "--calendar", "tabular"]
-    with pytest.raises(ConfigurationError, match="(?i)sunset|transition|time"):
+    with pytest.raises(SystemExit) as excinfo:
         main(base + ["--sunset-transition", "--lat", "3.1390", "--lon", "101.6869"])
-    with pytest.raises(ConfigurationError, match="(?i)sunset|transition|lat|lon"):
+    assert excinfo.value.code == 2
+    with pytest.raises(SystemExit) as excinfo:
         main(base + ["--sunset-transition", "--time", "19:30"])
-    with pytest.raises(ConfigurationError, match="(?i)sunset|transition"):
+    assert excinfo.value.code == 2
+    with pytest.raises(SystemExit) as excinfo:
         main(base + ["--time", "19:30"])
+    assert excinfo.value.code == 2
 
 
 def test_cli_hijri_sunset_transition_two_lines(capsys):
+    # 12:00 UTC on 2025-03-01 is after Maghrib at Kuala Lumpur
+    # (11:27 UTC), so the sunset rollover must advance to the next
+    # civil date's Hijri date — this differs from the plain civil
+    # conversion and fails if --sunset-transition is ignored.
+    main(
+        [
+            "hijri",
+            "--date",
+            "2025-03-01",
+            "--calendar",
+            "tabular",
+            "--sunset-transition",
+            "--lat",
+            "3.1390",
+            "--lon",
+            "101.6869",
+            "--time",
+            "12:00",
+        ]
+    )
+
+    assert capsys.readouterr().out == "hijri=1446-09-02\ncalendar=tabular\n"
+
+
+def test_cli_hijri_sunset_transition_before_maghrib(capsys):
+    # 00:00 UTC is before Maghrib (11:27 UTC): no rollover.
     main(
         [
             "hijri",
@@ -224,7 +254,7 @@ def test_cli_hijri_sunset_transition_two_lines(capsys):
 
 
 def test_cli_hijri_adjustment_days_only_tabular():
-    with pytest.raises(ConfigurationError, match="(?i)adjustment"):
+    with pytest.raises(SystemExit) as excinfo:
         main(
             [
                 "hijri",
@@ -236,6 +266,7 @@ def test_cli_hijri_adjustment_days_only_tabular():
                 "1",
             ]
         )
+    assert excinfo.value.code == 2
 
 
 def test_cli_hijri_unknown_calendar_rejected():
@@ -294,9 +325,16 @@ def test_cli_hijri_invalid_time_rejected():
 
 
 def test_cli_hijri_defaults_to_today(capsys):
+    from datetime import datetime, timezone
+
+    from alfalak.calendar.TabularCalendar import TabularCalendar
+
     main(["hijri", "--calendar", "tabular"])
     out = capsys.readouterr().out
-    assert re.fullmatch(r"hijri=\d{4}-\d{2}-\d{2}\ncalendar=tabular\n", out)
+    expected = (
+        TabularCalendar().from_gregorian(datetime.now(timezone.utc).date()).isoformat()
+    )
+    assert out == f"hijri={expected}\ncalendar=tabular\n"
 
 
 def test_cli_hijri_rejects_bad_date():
@@ -306,7 +344,7 @@ def test_cli_hijri_rejects_bad_date():
 
 
 def test_cli_hijri_lat_lon_require_transition():
-    with pytest.raises(ConfigurationError, match="sunset-transition"):
+    with pytest.raises(SystemExit) as excinfo:
         main(
             [
                 "hijri",
@@ -320,6 +358,7 @@ def test_cli_hijri_lat_lon_require_transition():
                 "101.6869",
             ]
         )
+    assert excinfo.value.code == 2
 
 
 def test_cli_main_guard(monkeypatch, capsys):
