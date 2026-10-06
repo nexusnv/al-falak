@@ -158,6 +158,25 @@ def test_offsets_from_dict_rejects_non_dict() -> None:
         OffsetStore.from_dict("1446-02")  # type: ignore[arg-type]
 
 
+def test_offsets_constructor_rejects_non_dict() -> None:
+    # dict() on these inputs raises bare ValueError/TypeError; the
+    # constructor must surface ConfigurationError instead.
+    with pytest.raises(ConfigurationError):
+        OffsetStore(["1446-02"])  # type: ignore[arg-type]
+    with pytest.raises(ConfigurationError):
+        OffsetStore(123)  # type: ignore[arg-type]
+
+
+def test_offsets_missing_file_raises_configuration_error(tmp_path: object) -> None:
+    from pathlib import Path
+
+    assert isinstance(tmp_path, Path)
+    missing = tmp_path / "no-such-file.json"
+    with pytest.raises(ConfigurationError) as excinfo:
+        OffsetStore.from_json(missing)
+    assert str(missing) in str(excinfo.value)
+
+
 def test_offsets_non_utf8_file_raises(tmp_path: object) -> None:
     from pathlib import Path
 

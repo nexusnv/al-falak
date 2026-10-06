@@ -1,7 +1,7 @@
 """Tests for TabularCalendar (Type IIa) (phase-5 task 1)."""
 
 import random
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 import pytest
 
@@ -156,6 +156,14 @@ def test_tabular_from_gregorian_rejects_non_date() -> None:
         cal.from_gregorian("2025-03-01")  # type: ignore[arg-type]
     with pytest.raises(ValidationError):
         cal.from_gregorian(None)  # type: ignore[arg-type]
+
+
+def test_tabular_from_gregorian_rejects_datetime() -> None:
+    # datetime is a date subclass: accepting it would silently drop the
+    # time, so it is rejected with a pointer to d.date()/the bridge.
+    cal = TabularCalendar()
+    with pytest.raises(ValidationError, match="not a datetime"):
+        cal.from_gregorian(datetime(2025, 3, 1, 23, 0))  # type: ignore[arg-type]
 
 
 def test_tabular_to_gregorian_rejects_non_hijri() -> None:

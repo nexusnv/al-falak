@@ -64,6 +64,7 @@ def build_parser() -> argparse.ArgumentParser:
     hijri.add_argument(
         "--country",
         default=None,
+        type=str.upper,
         choices=["MY", "ID", "BN", "SG"],
         help="MABIMS country (required with --calendar mabims; rejected otherwise).",
     )
@@ -178,6 +179,11 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     if args.command == "hijri":
+        if args.latitude is not None or args.longitude is not None:
+            parser.error(
+                "--latitude/--longitude are not used with the hijri "
+                "subcommand; pass --lat/--lon with --sunset-transition."
+            )
         _run_hijri(args, parser)
         return
 

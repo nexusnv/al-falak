@@ -85,14 +85,11 @@ class OffsetStore:
     """Per-month Hijri-day shifts loaded from JSON."""
 
     def __init__(self, offsets: dict[str, int] | None = None) -> None:
-        raw: dict[Any, Any] = dict(offsets) if offsets is not None else {}
-        # Defensive: dict() above is total, so raw is always a dict; the
-        # guard stays as documentation, excluded from coverage like the
-        # unreachable guard in PrayerTimes.
-        if not isinstance(raw, dict):  # pragma: no cover - dict() is total
+        if offsets is not None and not isinstance(offsets, dict):
             raise ConfigurationError(
                 f"OffsetStore needs a dict[str, int] mapping, got {offsets!r}."
             )
+        raw: dict[Any, Any] = dict(offsets) if offsets is not None else {}
         self._offsets: dict[str, int] = _validate_mapping(raw)
 
     @classmethod
@@ -112,6 +109,10 @@ class OffsetStore:
         try:
             with open(path_str, encoding="utf-8") as fh:
                 data = json.load(fh)
+        except OSError as exc:
+            raise ConfigurationError(
+                f"Invalid offset file {path_str!r}: cannot read file ({exc})."
+            ) from exc
         except json.JSONDecodeError as exc:
             raise ConfigurationError(
                 f"Invalid offset file {path_str!r}: unparseable JSON ({exc})."

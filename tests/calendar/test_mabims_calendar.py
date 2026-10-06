@@ -218,6 +218,22 @@ def test_mabims_converters_reject_wrong_types() -> None:
         cal.to_gregorian("1446-09-01")  # type: ignore[arg-type]
 
 
+def test_mabims_from_gregorian_rejects_datetime() -> None:
+    # datetime is a date subclass: accepting it would silently drop the
+    # time, so it is rejected with a pointer to d.date()/the bridge.
+    from datetime import datetime
+
+    with pytest.raises(ValidationError, match="not a datetime"):
+        MabimsCalendar(country="MY").from_gregorian(datetime(2025, 3, 1, 23, 0))  # type: ignore[arg-type]
+
+
+def test_mabims_resolve_month_start_rejects_unknown_country() -> None:
+    with pytest.raises(ConfigurationError, match="(?i)country"):
+        mabims_module.resolve_month_start("XX", 1446, 1)
+    with pytest.raises(ConfigurationError, match="(?i)country"):
+        mabims_module.resolve_month_start(None, 1446, 1)  # type: ignore[arg-type]
+
+
 def test_mabims_to_gregorian_rejects_30th_of_29_day_month() -> None:
     cal = MabimsCalendar(country="MY")
     assert cal.month_length(1446, 3) == 29

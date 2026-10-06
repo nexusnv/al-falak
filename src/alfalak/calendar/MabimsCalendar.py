@@ -30,7 +30,7 @@ months as 29-day ones. Intermediate results cache in bounded
 """
 
 import functools
-from datetime import date
+from datetime import date, datetime
 
 from alfalak.astronomy.CrescentGeometry import (
     CrescentGeometry,
@@ -137,8 +137,15 @@ def resolve_month_start(country: str, year: int, month: int) -> int:
     Near-anchor targets use the cached chain; far targets walk
     iteratively forward from the anchor (geometry stays cached,
     intermediate month starts are not retained). Pre-anchor inputs raise
-    ``ValidationError`` (deferred).
+    ``ValidationError`` (deferred); unknown countries raise
+    ``ConfigurationError`` (never a bare ``KeyError``).
     """
+    if not isinstance(country, str) or country.upper() not in _VALID_COUNTRIES:
+        raise ConfigurationError(
+            f"Unknown MABIMS country {country!r}. "
+            f"Expected one of {sorted(_VALID_COUNTRIES)}."
+        )
+    country = country.upper()
     if (year, month) < (_ANCHOR_YEAR, _ANCHOR_MONTH):
         raise ValidationError(_DEFERRED_MESSAGE)
     if abs(_month_distance_from_anchor(year, month)) <= (_MAX_CACHED_WALK_MONTHS):
@@ -223,6 +230,11 @@ class MabimsCalendar(HijriCalendar):
         return length
 
     def from_gregorian(self, d: date) -> HijriDate:
+        if isinstance(d, datetime):
+            raise ValidationError(
+                "MabimsCalendar needs a datetime.date (not a datetime); "
+                f"pass d.date() or use gregorian_to_hijri, got {d!r}."
+            )
         if not isinstance(d, date):
             raise ValidationError(f"MabimsCalendar needs a datetime.date, got {d!r}.")
         if d < _ANCHOR_GREGORIAN:

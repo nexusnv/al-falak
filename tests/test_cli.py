@@ -149,6 +149,40 @@ def test_cli_hijri_country_required_iff_mabims():
         )
 
 
+def test_cli_hijri_country_case_insensitive(capsys):
+    main(
+        [
+            "hijri",
+            "--date",
+            "2025-03-01",
+            "--calendar",
+            "mabims",
+            "--country",
+            "my",
+        ]
+    )
+    out = capsys.readouterr().out
+    assert re.fullmatch(r"hijri=\d{4}-\d{2}-\d{2}\ncalendar=mabims-MY\n", out)
+
+
+def test_cli_hijri_rejects_top_level_coordinates():
+    with pytest.raises(SystemExit) as excinfo:
+        main(
+            [
+                "--latitude",
+                "3.1390",
+                "--longitude",
+                "101.6869",
+                "hijri",
+                "--date",
+                "2025-03-01",
+                "--calendar",
+                "tabular",
+            ]
+        )
+    assert excinfo.value.code == 2
+
+
 def test_cli_hijri_time_required_iff_transition():
     base = ["hijri", "--date", "2025-03-01", "--calendar", "tabular"]
     with pytest.raises(ConfigurationError, match="(?i)sunset|transition|time"):

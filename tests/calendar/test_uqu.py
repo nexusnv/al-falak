@@ -196,6 +196,37 @@ def test_uqu_converters_reject_wrong_types() -> None:
         cal.to_gregorian("1446-09-01")  # type: ignore[arg-type]
 
 
+def test_uqu_from_gregorian_rejects_datetime() -> None:
+    # datetime is a date subclass: accepting it would silently drop the
+    # time, so it is rejected with a pointer to d.date()/the bridge.
+    from datetime import datetime
+
+    with pytest.raises(ValidationError, match="not a datetime"):
+        UmmAlQuraCalendar().from_gregorian(datetime(2025, 3, 1, 23, 0))  # type: ignore[arg-type]
+
+
+def test_uqu_month_starts_cache_intermediates() -> None:
+    # The anchored walk caches every intermediate month start, so one
+    # conversion populates the whole chain from the epoch (~280 entries
+    # for 1446H) instead of re-walking per probe.
+    clear_caches()
+    UmmAlQuraCalendar().from_gregorian(date(2025, 3, 1))
+    assert uqu_module._month_start_ordinal.cache_info().currsize > 100
+
+
+def test_uqu_walk_suppresses_delta_t_extrapolation_warning() -> None:
+    # The walk routinely evaluates pre-2005 evenings where the shared
+    # delta_t polynomial extrapolates; that expected warning is scoped
+    # off so cold conversions stay quiet on stderr.
+    import warnings
+
+    clear_caches()
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        UmmAlQuraCalendar().from_gregorian(date(2025, 3, 1))
+    assert not [w for w in caught if "delta_t polynomial" in str(w.message)]
+
+
 def test_uqu_month_start_ordinal_rejects_pre_epoch() -> None:
     # Defense in depth: the cached ordinal lookup itself refuses pre-1423H
     # months even though every public caller validates first.

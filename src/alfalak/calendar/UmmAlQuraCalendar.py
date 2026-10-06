@@ -26,7 +26,8 @@ output as a tabular date or vice versa.
 from __future__ import annotations
 
 import math
-from datetime import date, timedelta
+import warnings
+from datetime import date, datetime, timedelta
 from functools import lru_cache
 
 from alfalak.astronomy.CrescentGeometry import (
@@ -98,7 +99,18 @@ def clear_caches() -> None:
 
 def _decide_month_length(evening: date) -> int:
     """Apply the 1423H rule to a 29th evening at Makkah: 29 or 30 days."""
-    geometry = _geometry_at_makkah(evening)
+    # The anchored walk routinely evaluates pre-2005 evenings, where the
+    # shared delta_t polynomial extrapolates past its calibration range.
+    # That extrapolation warning is expected here (the published-table
+    # goldens already calibrate the rule against it), so it is scoped off
+    # for this call only; every other warning still propagates.
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message=".*delta_t polynomial is calibrated.*",
+            category=UserWarning,
+        )
+        geometry = _geometry_at_makkah(evening)
     iso = evening.isoformat()
     if math.isnan(geometry.lag_hours):
         raise AstronomicalError(
@@ -122,25 +134,55 @@ def _decide_month_length(evening: date) -> int:
 def _month_start_ordinal(year: int, month: int) -> int:
     """Ordinal of the 1st of a Hijri month via the anchored walk.
 
-    Callers must validate ``(year, month)`` first; months before the
-    1423H anchor raise ``ValidationError`` here as defense in depth.
+    Recursive single-step forward chain from the 1423H epoch: every
+    intermediate month start lands in the cache, so a full-year sweep
+    costs one rule evaluation per month. Callers must validate
+    ``(year, month)`` first; months before the 1423H anchor raise
+    ``ValidationError`` here as defense in depth. Deep (far from epoch)
+    targets go through ``_resolve_month_start`` instead to bound stack use.
     """
     if (year, month) < (_EPOCH_HIJRI_YEAR, _EPOCH_HIJRI_MONTH):
         raise ValidationError(_DEFERRED_MESSAGE)
+    if (year, month) == (_EPOCH_HIJRI_YEAR, _EPOCH_HIJRI_MONTH):
+        return _EPOCH_GREGORIAN.toordinal()
+    prev_year, prev_month = _prev_month(year, month)
+    prev_start = _month_start_ordinal(prev_year, prev_month)
+    return prev_start + _decide_month_length(date.fromordinal(prev_start + 28))
+
+
+def _month_distance_from_epoch(year: int, month: int) -> int:
+    return (year - _EPOCH_HIJRI_YEAR) * 12 + (month - _EPOCH_HIJRI_MONTH)
+
+
+# Recursion headroom: the cached chain resolves one stack frame per
+# month from the epoch; beyond this distance the driver walks
+# iteratively instead (mirrors MabimsCalendar's 500-month headroom).
+_MAX_CACHED_WALK_MONTHS = 500
+
+
+def _resolve_month_start(year: int, month: int) -> int:
+    """Ordinal of the 1st of a Hijri month, bounding recursion depth.
+
+    Near-epoch targets use the cached chain; far targets walk
+    iteratively forward from the epoch (geometry stays cached,
+    intermediate month starts are not retained). Pre-epoch inputs raise
+    ``ValidationError`` (deferred).
+    """
+    if (year, month) < (_EPOCH_HIJRI_YEAR, _EPOCH_HIJRI_MONTH):
+        raise ValidationError(_DEFERRED_MESSAGE)
+    if _month_distance_from_epoch(year, month) <= _MAX_CACHED_WALK_MONTHS:
+        return _month_start_ordinal(year, month)
     start = _EPOCH_GREGORIAN.toordinal()
     walk_year, walk_month = _EPOCH_HIJRI_YEAR, _EPOCH_HIJRI_MONTH
     while (walk_year, walk_month) != (year, month):
         start += _decide_month_length(date.fromordinal(start + 28))
-        if walk_month == 12:
-            walk_year, walk_month = walk_year + 1, 1
-        else:
-            walk_month += 1
+        walk_year, walk_month = _next_month(walk_year, walk_month)
     return start
 
 
 def _month_start(year: int, month: int) -> date:
     """True month start, window-checked against the tabular seed."""
-    start = date.fromordinal(_month_start_ordinal(year, month))
+    start = date.fromordinal(_resolve_month_start(year, month))
     seed = _TABULAR_SEED.to_gregorian(HijriDate(year, month, 1))
     lower = seed - timedelta(days=_WINDOW_DAYS)
     upper = seed + timedelta(days=_WINDOW_DAYS)
@@ -244,6 +286,11 @@ class UmmAlQuraCalendar(HijriCalendar):
         return _month_start(h.year, h.month) + timedelta(days=h.day - 1)
 
     def from_gregorian(self, d: date) -> HijriDate:
+        if isinstance(d, datetime):
+            raise ValidationError(
+                "UmmAlQuraCalendar needs a datetime.date (not a datetime); "
+                f"pass d.date() or use gregorian_to_hijri, got {d!r}."
+            )
         if not isinstance(d, date):
             raise ValidationError(
                 f"UmmAlQuraCalendar needs a datetime.date, got {d!r}."

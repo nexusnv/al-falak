@@ -12,7 +12,7 @@ class HijriCalendar(ABC):
 
     Date-only calendars speak ``date``: civil Gregorian dates in,
     civil Gregorian dates out. Datetime/sunset handling lives in the
-    bridge (a later increment), not here.
+    bridge (``gregorian_to_hijri``), not here.
     """
 
     @property
@@ -122,8 +122,11 @@ def get_calendar(
 
 # Registry imports sit at the bottom (not the top) because the concrete
 # calendars import this module for the ABC; importing them any earlier
-# would be circular. Function-level imports inside get_calendar stay lazy
-# so later increments wire up without touching this file.
+# would be circular. They are eager so CALENDARS below is fully populated
+# at import time. The function-level import inside get_calendar mirrors
+# them and stays (with its ImportError -> _DeferredCalendar fallback) so
+# resolution and sentinel validation keep working even if a rule module
+# is absent.
 from alfalak.calendar.MabimsCalendar import MabimsCalendar  # noqa: E402
 from alfalak.calendar.TabularCalendar import TabularCalendar  # noqa: E402
 from alfalak.calendar.UmmAlQuraCalendar import UmmAlQuraCalendar  # noqa: E402

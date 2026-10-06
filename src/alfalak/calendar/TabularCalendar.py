@@ -10,7 +10,7 @@ by +/-1-2 days. Never present tabular output as an observed/sighted date.
 """
 
 import math
-from datetime import date
+from datetime import date, datetime
 
 from alfalak.astronomy.CalendricalHelper import julian_day
 from alfalak.calendar.HijriCalendar import HijriCalendar
@@ -124,6 +124,11 @@ class TabularCalendar(HijriCalendar):
         return 30 if month % 2 == 1 else 29
 
     def from_gregorian(self, d: date) -> HijriDate:
+        if isinstance(d, datetime):
+            raise ValidationError(
+                "TabularCalendar needs a datetime.date (not a datetime); "
+                f"pass d.date() or use gregorian_to_hijri, got {d!r}."
+            )
         if not isinstance(d, date):
             raise ValidationError(f"TabularCalendar needs a datetime.date, got {d!r}.")
         jd = julian_day(d.year, d.month, d.day) + self._adjustment_days
