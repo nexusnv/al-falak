@@ -52,7 +52,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     hijri.add_argument(
         "--date",
-        default=None,
+        # SUPPRESS (not None): this shares dest "date" with the top-level
+        # --date, and a plain None default here would clobber a --date
+        # passed before the subcommand (silently falling back to today).
+        # SUPPRESS leaves the top-level value intact, so `--date X hijri`
+        # and `hijri --date X` agree; when both are given the subcommand
+        # value wins.
+        default=argparse.SUPPRESS,
         help="Gregorian date as YYYY-MM-DD (defaults to today, UTC).",
     )
     hijri.add_argument(
@@ -115,13 +121,16 @@ def _parse_hijri_time(raw: str, parser: argparse.ArgumentParser) -> datetime:
 
 
 def _run_hijri(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
-    if args.date is None:
+    # getattr: with the SUPPRESS default above, "date" may come from the
+    # top-level --date, the subcommand --date, or neither (today, UTC).
+    raw_date: str | None = getattr(args, "date", None)
+    if raw_date is None:
         civil = datetime.now(timezone.utc).date()
     else:
         try:
-            civil = datetime.strptime(args.date, "%Y-%m-%d").date()
+            civil = datetime.strptime(raw_date, "%Y-%m-%d").date()
         except ValueError:
-            parser.error(f"invalid --date (expected YYYY-MM-DD): {args.date}")
+            parser.error(f"invalid --date (expected YYYY-MM-DD): {raw_date}")
 
     if args.time is not None and not args.sunset_transition:
         raise ConfigurationError("--time requires --sunset-transition.")

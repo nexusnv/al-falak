@@ -192,3 +192,19 @@ def test_offsets_apply_rejects_non_hijri() -> None:
     store = OffsetStore.from_dict({"1446-02": 1})
     with pytest.raises(ValidationError):
         store.apply("1446-02-15", TabularCalendar())  # type: ignore[arg-type]
+
+
+def test_offsets_key_accepts_year_beyond_9999() -> None:
+    # The key regex allows 4+ digit years and apply() formats with a minimum
+    # width (:04d), so far-future years resolve instead of silently no-op.
+    store = OffsetStore.from_dict({"10000-01": 1})
+    cal = TabularCalendar()
+    assert cal.month_length(10000, 1) == 30
+    assert store.apply(HijriDate(10000, 1, 30), cal) == HijriDate(10000, 2, 1)
+
+
+def test_offsets_from_json_rejects_non_path() -> None:
+    with pytest.raises(ConfigurationError):
+        OffsetStore.from_json(None)  # type: ignore[arg-type]
+    with pytest.raises(ConfigurationError):
+        OffsetStore.from_json(123)  # type: ignore[arg-type]

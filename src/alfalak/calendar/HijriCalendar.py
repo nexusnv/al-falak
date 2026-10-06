@@ -37,40 +37,6 @@ class HijriCalendar(ABC):
         raise NotImplementedError
 
 
-class _DeferredCalendar(HijriCalendar):
-    """Provisional stand-in for a registered key whose rule module has not
-    landed yet (observational calendars arrive in later increments).
-
-    Resolution through :func:`get_calendar` already works (name and
-    sentinel validation are stable); only conversion raises. Not exported.
-    """
-
-    def __init__(self, key: str) -> None:
-        self._key = key
-
-    @property
-    def name(self) -> str:
-        return self._key
-
-    def from_gregorian(self, d: date) -> HijriDate:
-        raise ConfigurationError(
-            f"Calendar {self._key!r} is registered but its conversion rule "
-            "is not implemented by this version of al-falak."
-        )
-
-    def to_gregorian(self, h: HijriDate) -> date:
-        raise ConfigurationError(
-            f"Calendar {self._key!r} is registered but its conversion rule "
-            "is not implemented by this version of al-falak."
-        )
-
-    def month_length(self, year: int, month: int) -> int:
-        raise ConfigurationError(
-            f"Calendar {self._key!r} is registered but its conversion rule "
-            "is not implemented by this version of al-falak."
-        )
-
-
 _KNOWN_KEYS = ("tabular", "uqu", "mabims")
 
 
@@ -111,22 +77,18 @@ def get_calendar(
         from alfalak.calendar.UmmAlQuraCalendar import UmmAlQuraCalendar
 
         return UmmAlQuraCalendar()
-    try:
-        from alfalak.calendar.MabimsCalendar import (  # type: ignore[import-not-found]
-            MabimsCalendar,
-        )
-    except ImportError:
-        return _DeferredCalendar("mabims")
+    from alfalak.calendar.MabimsCalendar import MabimsCalendar
+
     return MabimsCalendar(country=country)
 
 
 # Registry imports sit at the bottom (not the top) because the concrete
 # calendars import this module for the ABC; importing them any earlier
 # would be circular. They are eager so CALENDARS below is fully populated
-# at import time. The function-level import inside get_calendar mirrors
-# them and stays (with its ImportError -> _DeferredCalendar fallback) so
-# resolution and sentinel validation keep working even if a rule module
-# is absent.
+# at import time; the function-level imports inside get_calendar mirror
+# them (deferred to call time so the ABC module stays importable on its
+# own). A missing rule module is a broken install and fails fast here,
+# never a silent deferred stand-in.
 from alfalak.calendar.MabimsCalendar import MabimsCalendar  # noqa: E402
 from alfalak.calendar.TabularCalendar import TabularCalendar  # noqa: E402
 from alfalak.calendar.UmmAlQuraCalendar import UmmAlQuraCalendar  # noqa: E402

@@ -132,6 +132,15 @@ def test_cli_hijri_two_line_output(capsys):
     assert capsys.readouterr().out == "hijri=1446-09-01\ncalendar=tabular\n"
 
 
+def test_cli_hijri_top_level_date_before_subcommand(capsys):
+    # Regression: --date before the subcommand shares dest "date" with the
+    # hijri --date; the subcommand default must not clobber it (it used to
+    # silently fall back to today).
+    main(["--date", "2025-03-01", "hijri", "--calendar", "tabular"])
+
+    assert capsys.readouterr().out == "hijri=1446-09-01\ncalendar=tabular\n"
+
+
 def test_cli_hijri_country_required_iff_mabims():
     with pytest.raises(ConfigurationError, match="(?i)country"):
         main(["hijri", "--date", "2025-03-01", "--calendar", "mabims"])

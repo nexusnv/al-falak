@@ -31,7 +31,7 @@ from alfalak.exceptions import ConfigurationError, ValidationError
 
 _ALLOWED_SHIFTS = frozenset({-2, -1, 1, 2})
 
-_KEY_RE = re.compile(r"^(\d{4})-(\d{2})$")
+_KEY_RE = re.compile(r"^(\d{4,})-(\d{2})$")
 
 
 def _check_key(key: object) -> tuple[int, int]:
@@ -105,7 +105,17 @@ class OffsetStore:
     @classmethod
     def from_json(cls, path: str | os.PathLike[str]) -> OffsetStore:
         """Load a store from a JSON file at ``path``."""
-        path_str = os.fspath(path)
+        if not isinstance(path, (str, os.PathLike)):
+            raise ConfigurationError(
+                "Invalid offset file "
+                f"{path!r}: expected a path string, got {type(path).__name__}."
+            )
+        try:
+            path_str = os.fspath(path)
+        except TypeError as exc:
+            raise ConfigurationError(
+                f"Invalid offset file {path!r}: not a valid path ({exc})."
+            ) from exc
         try:
             with open(path_str, encoding="utf-8") as fh:
                 data = json.load(fh)
