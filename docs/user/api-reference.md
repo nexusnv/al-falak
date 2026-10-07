@@ -454,6 +454,7 @@ correction for the Gregorian→Hijri direction only).
 
 ## See also
 
+- [CLI Usage](cli/) — command-line access to this API (`prayer`, `qibla`, `sunnah`, `hijri`, `moon-sighting`, `astro`)
 - [Getting Started](getting-started/) — quick start guide
 - [Calculation Methods](calculation-methods/) — method details
 - [Hijri Converter](hijri-converter/) — calendar rules and conversion walkthrough
