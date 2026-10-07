@@ -28,3 +28,35 @@ def test_hijri_reverse_bad_date_rejected(capsys):
         main(["hijri", "--reverse", "1446-13-01", "--calendar", "tabular"])
     assert excinfo.value.code == 2
     assert "--reverse" in capsys.readouterr().err
+
+
+def test_hijri_reverse_day_beyond_month_length_rejected(capsys):
+    # Safar 1446 is 29 days on the tabular calendar.
+    with pytest.raises(SystemExit) as excinfo:
+        main(["hijri", "--reverse", "1446-02-30", "--calendar", "tabular"])
+    assert excinfo.value.code == 2
+    assert "--reverse" in capsys.readouterr().err
+
+
+def test_hijri_month_length_bad_month_rejected(capsys):
+    with pytest.raises(SystemExit) as excinfo:
+        main(["hijri", "--month-length", "1446-13", "--calendar", "tabular"])
+    assert excinfo.value.code == 2
+    assert "--month-length" in capsys.readouterr().err
+
+
+def test_hijri_reverse_and_month_length_mutually_exclusive(capsys):
+    with pytest.raises(SystemExit) as excinfo:
+        main(
+            [
+                "hijri",
+                "--reverse",
+                "1446-09-01",
+                "--month-length",
+                "1446-09",
+                "--calendar",
+                "tabular",
+            ]
+        )
+    assert excinfo.value.code == 2
+    assert "mutually exclusive" in capsys.readouterr().err

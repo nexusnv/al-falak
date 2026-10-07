@@ -151,3 +151,17 @@ def test_prayer_rejects_negative_elevation(capsys):
         main(_prayer_base(["--elevation", "-5"]))
     assert excinfo.value.code == 2
     assert "--elevation" in capsys.readouterr().err
+
+
+def test_prayer_rejects_negative_ishraq_offset(capsys):
+    with pytest.raises(SystemExit) as excinfo:
+        main(_prayer_base(["--ishraq-offset", "-1"]))
+    assert excinfo.value.code == 2
+    assert "--ishraq-offset" in capsys.readouterr().err
+
+
+def test_prayer_rejects_negative_dhuha_offset(capsys):
+    with pytest.raises(SystemExit) as excinfo:
+        main(_prayer_base(["--dhuha-offset", "-1"]))
+    assert excinfo.value.code == 2
+    assert "--dhuha-offset" in capsys.readouterr().err
