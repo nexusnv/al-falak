@@ -1,6 +1,7 @@
 ---
 title: Getting Started
 description: Install al-falak and run your first prayer time calculation.
+slug: v1.1.0/getting-started
 ---
 
 # Getting Started
@@ -77,6 +78,6 @@ prayer_times = PrayerTimes(
 
 ## Next steps
 
-- [Calculation Methods](/calculation-methods/) — compare all 11 methods
-- [API Reference](/api-reference/) — full API documentation
-- [CLI Usage](/cli/) — command-line interface
+- [Calculation Methods](/v1.1.0/calculation-methods/) — compare all 11 methods
+- [API Reference](/v1.1.0/api-reference/) — full API documentation
+- [CLI Usage](/v1.1.0/cli/) — command-line interface

@@ -1,6 +1,7 @@
 ---
 title: API Reference
 description: Complete API reference for al-falak.
+slug: v1.2.1/api-reference
 ---
 
 # API Reference
@@ -454,8 +455,8 @@ correction for the Gregorian→Hijri direction only).
 
 ## See also
 
-- [Getting Started](/getting-started/) — quick start guide
-- [Calculation Methods](/calculation-methods/) — method details
-- [Hijri Converter](/hijri-converter/) — calendar rules and conversion walkthrough
-- [Moon Sighting](/moon-sighting/) — crescent geometry and visibility criteria
-- [Errors](/errors/) — error handling
+- [Getting Started](/v1.2.1/getting-started/) — quick start guide
+- [Calculation Methods](/v1.2.1/calculation-methods/) — method details
+- [Hijri Converter](/v1.2.1/hijri-converter/) — calendar rules and conversion walkthrough
+- [Moon Sighting](/v1.2.1/moon-sighting/) — crescent geometry and visibility criteria
+- [Errors](/v1.2.1/errors/) — error handling

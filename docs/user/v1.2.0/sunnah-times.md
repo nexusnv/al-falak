@@ -1,6 +1,7 @@
 ---
 title: Sunnah Times
 description: Calculate Sunnah night markers — thirds, halves, and the Tahajjud window.
+slug: v1.2.0/sunnah-times
 ---
 
 # Sunnah Times
@@ -102,5 +103,5 @@ The calculation uses absolute elapsed time (UTC internally), so markers are corr
 
 ## See also
 
-- [API Reference](/api-reference/) — full API documentation
-- [Timezone Handling](/timezone/) — timezone conversion details
+- [API Reference](/v1.2.0/api-reference/) — full API documentation
+- [Timezone Handling](/v1.2.0/timezone/) — timezone conversion details

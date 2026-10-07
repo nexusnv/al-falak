@@ -1,6 +1,7 @@
 ---
 title: High Latitude Rules
 description: Handle prayer times at high latitudes with extreme night lengths.
+slug: v1.2.1/high-latitude
 ---
 
 # High Latitude Rules
@@ -56,7 +57,7 @@ These rules are most relevant for locations above ~48° latitude during summer m
 
 - These caps apply to every method, but `MOON_SIGHTING_COMMITTEE` does not
   use them: it substitutes its own seasonal-twilight caps (see
-  [Calculation Methods](/calculation-methods/) — MSC section).
+  [Calculation Methods](/v1.2.1/calculation-methods/) — MSC section).
 - Interval Isha (Umm al-Qura, Qatar) bypasses the Isha cap entirely:
   `maghrib + interval` is used as-is.
 - Order of operations: `PolarCircleRule` resolution runs first (no-op on
@@ -66,5 +67,5 @@ These rules are most relevant for locations above ~48° latitude during summer m
 
 ## See also
 
-- [Polar Regions](/polar-regions/) — handling polar day/night
-- [Calculation Methods](/calculation-methods/) — method-specific defaults
+- [Polar Regions](/v1.2.1/polar-regions/) — handling polar day/night
+- [Calculation Methods](/v1.2.1/calculation-methods/) — method-specific defaults

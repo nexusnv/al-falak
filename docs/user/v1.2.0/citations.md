@@ -1,6 +1,7 @@
 ---
 title: Citations
 description: Attribution and references for al-falak.
+slug: v1.2.0/citations
 ---
 
 # Citations

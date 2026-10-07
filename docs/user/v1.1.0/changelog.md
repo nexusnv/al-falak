@@ -1,6 +1,7 @@
 ---
 title: Changelog
 description: Version history for al-falak.
+slug: v1.1.0/changelog
 ---
 
 # Changelog

@@ -1,6 +1,7 @@
 ---
 title: Calculation Methods
 description: Compare all supported prayer time calculation methods.
+slug: v1.2.1/calculation-methods
 ---
 
 # Calculation Methods
@@ -168,6 +169,6 @@ print(params.fajr_angle)  # 18.0
 
 ## See also
 
-- [Madhab](/madhab/) — Shafi vs Hanafi Asr calculation
-- [High Latitude Rules](/high-latitude/) — handling extreme latitudes
-- [Polar Regions](/polar-regions/) — handling polar day/night
+- [Madhab](/v1.2.1/madhab/) — Shafi vs Hanafi Asr calculation
+- [High Latitude Rules](/v1.2.1/high-latitude/) — handling extreme latitudes
+- [Polar Regions](/v1.2.1/polar-regions/) — handling polar day/night
