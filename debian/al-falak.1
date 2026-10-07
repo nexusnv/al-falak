@@ -1,0 +1,376 @@
+.TH AL-FALAK 1 "October 2026" "al-falak" "User Commands"
+.SH NAME
+al-falak \- Islamic astronomy: prayer times, Qibla, Sunnah markers, Hijri dates, moon sighting, ephemeris
+.SH SYNOPSIS
+.B al-falak
+.RI < prayer " | " qibla " | " sunnah " | " hijri " | " moon-sighting " | " astro >
+.RI [ options "] [" --json ]
+.br
+.B "al-falak astro"
+.RI < lunar-position " | " delta-t >
+.RI [ options "] [" --json ]
+.SH DESCRIPTION
+.B al-falak
+is the command-line interface of the al-falak Islamic astronomy library.
+Every invocation names one explicit subcommand; a bare invocation with no
+subcommand is an error. Every subcommand accepts
+.B --json
+to emit the same keys as one compact JSON object instead of
+.I key=value
+lines. Datetimes print as ISO-8601 with offset (UTC by default, or
+.B --timezone
+where supported). Floats print with full precision in text
+.RI ( nan
+lowercase) and as
+.I null
+in JSON; booleans print lowercase in text.
+.SH COMMANDS
+.SS prayer
+Print prayer times (imsak, fajr, sunrise, syuruk, ishraq, dhuha, dhuhr,
+asr, maghrib, isha), one
+.I name=ISO-8601
+line per marker in chronological order.
+.PP
+.RS
+.nf
+al-falak prayer --latitude 35.7750 --longitude -78.6336 \\
+    --date 2015-07-12 --method NORTH_AMERICA
+.fi
+.RE
+.TP
+.BR --latitude " / " --lat
+(required) Latitude, \-90 to 90.
+.TP
+.BR --longitude " / " --lon
+(required) Longitude, \-180 to 180.
+.TP
+.B --date DATE
+Calendar date as YYYY-MM-DD (default: today, UTC).
+.TP
+.B --method NAME
+Calculation method (default: MUSLIM_WORLD_LEAGUE). One of DUBAI, EGYPTIAN,
+JAKIM, KARACHI, KUWAIT, MOON_SIGHTING_COMMITTEE, MUSLIM_WORLD_LEAGUE,
+NONE, NORTH_AMERICA, QATAR, SINGAPORE, UMM_AL_QURA, UOIF.
+.TP
+.B --madhab MADHAB
+SHAFI (default) or HANAFI.
+.TP
+.B --high-latitude-rule RULE
+MIDDLE_OF_THE_NIGHT (default), SEVENTH_OF_THE_NIGHT, or TWILIGHT_ANGLE.
+.TP
+.B --polar-rule RULE
+NONE, NEAREST_LATITUDE (default), NEAREST_DAY, or MAKKAH.
+.TP
+.B --fajr-angle DEG
+Override the method's Fajr angle (default: from method).
+.TP
+.B --isha-angle DEG
+Override the method's Isha angle (default: from method).
+.TP
+.B --isha-interval MIN
+Override the method's Isha interval in minutes (default: from method).
+.TP
+.B --imsak-offset MIN
+Minutes before Fajr for Imsak (default: 10).
+.TP
+.B --ishraq-offset MIN
+Minutes after sunrise for Ishraq (default: 15).
+.TP
+.B --dhuha-offset MIN
+Minutes after sunrise for the start of the Dhuha window (default: 28).
+.TP
+.B --elevation METRES
+Observer eye height in metres, dip correction (default: 0.0).
+.TP
+.B --ramadan
+Umm al-Qura Ramadan mode (120 min Isha total; preset only). Off by default.
+.TP
+.B --timezone NAME
+IANA timezone name for display, e.g. Asia/Kuala_Lumpur (default: UTC).
+.TP
+.B --adjust NAME=MIN
+Repeatable per-prayer minute offset; NAME in
+imsak,fajr,sunrise,dhuhr,asr,maghrib,isha,ishraq,dhuha (no syuruk slot by
+design \(em sunrise flows through). Negatives need the
+.I =
+form:
+.BR "--adjust isha=-1" .
+.TP
+.B --json
+Emit one compact JSON object instead of
+.I key=value
+lines.
+.SS qibla
+Print Qibla direction and distance.
+.PP
+.RS
+.nf
+al-falak qibla --latitude 35.7750 --longitude -78.6336 --method ellipsoidal
+.fi
+.RE
+.PP
+Text prints the direction to 6 decimals and the distance to 3 decimals;
+.B --json
+carries the raw floats. With
+.BR --declination ,
+a fourth
+.I magnetic=
+line (compass heading) is added.
+.TP
+.BR --latitude " / " --lat
+(required) Latitude, \-90 to 90.
+.TP
+.BR --longitude " / " --lon
+(required) Longitude, \-180 to 180.
+.TP
+.B --method MODEL
+Earth model: spherical (default) or ellipsoidal (WGS84 geodesic).
+.TP
+.B --declination DEG
+Local magnetic declination in degrees, positive east of true north
+(negative west); also prints
+.IR magnetic= .
+.TP
+.B --json
+Emit one compact JSON object instead of
+.I key=value
+lines.
+.SS sunnah
+Print Sunnah night markers (middle_of_the_night, first_third_of_the_night,
+last_third_of_the_night, tahajjud_start, tahajjud_end). Accepts all
+.B prayer
+location and parameter flags
+.RB ( --latitude / --longitude ,
+.BR --date ,
+.BR --method ,
+.BR --madhab ,
+.BR --high-latitude-rule ,
+.BR --polar-rule ,
+.BR --fajr-angle ,
+.BR --isha-angle ,
+.BR --isha-interval ,
+.BR --imsak-offset ,
+.BR --ishraq-offset ,
+.BR --dhuha-offset ,
+.BR --elevation ,
+.BR --ramadan ,
+.BR --timezone ,
+.BR --adjust ),
+with the same names and defaults, plus:
+.TP
+.B --fraction F
+Night fraction in the open interval (0, 1); prints a single
+.I night_fraction=
+line instead of the default marker block.
+.TP
+.B --start ISO
+Custom night-start anchor as an ISO datetime with timezone offset (used
+with
+.BR --fraction ;
+default: Maghrib). Must be timezone-aware; naive values are rejected.
+.TP
+.B --end ISO
+Custom night-end anchor as an ISO datetime with timezone offset (used
+with
+.BR --fraction ;
+default: next-day Fajr). Must be timezone-aware; naive values are rejected.
+.TP
+.B --json
+Emit one compact JSON object instead of
+.I key=value
+lines.
+.SS hijri
+Convert a Gregorian date to a Hijri date (forward), a Hijri date back to
+Gregorian
+.RB ( --reverse ),
+or print a Hijri month length
+.RB ( --month-length ).
+.PP
+.RS
+.nf
+al-falak hijri --date 2025-03-01 --calendar tabular
+al-falak hijri --reverse 1446-09-01 --calendar tabular
+al-falak hijri --month-length 1446-09 --calendar tabular
+.fi
+.RE
+.TP
+.B --date DATE
+Gregorian date as YYYY-MM-DD, forward mode (default: today, UTC). Naive,
+treated as UTC.
+.TP
+.B --calendar RULE
+(required) Hijri calendar rule: tabular, uqu, or mabims.
+.TP
+.B --country CODE
+MABIMS country: MY, ID, BN, or SG (case-insensitive; required with
+.BR "--calendar mabims" ,
+rejected otherwise).
+.TP
+.B --adjustment-days N
+Tabular day shift in [\-2, 2] (default: 0; only with
+.BR "--calendar tabular" ).
+.TP
+.B --sunset-transition
+Roll the Hijri day over at Maghrib (requires
+.BR --lat / --lon / --time ).
+Off by default.
+.TP
+.B --lat LAT
+Observer latitude for sunset rollover (rejected without
+.BR --sunset-transition ).
+.TP
+.B --lon LON
+Observer longitude for sunset rollover (rejected without
+.BR --sunset-transition ).
+.TP
+.B --time TIME
+Wall-clock time as HH:MM[:SS] on
+.BR --date ;
+naive, treated as UTC (requires
+.BR --sunset-transition ).
+.TP
+.B --offsets FILE
+JSON offset file ({YYYY-MM: shift}) applied last (forward mode only).
+.TP
+.B --reverse HIJRI-DATE
+Hijri date as YYYY-MM-DD; convert back to a Gregorian date (mutually
+exclusive with
+.BR --date / --sunset-transition / --offsets ).
+.TP
+.B --month-length YYYY-MM
+Hijri year-month; print the month length (29 or 30; mutually exclusive
+with
+.BR --date / --sunset-transition / --offsets ).
+.TP
+.B --json
+Emit one compact JSON object instead of
+.I key=value
+lines.
+.SS moon-sighting
+Print crescent geometry and visibility scores (Yallop zone, Odeh class,
+and the two MABIMS booleans).
+.PP
+.RS
+.nf
+al-falak moon-sighting --latitude 3.1390 --longitude 101.6869 \\
+    --date 2025-02-28
+.fi
+.RE
+.PP
+In JSON, non-finite floats (e.g. NaN lag when no moonset occurs) become
+.IR null .
+.TP
+.BR --latitude " / " --lat
+(required) Latitude, \-90 to 90.
+.TP
+.BR --longitude " / " --lon
+(required) Longitude, \-180 to 180.
+.TP
+.B --date DATE
+(required) Crescent evening as YYYY-MM-DD. No default \(em an explicit
+evening is required.
+.TP
+.B --delta-t-override SEC
+Delta-T override in seconds for the TT conversion (default: built-in
+polynomial).
+.TP
+.B --json
+Emit one compact JSON object instead of
+.I key=value
+lines.
+.SS astro
+Low-level lookups behind one nested subcommand: lunar position or
+Delta-T.
+.PP
+.RS
+.nf
+al-falak astro delta-t --year 2025.5
+al-falak astro lunar-position --julian-day 2460000.5
+.fi
+.RE
+.TP
+.B lunar-position --julian-day JD
+(required) Julian Day in Terrestrial Time, e.g. 2460000.5. Prints
+longitude, latitude, distance_km, right_ascension, declination.
+.TP
+.B lunar-position --json
+Emit one compact JSON object instead of
+.I key=value
+lines.
+.TP
+.B delta-t --year YEAR
+(required) Decimal year, e.g. 2025.5. Prints
+.IR delta_t= .
+.TP
+.B delta-t --override SEC
+Delta-T override in seconds, e.g. an IERS observed value.
+.TP
+.B delta-t --json
+Emit one compact JSON object instead of
+.I key=value
+lines.
+.PP
+Years outside 2005\(en2050 emit a
+.I UserWarning
+to stderr and extrapolate \(em the value still prints with exit 0.
+.SH EXIT STATUS
+.TP
+.B 0
+Success. Warnings never fail: an out-of-range
+.B astro delta-t
+year prints a
+.I UserWarning
+to stderr but still prints the value with exit 0.
+.TP
+.B 2
+All user-fixable errors, reported via an argparse error: bad flags and
+bad flag values (unknown methods, bad dates/times, unknown timezones,
+gate misuse such as a missing
+.B --country
+with mabims or
+.B --time
+without
+.BR --sunset-transition ,
+unreadable
+.B --offsets
+files, naive
+.B --start / --end
+anchors), out-of-range coordinates and angles, pre-floor dates, polar
+day/night with no sunrise/sunset, and moon-sighting evenings with no
+sunset. Library
+.I ValidationError
+(bad user input),
+.I ConfigurationError
+(inconsistent options), and
+.I AstronomicalError
+(no sunrise/sunset at this date and latitude) all surface this way.
+.SH CAVEATS
+The
+.B uqu
+calendar (1423H Umm al-Qura month-start rule at Makkah, selected with
+.BR "hijri --calendar uqu" )
+is not the
+.B UMM_AL_QURA
+prayer preset (Fajr angle / Isha interval given to
+.BR "prayer --method UMM_AL_QURA" ),
+which only tunes daily prayer times and never converts dates.
+.PP
+The
+.B tabular
+calendar is arithmetic and routinely differs from observed
+(sighting-based) months by 1\(en2 days \(em never present a tabular date
+as an observed date.
+.PP
+Naive
+.B --date
+and
+.B --time
+values are treated as UTC: a local wall-clock time misplaces sunset
+rollover by the UTC offset, and
+.B sunnah --start / --end
+anchors must instead carry an explicit timezone offset (naive anchors are
+rejected).
+.SH SEE ALSO
+Full CLI guide with examples and option tables:
+.I docs/user/cli.md
+in the al-falak source tree.
