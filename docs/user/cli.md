@@ -42,6 +42,14 @@ python -m alfalak prayer --latitude 35.7750 --longitude -78.6336
 al-falak: error: a subcommand is required (did you mean 'prayer'? try: al-falak prayer --latitude 35.7750 --longitude -78.6336)
 ```
 
+Pasting an old command with flags fails differently — argparse treats
+the first flag value as the subcommand and exits with code 2:
+
+```
+usage: al-falak [-h] <subcommand> ...
+al-falak: error: argument <subcommand>: invalid choice: '35' (choose from prayer, qibla, sunnah, hijri, moon-sighting, astro)
+```
+
 Exit codes follow the argparse convention: `0` on success, `2` on
 anything user-fixable (bad flags, out-of-range coordinates/angles,
 unknown timezones, polar day/night, moon-sighting evenings with no

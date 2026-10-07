@@ -142,13 +142,17 @@ print(hijri.isoformat())  # 1446-09-01
 ### Command Line
 
 ```bash
-python -m alfalak --latitude 35.7750 --longitude -78.6336 --date 2015-07-12 --method NORTH_AMERICA
+python -m alfalak prayer --latitude 35.7750 --longitude -78.6336 --date 2015-07-12 --method NORTH_AMERICA
 ```
 
 Output:
 ```
+imsak=2015-07-12T08:32:00+00:00
 fajr=2015-07-12T08:42:00+00:00
 sunrise=2015-07-12T10:08:00+00:00
+syuruk=2015-07-12T10:08:00+00:00
+ishraq=2015-07-12T10:23:00+00:00
+dhuha=2015-07-12T10:36:00+00:00
 dhuhr=2015-07-12T17:21:00+00:00
 asr=2015-07-12T21:09:00+00:00
 maghrib=2015-07-13T00:32:00+00:00
