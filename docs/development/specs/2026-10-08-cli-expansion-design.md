@@ -13,7 +13,7 @@ al-falak <subcommand> [options] [--json]
   qibla    # Qibla direction + distance + optional magnetic heading
   sunnah   # SunnahTimes (reuses prayer flags) + night-fraction knobs
   hijri    # gregorian->hijri (existing, kept) + --reverse + --month-length
-  moon     # crescent_geometry_at_sunset + all 6 criteria in one block
+  moon-sighting  # crescent_geometry_at_sunset + all 6 criteria in one block
   astro    # low-level: lunar-position, delta-t
 ```
 
@@ -24,9 +24,9 @@ al-falak <subcommand> [options] [--json]
   migration notes, CHANGES, and the error text itself.
 - `hijri` keeps its name and all existing flags; `--reverse` and
   `--month-length` are additive.
-- `moon` couples geometry + criteria (the way `moon-sighting.md` teaches it)
+- `moon-sighting` couples geometry + criteria (the way `moon-sighting.md` teaches it)
   instead of five tiny subcommands. `astro` holds the two loners that do not
-  fit `moon`.
+  fit `moon-sighting`.
 
 ## 2. Flags per subcommand
 
@@ -59,7 +59,7 @@ mirrors the Python API (failures → exit 2, §4).
   in all three hijri modes. `--reverse/--month-length` are mutually exclusive with
   `--date/--sunset-transition/--offsets` (offsets are a display-only
   Gregorian→Hijri correction; `to_gregorian` ignores them by design).
-- `moon`: `--latitude* --longitude* --date* --delta-t-override SEC
+- `moon-sighting`: `--latitude* --longitude* --date* --delta-t-override SEC
   (optional IERS value)`.
 - `astro lunar-position --julian-day JD` → LunarCoordinates fields.
   `astro delta-t --year DEC-YEAR [--override SEC]` → `delta_t`.
@@ -80,7 +80,7 @@ mirrors the Python API (failures → exit 2, §4).
   With `--fraction F`: single `night_fraction=` line.
 - `hijri`: forward unchanged (`hijri= calendar=`); `--reverse` →
   `gregorian=YYYY-MM-DD calendar=`; `--month-length` → `days=29|30 calendar=`.
-- `moon`: geometry `arcl_deg arcv_geo_deg arcv_topo_deg sun_alt_deg
+- `moon-sighting`: geometry `arcl_deg arcv_geo_deg arcv_topo_deg sun_alt_deg
   moon_alt_topo_deg daz_deg width_arcmin illumination lag_hours moon_age_days
   moon_age_at_moonset_days used_delta_t_s sunset_jd_utc` + scores `yallop_q
   yallop_zone odeh_v odeh_class neo_mabims mabims_1992`.
@@ -90,7 +90,7 @@ mirrors the Python API (failures → exit 2, §4).
 ## 4. Errors & exit codes
 
 - Exit 0 on success, 2 on everything user-fixable. ValidationError,
-  ConfigurationError, AstronomicalError (polar day/night, moon no-sunset,
+  ConfigurationError, AstronomicalError (polar day/night, moon-sighting no-sunset,
   degenerate sunnah nights) all route through `parser.error(...)` → stderr +
   exit 2. No new exit codes (argparse convention; existing tests stay green).
 - Messages name the flag and echo the value (e.g. `--fajr-angle 95.0 out of
@@ -107,7 +107,7 @@ mirrors the Python API (failures → exit 2, §4).
 
 - Layout: `__main__.py` becomes a thin dispatcher; new stdlib-only
   `src/alfalak/cli/` package with one module per subcommand
-  (`prayer/qibla/sunnah/hijri/moon/astro`, shared `common.py`). No new runtime
+  (`prayer/qibla/sunnah/hijri/moon_sighting/astro`, shared `common.py`). No new runtime
   deps; typed, `mypy --disallow-untyped-defs` clean.
 - Man page: checked-in `debian/al-falak.1` generated once from `--help` +
   static header, then hand-maintained; `docs/user/cli.md` stays the human
@@ -123,7 +123,7 @@ mirrors the Python API (failures → exit 2, §4).
 
 - Tests (`tests/test_cli*.py`): per-subcommand byte-identical `key=value`
   goldens (prayer Raleigh vector; qibla both methods + magnetic; sunnah block
-  + `--fraction`; hijri forward/reverse/month-length; moon KL evening incl.
+  + `--fraction`; hijri forward/reverse/month-length; moon-sighting KL evening incl.
   yallop F / odeh D; astro lunar + delta-t) + `--json` key-parity + exit-2
   coverage for every validation gate + bare-invocation break test. Fixed
   dates/vectors (deterministic). Gates stay green: black, ruff, mypy,
@@ -138,5 +138,5 @@ mirrors the Python API (failures → exit 2, §4).
 
 - B (1:1 API mirror, ~12 subcommands): literal completeness but CLI sprawl and
   man/completion bloat; rejected.
-- C (prayer/qibla/sunnah/hijri only, no moon/astro): smallest diff but
+- C (prayer/qibla/sunnah/hijri only, no moon-sighting/astro): smallest diff but
   contradicts the agreed full-scope goal; rejected.
