@@ -116,7 +116,7 @@ except ValidationError as e:
   `apply(hijri, calendar)` method; `OffsetStore` for bad keys
   (not `"YYYY-MM"`), shifts outside {-2, -1, 1, 2} (zero included),
   non-dict payloads, and unreadable/unparseable JSON files. The `hijri`
-  CLI surfaces the same gates (see [CLI Usage](/cli/)).
+  CLI surfaces the same gates (see [CLI Usage](cli/)).
 - **`AstronomicalError` — undecidable months and polar sunset.**
   Raised when a month start falls outside the ±4-day window around the
   tabular seed (search exhausted — loud failure, never a silently
@@ -135,7 +135,7 @@ AstronomicalError: Unable to compute prayer times: sunrise, sunset, or solar tra
 
 ## See also
 
-- [Hijri Converter](/hijri-converter/) — calendar rules and floors behind these errors
-- [Moon Sighting](/moon-sighting/) — crescent geometry error cases
-- [Polar Regions](/polar-regions/) — handling polar day/night
-- [API Reference](/api-reference/) — full API documentation
+- [Hijri Converter](hijri-converter/) — calendar rules and floors behind these errors
+- [Moon Sighting](moon-sighting/) — crescent geometry error cases
+- [Polar Regions](polar-regions/) — handling polar day/night
+- [API Reference](api-reference/) — full API documentation

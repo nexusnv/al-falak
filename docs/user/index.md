@@ -51,14 +51,14 @@ print(f"Maghrib: {prayer_times.maghrib.strftime('%H:%M')}")
 
 | I want to... | Go to |
 |---|---|
-| Install and run my first calculation | [Getting Started](/getting-started/) |
-| Compare calculation methods | [Calculation Methods](/calculation-methods/) |
-| Handle polar regions | [Polar Regions](/polar-regions/) |
-| Predict the new crescent | [Moon Sighting](/moon-sighting/) |
-| Convert Gregorian dates to Hijri | [Hijri Converter](/hijri-converter/) |
-| Use the CLI | [CLI Usage](/cli/) |
-| See all public APIs | [API Reference](/api-reference/) |
-| Migrate from adhanpy | [Migration](/migration/) |
+| Install and run my first calculation | [Getting Started](getting-started/) |
+| Compare calculation methods | [Calculation Methods](calculation-methods/) |
+| Handle polar regions | [Polar Regions](polar-regions/) |
+| Predict the new crescent | [Moon Sighting](moon-sighting/) |
+| Convert Gregorian dates to Hijri | [Hijri Converter](hijri-converter/) |
+| Use the CLI | [CLI Usage](cli/) |
+| See all public APIs | [API Reference](api-reference/) |
+| Migrate from adhanpy | [Migration](migration/) |
 
 ## Requirements
 

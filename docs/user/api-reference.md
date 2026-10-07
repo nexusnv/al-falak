@@ -454,8 +454,8 @@ correction for the Gregorian→Hijri direction only).
 
 ## See also
 
-- [Getting Started](/getting-started/) — quick start guide
-- [Calculation Methods](/calculation-methods/) — method details
-- [Hijri Converter](/hijri-converter/) — calendar rules and conversion walkthrough
-- [Moon Sighting](/moon-sighting/) — crescent geometry and visibility criteria
-- [Errors](/errors/) — error handling
+- [Getting Started](getting-started/) — quick start guide
+- [Calculation Methods](calculation-methods/) — method details
+- [Hijri Converter](hijri-converter/) — calendar rules and conversion walkthrough
+- [Moon Sighting](moon-sighting/) — crescent geometry and visibility criteria
+- [Errors](errors/) — error handling

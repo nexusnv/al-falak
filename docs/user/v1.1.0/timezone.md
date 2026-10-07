@@ -79,5 +79,5 @@ pip install tzdata
 
 ## See also
 
-- [Sunnah Times](/v1.1.0/sunnah-times/) — DST-safe night markers
-- [API Reference](/v1.1.0/api-reference/) — full API documentation
+- [Sunnah Times](sunnah-times/) — DST-safe night markers
+- [API Reference](api-reference/) — full API documentation

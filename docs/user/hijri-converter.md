@@ -185,8 +185,8 @@ rejected — omit no-op entries instead.
 
 ## See also
 
-- [API Reference](/api-reference/) — full `HijriDate`, calendar, bridge, and `OffsetStore` signatures
-- [CLI Usage](/cli/) — `hijri` subcommand
-- [Moon Sighting](/moon-sighting/) — crescent geometry behind the observational rules
-- [Errors](/errors/) — Hijri error contracts
-- [Citations](/citations/) — calendar rule sources
+- [API Reference](api-reference/) — full `HijriDate`, calendar, bridge, and `OffsetStore` signatures
+- [CLI Usage](cli/) — `hijri` subcommand
+- [Moon Sighting](moon-sighting/) — crescent geometry behind the observational rules
+- [Errors](errors/) — Hijri error contracts
+- [Citations](citations/) — calendar rule sources

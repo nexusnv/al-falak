@@ -168,6 +168,6 @@ print(params.fajr_angle)  # 18.0
 
 ## See also
 
-- [Madhab](/madhab/) — Shafi vs Hanafi Asr calculation
-- [High Latitude Rules](/high-latitude/) — handling extreme latitudes
-- [Polar Regions](/polar-regions/) — handling polar day/night
+- [Madhab](madhab/) — Shafi vs Hanafi Asr calculation
+- [High Latitude Rules](high-latitude/) — handling extreme latitudes
+- [Polar Regions](polar-regions/) — handling polar day/night

@@ -84,6 +84,8 @@ dependencies. Pipeline architecture: coordinates + date + method/parameters →
   `docs/user/v1.2.1/` are frozen snapshots — never edit them; new user docs go in
   versionless `docs/user/` pages. Each release freezes its docs and registers
   the slug in `docs_site/versions.json` + `docs_site/src/content/versions/`.
+- Docs links must be relative (`getting-started/`, not `/getting-started/`):
+  absolute paths skip the `/al-falak` base subpath and break version scoping.
 
 ## Pull Request Guidelines
 

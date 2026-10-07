@@ -56,5 +56,5 @@ for madhab in [Madhab.SHAFI, Madhab.HANAFI]:
 
 ## See also
 
-- [Calculation Methods](/v1.2.0/calculation-methods/) — all supported methods
-- [API Reference](/v1.2.0/api-reference/) — full API documentation
+- [Calculation Methods](calculation-methods/) — all supported methods
+- [API Reference](api-reference/) — full API documentation
