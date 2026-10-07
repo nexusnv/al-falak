@@ -30,7 +30,7 @@ instead of mutating it (e.g. `coords = Coordinates(new_lat, new_lon)`).
 - `gregorian_to_hijri` bridge (civil-date default; `change_at_sunset=True` rolls over at Maghrib with naive-as-UTC semantics and unwrapped polar `AstronomicalError`)
 - `OffsetStore` (per-month `"YYYY-MM"` shifts in {-2, -1, 1, 2} from dict/JSON, applied once and last; `to_gregorian` ignores it)
 - `hijri` CLI subcommand (two-line `hijri=`/`calendar=` output; `--country`, `--adjustment-days`, `--sunset-transition`, `--offsets`)
-- New [Hijri Converter](/v1.2.1/hijri-converter/) guide; additive additions only
+- New [Hijri Converter](hijri-converter/) guide; additive additions only
 - Offline/zero-dependency/deterministic computation recorded as project invariants (see `docs/adr/0001-offline-zero-dependency-deterministic.md`)
 
 ### Moon-sighting (phase 4)
@@ -40,7 +40,7 @@ instead of mutating it (e.g. `coords = Coordinates(new_lat, new_lon)`).
 - `delta_t` provider (Espenak polynomial + IERS `override`; lunar path only;
   calibrated 2005–2050, `UserWarning` outside that range)
 - Visibility criteria: `yallop_q`/`yallop_zone`, `odeh_v`/`odeh_class`, `is_mabims_1992`/`is_neo_mabims_2021`
-- New [Moon Sighting](/v1.2.1/moon-sighting/) guide; additive additions only
+- New [Moon Sighting](moon-sighting/) guide; additive additions only
   (`CrescentGeometry` also exposes `sun_alt_deg` /
   `moon_alt_topo_deg` so MABIMS callers pass a true altitude, not an
   ARCV proxy; note `delta_t` validates `year` even when `override=` is set)

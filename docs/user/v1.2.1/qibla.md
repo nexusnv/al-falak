@@ -144,5 +144,5 @@ which to use is up to you:
 
 ## See also
 
-- [API Reference](/v1.2.1/api-reference/) — full API documentation
-- [Citations](/v1.2.1/citations/) — attribution and references
+- [API Reference](api-reference/) — full API documentation
+- [Citations](citations/) — attribution and references

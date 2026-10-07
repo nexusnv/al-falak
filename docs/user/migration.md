@@ -22,7 +22,7 @@ project's milestones evolve independently. In return you get a hardened,
 fully typed codebase with explicit error handling (below) and ongoing
 maintenance. Calculation math follows the same formulas, so prayer-time
 values are comparable apart from the rounding fix noted in
-[Changelog](/changelog/).
+[Changelog](changelog/).
 
 ## Package rename
 
@@ -84,7 +84,7 @@ Catch sites matching on the old behavior need updating: polar day/night and
 undefined Asr raise `AstronomicalError`, bad method/madhab/polar-rule setup
 raises `ConfigurationError`, and out-of-range coordinates/angles/intervals —
 including non-numeric coordinates — raise `ValidationError`. See
-[Errors](/errors/) for the full tree.
+[Errors](errors/) for the full tree.
 
 ## Breaking changes in v1.0.0
 
@@ -97,11 +97,11 @@ including non-numeric coordinates — raise `ValidationError`. See
 
 ## Unchanged
 
-- Calculation math (same formulas, same results; see the rounding fix in [Changelog](/changelog/))
+- Calculation math (same formulas, same results; see the rounding fix in [Changelog](changelog/))
 - Public API surface (same class and method names)
 - CLI interface (same arguments, same output format)
 
 ## See also
 
-- [Changelog](/changelog/) — full version history
-- [API Reference](/api-reference/) — current API
+- [Changelog](changelog/) — full version history
+- [API Reference](api-reference/) — current API

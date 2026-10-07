@@ -50,12 +50,12 @@ print(f"Maghrib: {prayer_times.maghrib.strftime('%H:%M')}")
 
 | I want to... | Go to |
 |---|---|
-| Install and run my first calculation | [Getting Started](/v1.1.0/getting-started/) |
-| Compare calculation methods | [Calculation Methods](/v1.1.0/calculation-methods/) |
-| Handle polar regions | [Polar Regions](/v1.1.0/polar-regions/) |
-| Use the CLI | [CLI Usage](/v1.1.0/cli/) |
-| See all public APIs | [API Reference](/v1.1.0/api-reference/) |
-| Migrate from adhanpy | [Migration](/v1.1.0/migration/) |
+| Install and run my first calculation | [Getting Started](getting-started/) |
+| Compare calculation methods | [Calculation Methods](calculation-methods/) |
+| Handle polar regions | [Polar Regions](polar-regions/) |
+| Use the CLI | [CLI Usage](cli/) |
+| See all public APIs | [API Reference](api-reference/) |
+| Migrate from adhanpy | [Migration](migration/) |
 
 ## Requirements
 

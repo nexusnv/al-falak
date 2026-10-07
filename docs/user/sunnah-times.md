@@ -102,5 +102,5 @@ The calculation uses absolute elapsed time (UTC internally), so markers are corr
 
 ## See also
 
-- [API Reference](/api-reference/) — full API documentation
-- [Timezone Handling](/timezone/) — timezone conversion details
+- [API Reference](api-reference/) — full API documentation
+- [Timezone Handling](timezone/) — timezone conversion details

@@ -162,7 +162,7 @@ Check in this order:
 
 ## See also
 
-- [Hijri Converter](/v1.2.0/hijri-converter/) — Gregorian↔Hijri conversion on the observational rules
-- [API Reference](/v1.2.0/api-reference/) — full API documentation
-- [Errors](/v1.2.0/errors/) — error handling
-- [Citations](/v1.2.0/citations/) — attribution and references
+- [Hijri Converter](hijri-converter/) — Gregorian↔Hijri conversion on the observational rules
+- [API Reference](api-reference/) — full API documentation
+- [Errors](errors/) — error handling
+- [Citations](citations/) — attribution and references

@@ -78,6 +78,6 @@ prayer_times = PrayerTimes(
 
 ## Next steps
 
-- [Calculation Methods](/v1.2.0/calculation-methods/) — compare all 11 methods
-- [API Reference](/v1.2.0/api-reference/) — full API documentation
-- [CLI Usage](/v1.2.0/cli/) — command-line interface
+- [Calculation Methods](calculation-methods/) — compare all 11 methods
+- [API Reference](api-reference/) — full API documentation
+- [CLI Usage](cli/) — command-line interface
