@@ -1,13 +1,19 @@
 from __future__ import annotations
 
 import argparse
+import re
 from datetime import datetime, timezone
 from typing import Any, cast
 
 from alfalak.calendar import OffsetStore, get_calendar
+from alfalak.calendar.HijriDate import HijriDate
 from alfalak.calendar.bridge import gregorian_to_hijri
+from alfalak.cli.common import add_json_arg, emit
 from alfalak.data import Coordinates
 from alfalak.exceptions import AlFalakError, ConfigurationError
+
+_REVERSE_RE = re.compile(r"^(\d{4,})-(\d{2})-(\d{2})$")
+_MONTH_LENGTH_RE = re.compile(r"^(\d{4,})-(\d{2})$")
 
 
 def register(subparsers: argparse._SubParsersAction[Any]) -> None:
@@ -85,6 +91,17 @@ def register(subparsers: argparse._SubParsersAction[Any]) -> None:
         default=None,
         help="JSON offset file ({YYYY-MM: shift}) applied last.",
     )
+    hijri.add_argument(
+        "--reverse",
+        default=None,
+        help="Hijri date as YYYY-MM-DD; convert back to a Gregorian date.",
+    )
+    hijri.add_argument(
+        "--month-length",
+        default=None,
+        help="Hijri year-month as YYYY-MM; print the month length (29 or 30).",
+    )
+    add_json_arg(hijri)
     hijri.set_defaults(func=run)
 
 
@@ -95,6 +112,62 @@ def _parse_hijri_time(raw: str, parser: argparse.ArgumentParser) -> datetime:
         except ValueError:
             continue
     parser.error(f"invalid --time (expected HH:MM[:SS]): {raw}")
+
+
+def _calendar_suffix(args: argparse.Namespace) -> str:
+    return (
+        f"-{args.country.upper()}"
+        if args.calendar == "mabims" and args.country is not None
+        else ""
+    )
+
+
+def _run_reverse(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
+    raw: str = args.reverse
+    match = _REVERSE_RE.match(raw)
+    if match is None:
+        parser.error(f"invalid --reverse (expected YYYY-MM-DD): {raw}")
+    try:
+        wanted = HijriDate(
+            int(match.group(1)), int(match.group(2)), int(match.group(3))
+        )
+    except AlFalakError as exc:
+        parser.error(f"invalid --reverse {raw}: {exc}")
+    cal = get_calendar(
+        args.calendar, country=args.country, adjustment_days=args.adjustment_days
+    )
+    try:
+        civil = cal.to_gregorian(wanted)
+    except AlFalakError as exc:
+        parser.error(f"invalid --reverse {raw}: {exc}")
+    emit(
+        {
+            "gregorian": civil.isoformat(),
+            "calendar": f"{args.calendar}{_calendar_suffix(args)}",
+        },
+        args.json,
+    )
+
+
+def _run_month_length(
+    args: argparse.Namespace, parser: argparse.ArgumentParser
+) -> None:
+    raw: str = args.month_length
+    match = _MONTH_LENGTH_RE.match(raw)
+    if match is None:
+        parser.error(f"invalid --month-length (expected YYYY-MM): {raw}")
+    year, month = int(match.group(1)), int(match.group(2))
+    cal = get_calendar(
+        args.calendar, country=args.country, adjustment_days=args.adjustment_days
+    )
+    try:
+        days = cal.month_length(year, month)
+    except AlFalakError as exc:
+        parser.error(f"invalid --month-length {raw}: {exc}")
+    emit(
+        {"days": days, "calendar": f"{args.calendar}{_calendar_suffix(args)}"},
+        args.json,
+    )
 
 
 def _run_hijri(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
@@ -149,17 +222,45 @@ def _run_hijri(args: argparse.Namespace, parser: argparse.ArgumentParser) -> Non
         change_at_sunset=args.sunset_transition,
         offsets=store,
     )
-    print(f"hijri={hijri.isoformat()}")
-    suffix = (
-        f"-{args.country.upper()}"
-        if args.calendar == "mabims" and args.country is not None
-        else ""
+    emit(
+        {
+            "hijri": hijri.isoformat(),
+            "calendar": f"{args.calendar}{_calendar_suffix(args)}",
+        },
+        args.json,
     )
-    print(f"calendar={args.calendar}{suffix}")
 
 
 def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
     try:
+        if args.reverse is not None and args.month_length is not None:
+            parser.error("--reverse and --month-length are mutually exclusive.")
+        if args.reverse is not None or args.month_length is not None:
+            active = "--reverse" if args.reverse is not None else "--month-length"
+            clashes = []
+            if args.date is not None:
+                clashes.append("--date")
+            if args.sunset_transition:
+                clashes.append("--sunset-transition")
+            if args.lat is not None:
+                clashes.append("--lat")
+            if args.lon is not None:
+                clashes.append("--lon")
+            if args.time is not None:
+                clashes.append("--time")
+            if args.offsets is not None:
+                clashes.append("--offsets")
+            if args.adjustment_days != 0:
+                clashes.append("--adjustment-days")
+            if clashes:
+                parser.error(
+                    f"{active} is mutually exclusive with " f"{', '.join(clashes)}."
+                )
+            if args.reverse is not None:
+                _run_reverse(args, parser)
+            else:
+                _run_month_length(args, parser)
+            return
         _run_hijri(args, parser)
     except AlFalakError as exc:
         parser.error(str(exc))
