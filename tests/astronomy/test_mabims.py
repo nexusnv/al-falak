@@ -70,6 +70,14 @@ def test_old_exact_boundaries():
     assert is_mabims_1992(0.0, 0.0, 7.999) is False
 
 
+def test_mabims_rejects_float_overflowing_huge_int():
+    # Huge ints overflow float(): must raise ValidationError, not OverflowError.
+    with pytest.raises(ValidationError, match="(?i)finite"):
+        is_neo_mabims_2021(10**1000, 7.0)
+    with pytest.raises(ValidationError, match="(?i)finite"):
+        is_mabims_1992(2.5, 3.5, 10**1000)
+
+
 # MABIMS takes the Moon's topocentric altitude, which
 # CrescentGeometry now exposes directly (no ARCV-minus-sunset proxy).
 def test_criteria_agreement_matrix():

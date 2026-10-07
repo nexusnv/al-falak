@@ -34,9 +34,9 @@ class Qibla:
 
     Degenerate inputs do not raise: Makkah-to-self and the true antipode
     (~-21.4225, -140.17, where every bearing is equidistant) return a float
-    in [0, 360). Note the models differ at the exact self point by
-    construction (spherical ~180.0 vs ellipsoidal 0.0); any bearing is
-    equally valid there.
+    in [0, 360). At the exact self point both models return 180.0 by
+    construction (spherical atan2(0, ~0) and the ellipsoidal meridian
+    path); any bearing is equally valid there.
 
     ``method="ellipsoidal"`` may raise :class:`AstronomicalError` if the
     Karney iteration fails to converge (defensive; it converges for all

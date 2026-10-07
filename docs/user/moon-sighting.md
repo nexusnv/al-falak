@@ -153,8 +153,8 @@ Check in this order:
 - **No weather, refraction beyond the standard sunset depression, or
   observer elevation** in this path; no "best time" search (see Yallop note).
 - **Polar regions:** raises `AstronomicalError` when the Sun does not set.
-  Non-`date`/`Coordinates` inputs (or a non-finite override) raise
-  `ValidationError` (a `datetime` is accepted and its calendar date is used).
+  Non-`date`/`Coordinates` inputs (or a non-finite or float-overflowing
+  override, e.g. a huge `int`) raise `ValidationError` (a `datetime` is accepted and its calendar date is used).
 - **Delta-T range:** the default polynomial is calibrated for 2005–2050;
   other years emit a `UserWarning` and extrapolate — pass IERS values via
   `delta_t_override` when accuracy matters.

@@ -124,6 +124,18 @@ def test_qibla_ellipsoidal_self_and_antipode_no_raise():
     assert not math.isnan(anti.distance_to_makkah_km)
 
 
+def test_qibla_self_both_models_return_180():
+    # Degenerate self point: both models return 180.0 by construction
+    # (spherical atan2(0, ~0) and the ellipsoidal meridian path); any
+    # bearing is equally valid there, contract is float in [0, 360).
+    for method in ("spherical", "ellipsoidal"):
+        direction = Qibla(
+            (MAKKAH.latitude, MAKKAH.longitude), method=method
+        ).direction
+        assert direction == pytest.approx(180.0, abs=1e-6)
+        assert 0 <= direction < 360
+
+
 def test_qibla_ellipsoidal_stays_within_documented_bound_of_spherical():
     for latitude, longitude in [
         (35.7750, -78.6336),
