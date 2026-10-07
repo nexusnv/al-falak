@@ -9,6 +9,7 @@ from alfalak.__main__ import main
 def test_cli_prints_iso_times(capsys):
     main(
         [
+            "prayer",
             "--latitude",
             "35.7750",
             "--longitude",
@@ -43,21 +44,33 @@ def test_cli_prints_iso_times(capsys):
 
 
 def test_cli_defaults_to_today(capsys):
-    main(["--latitude", "35.7750", "--longitude", "-78.6336"])
+    main(["prayer", "--latitude", "35.7750", "--longitude", "-78.6336"])
 
     assert "fajr=" in capsys.readouterr().out
 
 
 def test_cli_rejects_unknown_method():
     with pytest.raises(SystemExit) as excinfo:
-        main(["--latitude", "35", "--longitude", "-78", "--method", "BOGUS"])
+        main(
+            ["prayer", "--latitude", "35", "--longitude", "-78", "--method", "BOGUS"]
+        )
 
     assert excinfo.value.code == 2
 
 
 def test_cli_rejects_bad_date():
     with pytest.raises(SystemExit) as excinfo:
-        main(["--latitude", "35", "--longitude", "-78", "--date", "not-a-date"])
+        main(
+            [
+                "prayer",
+                "--latitude",
+                "35",
+                "--longitude",
+                "-78",
+                "--date",
+                "not-a-date",
+            ]
+        )
 
     assert excinfo.value.code == 2
 
@@ -66,6 +79,7 @@ def test_cli_rejects_datetime_for_date():
     with pytest.raises(SystemExit) as excinfo:
         main(
             [
+                "prayer",
                 "--latitude",
                 "35",
                 "--longitude",
@@ -80,7 +94,7 @@ def test_cli_rejects_datetime_for_date():
 
 def test_cli_requires_coordinates():
     with pytest.raises(SystemExit) as excinfo:
-        main(["--latitude", "35"])
+        main(["prayer", "--latitude", "35"])
 
     assert excinfo.value.code == 2
 
@@ -88,7 +102,16 @@ def test_cli_requires_coordinates():
 def test_cli_module_entry_point():
     # smoke test: the installed package runs as python -m alfalak
     result = subprocess.run(
-        [sys.executable, "-m", "alfalak", "--latitude", "35", "--longitude", "-78"],
+        [
+            sys.executable,
+            "-m",
+            "alfalak",
+            "prayer",
+            "--latitude",
+            "35",
+            "--longitude",
+            "-78",
+        ],
         capture_output=True,
         text=True,
     )
@@ -100,6 +123,7 @@ def test_cli_module_entry_point():
 def test_cli_bare_prayer_byte_identical(capsys):
     main(
         [
+            "prayer",
             "--latitude",
             "35.7750",
             "--longitude",
@@ -131,13 +155,10 @@ def test_cli_hijri_two_line_output(capsys):
     assert capsys.readouterr().out == "hijri=1446-09-01\ncalendar=tabular\n"
 
 
-def test_cli_hijri_top_level_date_before_subcommand(capsys):
-    # Regression: --date before the subcommand shares dest "date" with the
-    # hijri --date; the subcommand default must not clobber it (it used to
-    # silently fall back to today).
-    main(["--date", "2025-03-01", "hijri", "--calendar", "tabular"])
-
-    assert capsys.readouterr().out == "hijri=1446-09-01\ncalendar=tabular\n"
+def test_cli_top_level_date_now_rejected():
+    with pytest.raises(SystemExit) as excinfo:
+        main(["--date", "2025-03-01", "hijri", "--calendar", "tabular"])
+    assert excinfo.value.code == 2
 
 
 def test_cli_hijri_country_required_iff_mabims():
@@ -365,7 +386,9 @@ def test_cli_main_guard(monkeypatch, capsys):
     import runpy
 
     monkeypatch.setattr(
-        sys, "argv", ["al-falak", "--latitude", "35", "--longitude", "-78"]
+        sys,
+        "argv",
+        ["al-falak", "prayer", "--latitude", "35", "--longitude", "-78"],
     )
     runpy.run_module("alfalak", run_name="__main__")
     assert "fajr=" in capsys.readouterr().out

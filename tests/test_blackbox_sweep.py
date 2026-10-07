@@ -640,6 +640,7 @@ def test_cli_happy_path_prints_iso_times(capsys):
     # BB-CLI-01. Source: test_cli_prints_iso_times.
     main(
         [
+            "prayer",
             "--latitude",
             "35.7750",
             "--longitude",
@@ -675,7 +676,16 @@ def test_cli_module_entry_point_subprocess():
     # arg array (no shell), explicit timeout; ambient interpreter/PYTHONPATH
     # per project-native convention (see evidence report).
     result = subprocess.run(
-        [sys.executable, "-m", "alfalak", "--latitude", "35", "--longitude", "-78"],
+        [
+            sys.executable,
+            "-m",
+            "alfalak",
+            "prayer",
+            "--latitude",
+            "35",
+            "--longitude",
+            "-78",
+        ],
         capture_output=True,
         text=True,
         timeout=60,
@@ -687,10 +697,18 @@ def test_cli_module_entry_point_subprocess():
 @pytest.mark.parametrize(
     "argv",
     [
-        ["--latitude", "35", "--longitude", "-78", "--method", "BOGUS"],
-        ["--latitude", "35", "--longitude", "-78", "--date", "not-a-date"],
-        ["--latitude", "35", "--longitude", "-78", "--date", "2015-07-12T00:00:00"],
-        ["--latitude", "35"],
+        ["prayer", "--latitude", "35", "--longitude", "-78", "--method", "BOGUS"],
+        ["prayer", "--latitude", "35", "--longitude", "-78", "--date", "not-a-date"],
+        [
+            "prayer",
+            "--latitude",
+            "35",
+            "--longitude",
+            "-78",
+            "--date",
+            "2015-07-12T00:00:00",
+        ],
+        ["prayer", "--latitude", "35"],
     ],
     ids=["unknown-method", "bad-date", "datetime-date", "missing-coords"],
 )
@@ -703,14 +721,14 @@ def test_cli_rejects_bad_arguments(argv):
 
 def test_cli_domain_error_characterization():
     # BB-CLI-07. Oracle: characterization — out-of-range latitude raises the
-    # public ValidationError through the CLI with a nonzero exit; no exit-2
-    # usage contract covers domain errors, so only the nonzero exit and the
-    # error type on stderr are pinned, not the exact status/message.
+    # public ValidationError inside the CLI, which the CLI maps to a usage
+    # error (exit 2) with the message on stderr (no traceback).
     result = subprocess.run(
         [
             sys.executable,
             "-m",
             "alfalak",
+            "prayer",
             "--latitude",
             "91",
             "--longitude",
@@ -722,8 +740,8 @@ def test_cli_domain_error_characterization():
         text=True,
         timeout=60,
     )
-    assert result.returncode != 0
-    assert "ValidationError" in result.stderr
+    assert result.returncode == 2
+    assert "Latitude" in result.stderr
 
 
 # ---------------------------------------------------------------------------
