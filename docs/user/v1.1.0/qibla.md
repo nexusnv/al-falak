@@ -106,8 +106,7 @@ for how far that assumption stretches. The 4-dp coordinate above
 is canonical (~11 m); code carries extra display digits for compatibility.
 
 Edge cases never raise: at Makkah itself the bearing is degenerate
-(returns a float in [0, 360); both models return 180.0 at the exact
-self point, any bearing being equally valid there), and at the true antipode
+(returns a float in [0, 360)), and at the true antipode
 (~21.42°S, 140.17°W) every bearing is equidistant. Distance uses the
 spherical great-circle with mean radius 6371.0088 km.
 

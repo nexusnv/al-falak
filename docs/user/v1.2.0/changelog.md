@@ -5,14 +5,6 @@ description: Version history for al-falak.
 
 # Changelog
 
-## 1.2.1 — hotfix (finite-real overflow, Qibla self doc)
-
-* `require_finite_real` maps float-overflowing huge `int`s to
-  `ValidationError` (was bare `OverflowError`); covers `delta_t`,
-  `yallop_*`, `odeh_*`, `is_*mabims*`, `LunarCoordinates`.
-* `Qibla` self-point docs now state both models return `180.0`
-  (was `spherical ~180 vs ellipsoidal 0`).
-
 ## 1.2.0 — phases 4–5 (moon-sighting, hijri converter)
 
 One behavioral breaking change from 1.1.0: `Coordinates` is now frozen —

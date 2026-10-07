@@ -21,10 +21,18 @@ def closest_angle(angle: float) -> float:
 
 
 def require_finite_real(value: object, name: str) -> float:
-    """Coerce a real number to float, rejecting bools and non-finite values."""
+    """Coerce a real number to float, rejecting bools and non-finite values.
+
+    Huge ints/Fractions that overflow the float range raise
+    ``ValidationError`` (not bare ``OverflowError``), per the
+    ``AlFalakError`` contract.
+    """
     if isinstance(value, bool) or not isinstance(value, (numbers.Real, Decimal)):
         raise ValidationError(f"{name} must be a real number, got {value!r}.")
-    result = float(value)
+    try:
+        result = float(value)
+    except (OverflowError, ValueError) as e:
+        raise ValidationError(f"{name} must be finite, got {value!r}.") from e
     if not math.isfinite(result):
         raise ValidationError(f"{name} must be finite, got {value!r}.")
     return result

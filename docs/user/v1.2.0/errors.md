@@ -79,9 +79,7 @@ Moon-sighting inputs follow the same rule: `crescent_geometry_at_sunset`
 rejects a non-`date` day (a `datetime` is accepted and its calendar date
 is used), a non-`Coordinates` location, or a non-finite
 `delta_t_override`, as do the `delta_t`, `yallop_*`, `odeh_*`, and
-`is_*mabims*` helpers for non-real, non-finite, or float-overflowing
-arguments (e.g. huge `int`s that do not fit in a `float` also raise
-`ValidationError`, never bare `OverflowError`; `odeh_v` and
+`is_*mabims*` helpers for non-real or non-finite arguments (`odeh_v` and
 `yallop_q` additionally reject a negative crescent width).
 
 ## Hijri converter errors

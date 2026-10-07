@@ -80,8 +80,10 @@ dependencies. Pipeline architecture: coordinates + date + method/parameters →
   `pytest --cov-fail-under=95`. Reproduce all four locally before pushing.
 - Docs site: `.github/workflows/docs.yml`. Releases: `.github/workflows/release.yml`
   plus `docs/development/release/` notes (ephemeral — see below).
-- `docs/user/v1.0.0/` is a frozen snapshot — never edit it; new user docs go in
-  versionless `docs/user/` pages.
+- `docs/user/v1.0.0/`, `docs/user/v1.1.0/`, `docs/user/v1.2.0/`,
+  `docs/user/v1.2.1/` are frozen snapshots — never edit them; new user docs go in
+  versionless `docs/user/` pages. Each release freezes its docs and registers
+  the slug in `docs_site/versions.json` + `docs_site/src/content/versions/`.
 
 ## Pull Request Guidelines
 

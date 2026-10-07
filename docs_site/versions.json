@@ -1,5 +1,10 @@
 {
-  "versions": [{ "slug": "v1.0.0", "label": "v1.0.0" }],
+  "versions": [
+    { "slug": "v1.2.1", "label": "v1.2.1" },
+    { "slug": "v1.2.0", "label": "v1.2.0" },
+    { "slug": "v1.1.0", "label": "v1.1.0" },
+    { "slug": "v1.0.0", "label": "v1.0.0" }
+  ],
   "latest": {
     "slug": "latest",
     "label": "Latest",

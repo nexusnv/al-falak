@@ -1,0 +1,73 @@
+{
+  "sidebar": [
+    {
+      "label": "Home",
+      "link": "/"
+    },
+    {
+      "label": "Getting Started",
+      "link": "/getting-started/"
+    },
+    {
+      "label": "Calculation Methods",
+      "link": "/calculation-methods/"
+    },
+    {
+      "label": "Polar Regions",
+      "link": "/polar-regions/"
+    },
+    {
+      "label": "High Latitude Rules",
+      "link": "/high-latitude/"
+    },
+    {
+      "label": "Madhab",
+      "link": "/madhab/"
+    },
+    {
+      "label": "Qibla Direction",
+      "link": "/qibla/"
+    },
+    {
+      "label": "Sunnah Times",
+      "link": "/sunnah-times/"
+    },
+    {
+      "label": "Moon Sighting",
+      "link": "/moon-sighting/"
+    },
+    {
+      "label": "Hijri Converter",
+      "link": "/hijri-converter/"
+    },
+    {
+      "label": "CLI Usage",
+      "link": "/cli/"
+    },
+    {
+      "label": "Timezone Handling",
+      "link": "/timezone/"
+    },
+    {
+      "label": "Errors",
+      "link": "/errors/"
+    },
+    {
+      "label": "API Reference",
+      "link": "/api-reference/"
+    },
+    {
+      "label": "Migration",
+      "link": "/migration/"
+    },
+    {
+      "label": "Changelog",
+      "link": "/changelog/"
+    },
+    {
+      "label": "Citations",
+      "link": "/citations/"
+    }
+  ],
+  "excluded": []
+}

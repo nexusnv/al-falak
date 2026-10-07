@@ -110,3 +110,14 @@ def test_angle_helpers_round_trip_consistent():
         assert FloatUtil.unwind_angle(closest) == pytest.approx(
             unwound, abs=1e-9
         )
+
+
+def test_require_finite_real_rejects_huge_int_overflow():
+    # Huge ints are real and finite but do not fit in a float:
+    # float() raises OverflowError, which must surface as ValidationError
+    # per the AlFalakError contract, never a bare builtin.
+    from alfalak.exceptions import ValidationError
+
+    for bad in (10**1000, -(10**1000)):
+        with pytest.raises(ValidationError, match="(?i)finite"):
+            FloatUtil.require_finite_real(bad, "value")

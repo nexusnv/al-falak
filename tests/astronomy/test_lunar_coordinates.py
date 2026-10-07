@@ -23,3 +23,9 @@ def test_non_finite_julian_day_rejected():
     for bad in (math.inf, math.nan):
         with pytest.raises(ValidationError, match="(?i)finite"):
             LunarCoordinates(bad)
+
+
+def test_huge_int_julian_day_rejected_as_validation():
+    # Huge ints overflow float(): must raise ValidationError, not OverflowError.
+    with pytest.raises(ValidationError, match="(?i)finite"):
+        LunarCoordinates(10**1000)

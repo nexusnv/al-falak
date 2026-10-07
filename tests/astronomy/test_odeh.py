@@ -27,3 +27,13 @@ def test_odeh_v_rejects_negative_width():
 def test_odeh_v_zero_width_accepted():
     # Zero clamps to a 1e-6 arcmin epsilon, so allow the ~6e-6 shift.
     assert odeh_v(5.0, 0.0) == pytest.approx(5.0 - 7.1651, abs=1e-4)
+
+
+def test_odeh_rejects_float_overflowing_huge_int():
+    # Huge ints overflow float(): must raise ValidationError, not OverflowError.
+    with pytest.raises(ValidationError, match="(?i)finite"):
+        odeh_v(10**1000, 0.5)
+    with pytest.raises(ValidationError, match="(?i)finite"):
+        odeh_v(5.0, 10**1000)
+    with pytest.raises(ValidationError, match="(?i)finite"):
+        odeh_class(10**1000, 10.0)

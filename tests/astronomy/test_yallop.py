@@ -39,3 +39,13 @@ def test_yallop_q_scale_matches_zone_thresholds():
         / 10.0,
         rel=1e-12,
     )
+
+
+def test_yallop_rejects_float_overflowing_huge_int():
+    # Huge ints overflow float(): must raise ValidationError, not OverflowError.
+    with pytest.raises(ValidationError, match="(?i)finite"):
+        yallop_q(10**1000, 0.5)
+    with pytest.raises(ValidationError, match="(?i)finite"):
+        yallop_q(5.0, 10**1000)
+    with pytest.raises(ValidationError, match="(?i)finite"):
+        yallop_zone(10**1000)

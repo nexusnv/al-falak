@@ -54,3 +54,11 @@ def test_delta_t_in_range_silent():
         assert delta_t(2025.5) == pytest.approx(74.76958225, rel=1e-9)
         assert delta_t(2005.0) is not None
         assert delta_t(2050.0) is not None
+
+
+def test_delta_t_rejects_float_overflowing_huge_int():
+    # Huge ints overflow float(): must raise ValidationError, not OverflowError.
+    with pytest.raises(ValidationError, match="(?i)finite"):
+        delta_t(10**1000)
+    with pytest.raises(ValidationError, match="(?i)finite"):
+        delta_t(2025.5, override=10**1000)

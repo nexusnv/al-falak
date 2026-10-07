@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.2.1 — 2026-10-07 (hotfix: finite-real overflow, Qibla self doc)
+
+* Fix: `require_finite_real` now maps `float()` `OverflowError`/`ValueError`
+  (e.g. huge `int`s like `10**1000` that do not fit in a `float`) to
+  `ValidationError`, per the `AlFalakError` contract. Affects `delta_t`,
+  `yallop_q`/`yallop_zone`, `odeh_v`/`odeh_class`, `is_neo_mabims_2021`/
+  `is_mabims_1992`, and `LunarCoordinates` (all funnel through the same
+  helper). Previously leaked bare `OverflowError`.
+* Docs: `Qibla` self-point now states both models return `180.0` at the
+  exact self point (was `spherical ~180.0 vs ellipsoidal 0.0`); `qibla.md`,
+  `errors.md`, `api-reference.md`, and `moon-sighting.md` synced to the
+  landed behavior (float-overflowing inputs raise `ValidationError`).
+* Tests: regression coverage for huge-int `ValidationError` and both-models
+  `180.0` self bearing. Full suite green.
+
 ## 1.2.0 — 2026-10-06 (phases 4–5: moon-sighting, Hijri converter)
 
 > Scope: this release lands milestone phases 4–5 (lunar ephemeris and

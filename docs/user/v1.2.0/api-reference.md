@@ -132,8 +132,7 @@ LunarCoordinates(julian_day_tt: float)
 ```
 
 Low-precision geocentric Moon position (Meeus 2nd ed. Ch.47, Tables 47.A–47.B).
-Non-real, non-finite, or float-overflowing Julian days (e.g. huge `int`s)
-raise `ValidationError`.
+Non-real or non-finite Julian days raise `ValidationError`.
 
 **Attributes:**
 
@@ -189,8 +188,8 @@ Isolated Delta-T (TT minus UT1, in seconds) for the lunar path only —
 never called by the prayer path. Default is the Espenak polynomial for
 2005–2050; pass IERS-observed values via `override` for modern dates.
 Years outside 2005–2050 emit a `UserWarning` and extrapolate (the value is
-still returned); the `override` path never warns. Non-real, non-finite,
-or float-overflowing inputs (e.g. huge `int`s) raise `ValidationError` (`year` is validated even when `override=`
+still returned); the `override` path never warns. Non-real or non-finite
+inputs raise `ValidationError` (`year` is validated even when `override=`
 is set).
 
 ## yallop_q
@@ -200,8 +199,8 @@ yallop_q(arcv_geo_deg: float, width_arcmin: float) -> float
 ```
 
 Best-time Yallop q from geocentric ARCV (degrees) and topocentric
-crescent width (arcminutes). Non-real, non-finite, or float-overflowing
-inputs raise `ValidationError`.
+crescent width (arcminutes). Non-real or non-finite inputs raise
+`ValidationError`.
 
 ## yallop_zone
 
@@ -209,8 +208,8 @@ inputs raise `ValidationError`.
 yallop_zone(q: float) -> str
 ```
 
-Yallop visibility zone (`"A"`–`"F"`) for a q value. Non-real,
-non-finite, or float-overflowing inputs raise `ValidationError`.
+Yallop visibility zone (`"A"`–`"F"`) for a q value. Non-real or
+non-finite inputs raise `ValidationError`.
 
 ## odeh_v
 
@@ -219,8 +218,8 @@ odeh_v(arcv_topo_deg: float, width_arcmin: float) -> float
 ```
 
 Odeh V from airless topocentric ARCV (degrees) and topocentric
-crescent width (arcminutes). Non-real, non-finite, or float-overflowing
-inputs raise `ValidationError`.
+crescent width (arcminutes). Non-real or non-finite inputs raise
+`ValidationError`.
 
 ## odeh_class
 
@@ -230,8 +229,8 @@ odeh_class(v: float, arcl_deg: float) -> str
 
 Odeh visibility class (`"A"`–`"D"`) for a V value and elongation
 ARCL (degrees). Elongation below 6.4 degrees (Danjon floor) is class
-`"D"` regardless of V. Non-real, non-finite, or float-overflowing inputs
-raise `ValidationError`.
+`"D"` regardless of V. Non-real or non-finite inputs raise
+`ValidationError`.
 
 ## is_neo_mabims_2021
 
@@ -242,7 +241,7 @@ is_neo_mabims_2021(alt_deg: float, elong_deg: float) -> bool
 Neo-MABIMS 2021 visibility: `True` when the topocentric Moon altitude
 (`moon_alt_topo_deg` from `crescent_geometry_at_sunset`, not ARCV) is at
 least 3 degrees and the elongation is at least 6.4 degrees.
-Non-real, non-finite, or float-overflowing inputs raise `ValidationError`.
+Non-real or non-finite inputs raise `ValidationError`.
 
 ## is_mabims_1992
 
@@ -253,7 +252,7 @@ is_mabims_1992(alt_deg: float, elong_deg: float, age_hours: float) -> bool
 1992 MABIMS visibility: `True` when (topocentric Moon altitude
 `>= 2` degrees and elongation `>= 3` degrees) or the Moon age is at
 least 8 hours. Pass `moon_alt_topo_deg` (not ARCV) as the altitude.
-Non-real, non-finite, or float-overflowing inputs raise `ValidationError`.
+Non-real or non-finite inputs raise `ValidationError`.
 
 ## CalculationParameters
 
