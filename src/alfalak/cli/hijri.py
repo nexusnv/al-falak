@@ -19,11 +19,16 @@ _MONTH_LENGTH_RE = re.compile(r"^(\d{4,})-(\d{2})$")
 def register(subparsers: argparse._SubParsersAction[Any]) -> None:
     hijri = subparsers.add_parser(
         "hijri",
-        help="Convert a Gregorian date to a Hijri date.",
+        help="Convert between Gregorian and Hijri dates.",
         description=(
             "Convert a Gregorian date to a Hijri date on the named calendar. "
             "Prints exactly two lines: hijri=<YYYY-MM-DD> and "
-            "calendar=<name>[-<COUNTRY>]."
+            "calendar=<name>[-<COUNTRY>]. "
+            "With --reverse, convert a Hijri date back to a Gregorian date "
+            "(prints gregorian=<YYYY-MM-DD> and calendar=<name>). "
+            "With --month-length, print the length of a Hijri month "
+            "(days=<29|30> and calendar=<name>). "
+            "With --json, the same mapping is emitted as one JSON object."
         ),
         epilog=(
             "Umm al-Qura calendar vs prayer preset: --calendar uqu converts dates "

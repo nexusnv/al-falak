@@ -2,6 +2,8 @@
 # Zsh completion for al-falak.
 # Install to /usr/share/zsh/vendor-completions/_al-falak
 # (Debian: debian/completions/al-falak.zsh).
+# Note: --timezone takes an IANA ZoneInfo name, which cannot be completed
+# statically, so it intentionally has no completer.
 
 _al-falak() {
     local context state state_descr line
@@ -52,7 +54,7 @@ _al-falak() {
                         '--dhuha-offset=[Minutes after sunrise for Dhuha window (default: 28)]:minutes:' \
                         '--elevation=[Observer eye height in metres (default: 0.0)]:metres:' \
                         '--ramadan[Umm al-Qura Ramadan mode]' \
-                        '--timezone=[IANA timezone name for display]:timezone:_hosts' \
+                        '--timezone=[IANA timezone name for display]:timezone:' \
                         '--adjust=[Per-prayer minute offset as NAME=MINUTES (repeatable)]:adjustment:' \
                         '--json[Emit one compact JSON object]' \
                         '(-h --help)'{-h,--help}'[show help message and exit]'
@@ -87,7 +89,7 @@ _al-falak() {
                         '--dhuha-offset=[Minutes after sunrise for Dhuha window (default: 28)]:minutes:' \
                         '--elevation=[Observer eye height in metres (default: 0.0)]:metres:' \
                         '--ramadan[Umm al-Qura Ramadan mode]' \
-                        '--timezone=[IANA timezone name for display]:timezone:_hosts' \
+                        '--timezone=[IANA timezone name for display]:timezone:' \
                         '--adjust=[Per-prayer minute offset as NAME=MINUTES (repeatable)]:adjustment:' \
                         '--fraction=[Night fraction in the open interval (0, 1)]:fraction:' \
                         '--start=[Custom night-start anchor as ISO datetime with offset]:datetime:' \

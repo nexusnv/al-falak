@@ -22,7 +22,7 @@ from alfalak.exceptions import AlFalakError
 _ADJUST_RE = re.compile(
     r"^(imsak|fajr|sunrise|dhuhr|asr|maghrib|isha|ishraq|dhuha)=(-?\d+)$"
 )
-_PRAYER_KEYS = (
+PRAYER_KEYS = (
     "imsak",
     "fajr",
     "sunrise",
