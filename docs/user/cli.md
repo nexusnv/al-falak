@@ -39,7 +39,8 @@ python -m alfalak prayer --latitude 35.7750 --longitude -78.6336
 ```
 
 ```
-al-falak: error: a subcommand is required (did you mean 'prayer'? try: al-falak prayer --latitude 35.7750 --longitude -78.6336)
+usage: al-falak [-h] <subcommand> ...
+al-falak: error: a subcommand is required as the first argument (did you mean 'prayer'? try: al-falak prayer --latitude 35.7750 --longitude -78.6336)
 ```
 
 Pasting an old command with flags prints the same hint and exits

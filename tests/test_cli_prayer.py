@@ -94,7 +94,7 @@ def test_prayer_json_keys_match_text(capsys):
 
 def test_bare_invocation_points_at_prayer(capsys):
     with pytest.raises(SystemExit) as excinfo:
-        main(["--latitude", "35", "--longitude", "-78"])
+        main([])
     assert excinfo.value.code == 2
     assert "prayer" in capsys.readouterr().err
 
