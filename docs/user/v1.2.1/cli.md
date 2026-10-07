@@ -1,6 +1,7 @@
 ---
 title: CLI Usage
 description: Use the al-falak command-line interface for quick prayer time output.
+slug: v1.2.1/cli
 ---
 
 # CLI Usage
@@ -30,7 +31,7 @@ isha=2026-09-30T00:11:00+00:00
 
 `syuruk` is sunrise under its MY/SG name, so it always equals `sunrise`.
 `imsak` defaults to Fajr − 10 minutes; `ishraq`/`dhuha` default to
-sunrise + 15/+ 28 minutes (see [Calculation Methods](/calculation-methods/)).
+sunrise + 15/+ 28 minutes (see [Calculation Methods](/v1.2.1/calculation-methods/)).
 
 > Script consumers note: output used to be 6 lines (`fajr` through `isha`).
 > It is now 10 lines with the added `imsak`/`syuruk`/`ishraq`/`dhuha`
@@ -117,7 +118,7 @@ a local wall-clock time misplaces sunset rollover by the UTC offset.
 > The `uqu` calendar (1423H month-start rule at Makkah) is not the
 > `UMM_AL_QURA` prayer preset. `tabular` is arithmetic and routinely
 > differs from observed months by 1–2 days — never present it as an
-> observed date. See [Hijri Converter](/hijri-converter/).
+> observed date. See [Hijri Converter](/v1.2.1/hijri-converter/).
 
 ## Error handling
 
@@ -140,6 +141,6 @@ coordinates, pre-floor dates) all exit with code 2 via an argparse error.
 
 ## See also
 
-- [Getting Started](/getting-started/) — Python API usage
-- [Calculation Methods](/calculation-methods/) — method details
-- [Hijri Converter](/hijri-converter/) — Gregorian↔Hijri conversion rules
+- [Getting Started](/v1.2.1/getting-started/) — Python API usage
+- [Calculation Methods](/v1.2.1/calculation-methods/) — method details
+- [Hijri Converter](/v1.2.1/hijri-converter/) — Gregorian↔Hijri conversion rules

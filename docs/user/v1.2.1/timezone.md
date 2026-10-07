@@ -1,6 +1,7 @@
 ---
 title: Timezone Handling
 description: Understand how al-falak handles timezones and DST transitions.
+slug: v1.2.1/timezone
 ---
 
 # Timezone Handling
@@ -78,5 +79,5 @@ pip install tzdata
 
 ## See also
 
-- [Sunnah Times](/sunnah-times/) — DST-safe night markers
-- [API Reference](/api-reference/) — full API documentation
+- [Sunnah Times](/v1.2.1/sunnah-times/) — DST-safe night markers
+- [API Reference](/v1.2.1/api-reference/) — full API documentation

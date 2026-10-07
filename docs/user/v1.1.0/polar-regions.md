@@ -1,6 +1,7 @@
 ---
 title: Polar Regions
 description: Handle prayer times in polar regions where the sun may never rise or set.
+slug: v1.1.0/polar-regions
 ---
 
 # Polar Regions

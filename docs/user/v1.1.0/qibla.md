@@ -1,6 +1,7 @@
 ---
 title: Qibla Direction
 description: Calculate the Qibla direction (degrees clockwise from north) for any location.
+slug: v1.1.0/qibla
 ---
 
 # Qibla Direction
@@ -142,5 +143,5 @@ which to use is up to you:
 
 ## See also
 
-- [API Reference](/api-reference/) — full API documentation
-- [Citations](/citations/) — attribution and references
+- [API Reference](/v1.1.0/api-reference/) — full API documentation
+- [Citations](/v1.1.0/citations/) — attribution and references

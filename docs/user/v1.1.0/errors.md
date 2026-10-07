@@ -1,6 +1,7 @@
 ---
 title: Errors
 description: Understand the al-falak error hierarchy and how to handle failures.
+slug: v1.1.0/errors
 ---
 
 # Errors
@@ -81,5 +82,5 @@ AstronomicalError: Unable to compute prayer times: sunrise, sunset, or solar tra
 
 ## See also
 
-- [Polar Regions](/polar-regions/) — handling polar day/night
-- [API Reference](/api-reference/) — full API documentation
+- [Polar Regions](/v1.1.0/polar-regions/) — handling polar day/night
+- [API Reference](/v1.1.0/api-reference/) — full API documentation

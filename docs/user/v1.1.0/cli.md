@@ -1,6 +1,7 @@
 ---
 title: CLI Usage
 description: Use the al-falak command-line interface for quick prayer time output.
+slug: v1.1.0/cli
 ---
 
 # CLI Usage
@@ -30,7 +31,7 @@ isha=2026-09-30T00:11:00+00:00
 
 `syuruk` is sunrise under its MY/SG name, so it always equals `sunrise`.
 `imsak` defaults to Fajr − 10 minutes; `ishraq`/`dhuha` default to
-sunrise + 15/+ 28 minutes (see [Calculation Methods](/calculation-methods/)).
+sunrise + 15/+ 28 minutes (see [Calculation Methods](/v1.1.0/calculation-methods/)).
 
 > Script consumers note: output used to be 6 lines (`fajr` through `isha`).
 > It is now 10 lines with the added `imsak`/`syuruk`/`ishraq`/`dhuha`
@@ -85,5 +86,5 @@ al-falak: error: argument --method: invalid choice: 'BOGUS'
 
 ## See also
 
-- [Getting Started](/getting-started/) — Python API usage
-- [Calculation Methods](/calculation-methods/) — method details
+- [Getting Started](/v1.1.0/getting-started/) — Python API usage
+- [Calculation Methods](/v1.1.0/calculation-methods/) — method details

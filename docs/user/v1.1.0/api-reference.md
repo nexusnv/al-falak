@@ -1,6 +1,7 @@
 ---
 title: API Reference
 description: Complete API reference for al-falak.
+slug: v1.1.0/api-reference
 ---
 
 # API Reference
@@ -220,6 +221,6 @@ AlFalakError (base)
 
 ## See also
 
-- [Getting Started](/getting-started/) — quick start guide
-- [Calculation Methods](/calculation-methods/) — method details
-- [Errors](/errors/) — error handling
+- [Getting Started](/v1.1.0/getting-started/) — quick start guide
+- [Calculation Methods](/v1.1.0/calculation-methods/) — method details
+- [Errors](/v1.1.0/errors/) — error handling

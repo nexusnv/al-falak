@@ -1,6 +1,7 @@
 ---
 title: al-falak
 description: An offline Python library for calculating Islamic prayer times.
+slug: v1.2.1
 ---
 
 # al-falak
@@ -51,14 +52,14 @@ print(f"Maghrib: {prayer_times.maghrib.strftime('%H:%M')}")
 
 | I want to... | Go to |
 |---|---|
-| Install and run my first calculation | [Getting Started](/getting-started/) |
-| Compare calculation methods | [Calculation Methods](/calculation-methods/) |
-| Handle polar regions | [Polar Regions](/polar-regions/) |
-| Predict the new crescent | [Moon Sighting](/moon-sighting/) |
-| Convert Gregorian dates to Hijri | [Hijri Converter](/hijri-converter/) |
-| Use the CLI | [CLI Usage](/cli/) |
-| See all public APIs | [API Reference](/api-reference/) |
-| Migrate from adhanpy | [Migration](/migration/) |
+| Install and run my first calculation | [Getting Started](/v1.2.1/getting-started/) |
+| Compare calculation methods | [Calculation Methods](/v1.2.1/calculation-methods/) |
+| Handle polar regions | [Polar Regions](/v1.2.1/polar-regions/) |
+| Predict the new crescent | [Moon Sighting](/v1.2.1/moon-sighting/) |
+| Convert Gregorian dates to Hijri | [Hijri Converter](/v1.2.1/hijri-converter/) |
+| Use the CLI | [CLI Usage](/v1.2.1/cli/) |
+| See all public APIs | [API Reference](/v1.2.1/api-reference/) |
+| Migrate from adhanpy | [Migration](/v1.2.1/migration/) |
 
 ## Requirements
 
