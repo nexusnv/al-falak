@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from alfalak.cli import hijri, prayer, qibla, sunnah
+from alfalak.cli import hijri, moon_sighting, prayer, qibla, sunnah
 
 __all__ = ["register_all"]
 
@@ -12,3 +12,4 @@ def register_all(subparsers: Any) -> None:
     qibla.register(subparsers)
     sunnah.register(subparsers)
     hijri.register(subparsers)
+    moon_sighting.register(subparsers)
