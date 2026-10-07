@@ -7,7 +7,7 @@ from typing import Any, cast
 from alfalak.calendar import OffsetStore, get_calendar
 from alfalak.calendar.bridge import gregorian_to_hijri
 from alfalak.data import Coordinates
-from alfalak.exceptions import ConfigurationError, ValidationError
+from alfalak.exceptions import AlFalakError, ConfigurationError
 
 
 def register(subparsers: argparse._SubParsersAction[Any]) -> None:
@@ -161,5 +161,5 @@ def _run_hijri(args: argparse.Namespace, parser: argparse.ArgumentParser) -> Non
 def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
     try:
         _run_hijri(args, parser)
-    except (ConfigurationError, ValidationError) as exc:
+    except AlFalakError as exc:
         parser.error(str(exc))

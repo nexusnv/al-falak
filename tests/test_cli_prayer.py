@@ -1,3 +1,5 @@
+import pytest
+
 from alfalak.__main__ import main
 
 
@@ -91,8 +93,61 @@ def test_prayer_json_keys_match_text(capsys):
 
 
 def test_bare_invocation_points_at_prayer(capsys):
-    import pytest
-
     with pytest.raises(SystemExit) as excinfo:
         main(["--latitude", "35", "--longitude", "-78"])
     assert excinfo.value.code == 2
+
+
+def _prayer_base(extra: list[str]) -> list[str]:
+    return [
+        "prayer",
+        "--latitude",
+        "35",
+        "--longitude",
+        "-78",
+        "--date",
+        "2015-07-12",
+    ] + extra
+
+
+def test_prayer_rejects_fajr_angle_out_of_range(capsys):
+    with pytest.raises(SystemExit) as excinfo:
+        main(_prayer_base(["--fajr-angle", "200"]))
+    assert excinfo.value.code == 2
+    assert "--fajr-angle" in capsys.readouterr().err
+
+
+def test_prayer_rejects_isha_angle_out_of_range(capsys):
+    with pytest.raises(SystemExit) as excinfo:
+        main(_prayer_base(["--isha-angle", "200"]))
+    assert excinfo.value.code == 2
+    assert "--isha-angle" in capsys.readouterr().err
+
+
+def test_prayer_rejects_negative_isha_interval(capsys):
+    with pytest.raises(SystemExit) as excinfo:
+        main(_prayer_base(["--isha-interval", "-1"]))
+    assert excinfo.value.code == 2
+    assert "--isha-interval" in capsys.readouterr().err
+
+
+def test_prayer_rejects_negative_imsak_offset(capsys):
+    with pytest.raises(SystemExit) as excinfo:
+        main(_prayer_base(["--imsak-offset", "-3"]))
+    assert excinfo.value.code == 2
+    assert "--imsak-offset" in capsys.readouterr().err
+
+
+def test_prayer_rejects_dhuha_below_ishraq(capsys):
+    with pytest.raises(SystemExit) as excinfo:
+        main(_prayer_base(["--ishraq-offset", "30", "--dhuha-offset", "20"]))
+    assert excinfo.value.code == 2
+    err = capsys.readouterr().err
+    assert "--dhuha-offset" in err or "--ishraq-offset" in err
+
+
+def test_prayer_rejects_negative_elevation(capsys):
+    with pytest.raises(SystemExit) as excinfo:
+        main(_prayer_base(["--elevation", "-5"]))
+    assert excinfo.value.code == 2
+    assert "--elevation" in capsys.readouterr().err

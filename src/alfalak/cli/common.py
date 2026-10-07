@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 from datetime import datetime, timezone
 from typing import Any
@@ -84,7 +85,15 @@ def add_prayer_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--elevation", type=float, default=0.0)
     parser.add_argument("--ramadan", action="store_true")
     parser.add_argument("--timezone", default=None)
-    parser.add_argument("--adjust", action="append", default=[], metavar="NAME=MIN")
+    parser.add_argument(
+        "--adjust",
+        action="append",
+        default=[],
+        metavar="NAME=MIN",
+        help="Per-prayer minute offset as NAME=MINUTES (repeatable; "
+        "NAME in imsak,fajr,sunrise,dhuhr,asr,maghrib,isha,ishraq,dhuha; "
+        "use --adjust isha=-1 for negatives).",
+    )
 
 
 def parse_date(raw: str | None, parser: argparse.ArgumentParser) -> datetime:
@@ -121,9 +130,50 @@ def parse_timezone(raw: str | None, parser: argparse.ArgumentParser) -> ZoneInfo
         parser.error(f"unknown --timezone: {raw}")
 
 
+def _validate_overrides(
+    args: argparse.Namespace, parser: argparse.ArgumentParser
+) -> None:
+    if args.fajr_angle is not None and not 0 <= args.fajr_angle <= 90:
+        parser.error(f"invalid --fajr-angle {args.fajr_angle} (must be within [0, 90])")
+    if args.isha_angle is not None and not 0 <= args.isha_angle <= 90:
+        parser.error(f"invalid --isha-angle {args.isha_angle} (must be within [0, 90])")
+    if args.isha_interval is not None and (
+        isinstance(args.isha_interval, bool)
+        or not isinstance(args.isha_interval, int)
+        or args.isha_interval < 0
+    ):
+        parser.error(
+            f"invalid --isha-interval {args.isha_interval} "
+            "(must be a non-negative integer)"
+        )
+    for value, flag in (
+        (args.imsak_offset, "--imsak-offset"),
+        (args.ishraq_offset, "--ishraq-offset"),
+        (args.dhuha_offset, "--dhuha-offset"),
+    ):
+        if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+            parser.error(f"invalid {flag} {value} (must be a non-negative integer)")
+    if args.dhuha_offset < args.ishraq_offset:
+        parser.error(
+            f"invalid --dhuha-offset {args.dhuha_offset} "
+            f"(must be >= --ishraq-offset {args.ishraq_offset})"
+        )
+    elevation = args.elevation
+    if (
+        isinstance(elevation, bool)
+        or not isinstance(elevation, (int, float))
+        or not math.isfinite(elevation)
+        or elevation < 0
+    ):
+        parser.error(
+            f"invalid --elevation {elevation} " "(must be a finite non-negative number)"
+        )
+
+
 def build_prayer_times(
     args: argparse.Namespace, parser: argparse.ArgumentParser
 ) -> PrayerTimes:
+    _validate_overrides(args, parser)
     params = CalculationParameters(method=CalculationMethod[args.method])
     params.madhab = Madhab[args.madhab]
     params.high_latitude_rule = HighLatitudeRule[args.high_latitude_rule]
