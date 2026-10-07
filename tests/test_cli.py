@@ -155,10 +155,11 @@ def test_cli_hijri_two_line_output(capsys):
     assert capsys.readouterr().out == "hijri=1446-09-01\ncalendar=tabular\n"
 
 
-def test_cli_top_level_date_now_rejected():
+def test_cli_top_level_date_now_rejected(capsys):
     with pytest.raises(SystemExit) as excinfo:
         main(["--date", "2025-03-01", "hijri", "--calendar", "tabular"])
     assert excinfo.value.code == 2
+    assert "prayer" in capsys.readouterr().err
 
 
 def test_cli_hijri_country_required_iff_mabims():

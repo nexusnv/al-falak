@@ -96,6 +96,14 @@ def test_bare_invocation_points_at_prayer(capsys):
     with pytest.raises(SystemExit) as excinfo:
         main(["--latitude", "35", "--longitude", "-78"])
     assert excinfo.value.code == 2
+    assert "prayer" in capsys.readouterr().err
+
+
+def test_flags_before_subcommand_get_prayer_hint(capsys):
+    with pytest.raises(SystemExit) as excinfo:
+        main(["--latitude", "35", "--longitude", "-78"])
+    assert excinfo.value.code == 2
+    assert "prayer" in capsys.readouterr().err
 
 
 def _prayer_base(extra: list[str]) -> list[str]:
