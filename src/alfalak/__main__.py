@@ -29,7 +29,10 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.command is None:
         parser.error(_NO_COMMAND_HINT)
-    args.func(args, parser)
+    func = getattr(args, "func", None)
+    if func is None:
+        parser.error(_NO_COMMAND_HINT)
+    func(args, parser)
 
 
 if __name__ == "__main__":

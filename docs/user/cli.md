@@ -22,7 +22,9 @@ Every subcommand accepts `--json` to emit the same keys as one compact
 JSON object (in the same key order) instead of `key=value` lines.
 Datetimes print as ISO-8601 with offset (UTC by default, or `--timezone`
 where supported). Floats print with full precision in text (`nan`
-lowercase) and as `null` in JSON; booleans print lowercase in text and
+lowercase) and as `null` in JSON — except `qibla`, which prints
+`direction` to 6 decimals and `distance_km` to 3 in text (`--json`
+carries the raw floats); booleans print lowercase in text and
 as JSON booleans.
 
 ## Bare invocation was removed
@@ -196,12 +198,13 @@ night_fraction=2015-07-13T04:38:00+00:00
 | Option | Required | Default | Description |
 |---|---|---|---|
 | `--fraction` | No | — | Night fraction in (0, 1); prints a single `night_fraction=` line |
-| `--start` | No | Maghrib | Custom night-start anchor as an ISO datetime with timezone offset (used with `--fraction`) |
-| `--end` | No | Next-day Fajr | Custom night-end anchor as an ISO datetime with timezone offset (used with `--fraction`) |
+| `--start` | No | Maghrib | Custom night-start anchor as an ISO datetime with timezone offset (requires `--fraction`) |
+| `--end` | No | Next-day Fajr | Custom night-end anchor as an ISO datetime with timezone offset (requires `--fraction`) |
 | `--json` | No | Off | Emit one compact JSON object instead of `key=value` lines |
 
 `--start`/`--end` must be timezone-aware (`2025-03-01T19:00:00+08:00`);
-naive values exit with code 2. See [Sunnah Times](sunnah-times/) for the
+naive values exit with code 2, as does any `--start`/`--end` without
+`--fraction`. See [Sunnah Times](sunnah-times/) for the
 Maghrib-to-next-day-Fajr night definition and anchor alternatives.
 
 ## hijri
@@ -251,8 +254,8 @@ calendar=tabular
 | `--lat` / `--lon` | With `--sunset-transition` | — | Observer coordinates for sunset rollover (rejected without it) |
 | `--time` | With `--sunset-transition` | — | Wall-clock time as HH:MM[:SS] on `--date`; naive, treated as UTC (rejected without it) |
 | `--offsets` | No | — | JSON offset file (`{"YYYY-MM": shift}`) applied last (forward mode only) |
-| `--reverse` | No | — | Hijri date as YYYY-MM-DD; convert back to a Gregorian date (mutually exclusive with `--date`/`--sunset-transition`/`--offsets`) |
-| `--month-length` | No | — | Hijri year-month as YYYY-MM; print the month length (`29` or `30`; mutually exclusive with `--date`/`--sunset-transition`/`--offsets`) |
+| `--reverse` | No | — | Hijri date as YYYY-MM-DD; convert back to a Gregorian date (mutually exclusive with `--date`/`--sunset-transition`/`--offsets`; `--adjustment-days` allowed with `--calendar tabular`) |
+| `--month-length` | No | — | Hijri year-month as YYYY-MM; print the month length (`29` or `30`; mutually exclusive with `--date`/`--sunset-transition`/`--offsets`/`--adjustment-days`) |
 | `--json` | No | Off | Emit one compact JSON object instead of `key=value` lines |
 
 Per-country conversion prints a suffixed label:

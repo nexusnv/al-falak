@@ -28,13 +28,13 @@ def register(subparsers: argparse._SubParsersAction[Any]) -> None:
         "--start",
         default=None,
         help="Custom night-start anchor as an ISO datetime with timezone "
-        "offset (used with --fraction).",
+        "offset (requires --fraction).",
     )
     parser.add_argument(
         "--end",
         default=None,
         help="Custom night-end anchor as an ISO datetime with timezone "
-        "offset (used with --fraction).",
+        "offset (requires --fraction).",
     )
     add_json_arg(parser)
     parser.set_defaults(func=run)
@@ -60,26 +60,28 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
         sunnah = SunnahTimes(prayer_times)
         start = _parse_anchor(args.start, "--start", parser)
         end = _parse_anchor(args.end, "--end", parser)
-        if args.fraction is not None:
+        if args.fraction is None:
+            if args.start is not None or args.end is not None:
+                parser.error("--start/--end require --fraction.")
+            tahajjud_start, tahajjud_end = sunnah.tahajjud_window
             emit(
                 {
-                    "night_fraction": sunnah.night_fraction(
-                        args.fraction, start=start, end=end
-                    ).isoformat()
+                    "middle_of_the_night": sunnah.middle_of_the_night.isoformat(),
+                    "first_third_of_the_night": (
+                        sunnah.first_third_of_the_night.isoformat()
+                    ),
+                    "last_third_of_the_night": sunnah.last_third_of_the_night.isoformat(),
+                    "tahajjud_start": tahajjud_start.isoformat(),
+                    "tahajjud_end": tahajjud_end.isoformat(),
                 },
                 args.json,
             )
             return
-        tahajjud_start, tahajjud_end = sunnah.tahajjud_window
         emit(
             {
-                "middle_of_the_night": sunnah.middle_of_the_night.isoformat(),
-                "first_third_of_the_night": (
-                    sunnah.first_third_of_the_night.isoformat()
-                ),
-                "last_third_of_the_night": sunnah.last_third_of_the_night.isoformat(),
-                "tahajjud_start": tahajjud_start.isoformat(),
-                "tahajjud_end": tahajjud_end.isoformat(),
+                "night_fraction": sunnah.night_fraction(
+                    args.fraction, start=start, end=end
+                ).isoformat()
             },
             args.json,
         )

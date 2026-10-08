@@ -46,3 +46,28 @@ def test_astro_bare_rejected(capsys):
         main(["astro"])
     assert excinfo.value.code == 2
     assert capsys.readouterr().err != ""
+
+
+def test_astro_lunar_huge_jd_rejected(capsys):
+    with pytest.raises(SystemExit) as excinfo:
+        main(["astro", "lunar-position", "--julian-day", "1e308"])
+    assert excinfo.value.code == 2
+    assert "--julian-day" in capsys.readouterr().err
+
+
+def test_astro_delta_t_inf_rejected(capsys):
+    import warnings
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        with pytest.raises(SystemExit) as excinfo:
+            main(["astro", "delta-t", "--year", "1e308", "--json"])
+    assert excinfo.value.code == 2
+    assert "--year" in capsys.readouterr().err
+
+
+def test_astro_json_is_compact(capsys):
+    main(["astro", "delta-t", "--year", "2025.5", "--json"])
+    out = capsys.readouterr().out
+    assert json.loads(out) == {"delta_t": 74.76958225}
+    assert '": "' not in out

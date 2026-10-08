@@ -16,7 +16,7 @@ from alfalak import (
 )
 from alfalak.cli.common import add_coord_args, add_json_arg, emit
 from alfalak.data.Coordinates import Coordinates
-from alfalak.exceptions import AlFalakError, ValidationError
+from alfalak.exceptions import AlFalakError
 
 
 def register(subparsers: argparse._SubParsersAction[Any]) -> None:
@@ -62,14 +62,20 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
         v = odeh_v(geometry.arcv_topo_deg, geometry.width_arcmin)
         klass = odeh_class(v, geometry.arcl_deg)
         neo_mabims = is_neo_mabims_2021(geometry.moon_alt_topo_deg, geometry.arcl_deg)
-        try:
+        # No moonset on this civil date: moon_age_at_moonset_days is NaN
+        # (see CrescentGeometry). The 1992 age branch is undefined there,
+        # so fall back to the altitude/elongation branch (age treated as
+        # false) instead of failing. Only NaN takes this path; other
+        # non-finite inputs still raise via the predicates below.
+        age_hours = geometry.moon_age_at_moonset_days * 24.0
+        if math.isnan(age_hours):
+            mabims_1992 = geometry.moon_alt_topo_deg >= 2.0 and geometry.arcl_deg >= 3.0
+        else:
             mabims_1992 = is_mabims_1992(
                 geometry.moon_alt_topo_deg,
                 geometry.arcl_deg,
-                geometry.moon_age_at_moonset_days * 24.0,
+                age_hours,
             )
-        except ValidationError:
-            mabims_1992 = geometry.moon_alt_topo_deg >= 2.0 and geometry.arcl_deg >= 3.0
     except AlFalakError as exc:
         parser.error(str(exc))
     floats: dict[str, float] = {

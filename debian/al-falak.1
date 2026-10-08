@@ -21,7 +21,10 @@ lines. Datetimes print as ISO-8601 with offset (UTC by default, or
 .B --timezone
 where supported). Floats print with full precision in text
 .RI ( nan
-lowercase) and as
+lowercase, except
+.B qibla
+which prints direction to 6 decimals and distance to 3)
+and as
 .I null
 in JSON; booleans print lowercase in text.
 .SH COMMANDS
@@ -164,16 +167,18 @@ Night fraction in the open interval (0, 1); prints a single
 line instead of the default marker block.
 .TP
 .B --start ISO
-Custom night-start anchor as an ISO datetime with timezone offset (used
-with
+Custom night-start anchor as an ISO datetime with timezone offset (requires
 .BR --fraction ;
 default: Maghrib). Must be timezone-aware; naive values are rejected.
+Rejected without
+.BR --fraction .
 .TP
 .B --end ISO
-Custom night-end anchor as an ISO datetime with timezone offset (used
-with
+Custom night-end anchor as an ISO datetime with timezone offset (requires
 .BR --fraction ;
 default: next-day Fajr). Must be timezone-aware; naive values are rejected.
+Rejected without
+.BR --fraction .
 .TP
 .B --json
 Emit one compact JSON object instead of
@@ -235,12 +240,15 @@ JSON offset file ({YYYY-MM: shift}) applied last (forward mode only).
 .B --reverse HIJRI-DATE
 Hijri date as YYYY-MM-DD; convert back to a Gregorian date (mutually
 exclusive with
-.BR --date / --sunset-transition / --offsets ).
+.BR --date / --sunset-transition / --offsets ;
+.B --adjustment-days
+allowed with
+.BR "--calendar tabular" ).
 .TP
 .B --month-length YYYY-MM
 Hijri year-month; print the month length (29 or 30; mutually exclusive
 with
-.BR --date / --sunset-transition / --offsets ).
+.BR --date / --sunset-transition / --offsets / --adjustment-days ).
 .TP
 .B --json
 Emit one compact JSON object instead of

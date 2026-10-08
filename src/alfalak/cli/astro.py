@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import math
 from typing import Any
 
 from alfalak import LunarCoordinates, delta_t
@@ -45,19 +46,25 @@ def register(subparsers: argparse._SubParsersAction[Any]) -> None:
     delta_t_parser.set_defaults(func=run_delta_t)
 
 
+def _json_float(value: float) -> float | None:
+    return value if math.isfinite(value) else None
+
+
 def run_lunar(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
     try:
         moon = LunarCoordinates(args.julian_day)
     except AlFalakError as exc:
         parser.error(str(exc))
+    except (ValueError, OverflowError) as exc:
+        parser.error(f"invalid --julian-day {args.julian_day}: {exc}")
     if args.json:
         emit(
             {
-                "longitude": moon.longitude,
-                "latitude": moon.latitude,
-                "distance_km": moon.distance_km,
-                "right_ascension": moon.right_ascension,
-                "declination": moon.declination,
+                "longitude": _json_float(moon.longitude),
+                "latitude": _json_float(moon.latitude),
+                "distance_km": _json_float(moon.distance_km),
+                "right_ascension": _json_float(moon.right_ascension),
+                "declination": _json_float(moon.declination),
             },
             True,
         )
@@ -79,4 +86,8 @@ def run_delta_t(args: argparse.Namespace, parser: argparse.ArgumentParser) -> No
         value = delta_t(args.year, args.override)
     except AlFalakError as exc:
         parser.error(str(exc))
-    emit({"delta_t": value if args.json else repr(value)}, args.json)
+    except (ValueError, OverflowError) as exc:
+        parser.error(f"invalid --year/--override: {exc}")
+    if not math.isfinite(value):
+        parser.error(f"invalid --year {args.year}: Delta-T out of range.")
+    emit({"delta_t": _json_float(value) if args.json else repr(value)}, args.json)

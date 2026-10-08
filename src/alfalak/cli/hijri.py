@@ -12,8 +12,8 @@ from alfalak.cli.common import add_json_arg, emit
 from alfalak.data import Coordinates
 from alfalak.exceptions import AlFalakError, ConfigurationError
 
-_REVERSE_RE = re.compile(r"^(\d{4,})-(\d{2})-(\d{2})$")
-_MONTH_LENGTH_RE = re.compile(r"^(\d{4,})-(\d{2})$")
+_REVERSE_RE = re.compile(r"^(\d+)-(\d{1,2})-(\d{1,2})$")
+_MONTH_LENGTH_RE = re.compile(r"^(\d+)-(\d{1,2})$")
 
 
 def register(subparsers: argparse._SubParsersAction[Any]) -> None:
@@ -143,7 +143,7 @@ def _run_reverse(args: argparse.Namespace, parser: argparse.ArgumentParser) -> N
     )
     try:
         civil = cal.to_gregorian(wanted)
-    except AlFalakError as exc:
+    except (AlFalakError, ValueError, OverflowError) as exc:
         parser.error(f"invalid --reverse {raw}: {exc}")
     emit(
         {
@@ -167,7 +167,7 @@ def _run_month_length(
     )
     try:
         days = cal.month_length(year, month)
-    except AlFalakError as exc:
+    except (AlFalakError, ValueError, OverflowError) as exc:
         parser.error(f"invalid --month-length {raw}: {exc}")
     emit(
         {"days": days, "calendar": f"{args.calendar}{_calendar_suffix(args)}"},
@@ -255,7 +255,12 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
                 clashes.append("--time")
             if args.offsets is not None:
                 clashes.append("--offsets")
-            if args.adjustment_days != 0:
+            # --adjustment-days is allowed with --reverse: TabularCalendar
+            # applies it in both directions (to_gregorian subtracts it), so
+            # a shifted reverse is meaningful. Month length is rule-fixed
+            # and ignores it, so it is rejected there to avoid a silent
+            # no-op.
+            if active == "--month-length" and args.adjustment_days != 0:
                 clashes.append("--adjustment-days")
             if clashes:
                 parser.error(
@@ -267,5 +272,5 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
                 _run_month_length(args, parser)
             return
         _run_hijri(args, parser)
-    except AlFalakError as exc:
+    except (AlFalakError, ValueError, OverflowError) as exc:
         parser.error(str(exc))

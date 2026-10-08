@@ -132,3 +132,41 @@ def test_sunnah_json_block_has_five_keys(capsys):
         "tahajjud_end",
     }
     assert data["middle_of_the_night"] == "2015-07-13T04:38:00+00:00"
+
+
+def test_sunnah_aware_start_without_fraction_rejected(capsys):
+    with pytest.raises(SystemExit) as excinfo:
+        main(
+            [
+                "sunnah",
+                "--latitude",
+                "35.7750",
+                "--longitude",
+                "-78.6336",
+                "--date",
+                "2015-07-12",
+                "--start",
+                "2015-07-13T00:00:00+00:00",
+            ]
+        )
+    assert excinfo.value.code == 2
+    assert "--fraction" in capsys.readouterr().err
+
+
+def test_sunnah_aware_end_without_fraction_rejected(capsys):
+    with pytest.raises(SystemExit) as excinfo:
+        main(
+            [
+                "sunnah",
+                "--latitude",
+                "35.7750",
+                "--longitude",
+                "-78.6336",
+                "--date",
+                "2015-07-12",
+                "--end",
+                "2015-07-13T08:00:00+00:00",
+            ]
+        )
+    assert excinfo.value.code == 2
+    assert "--fraction" in capsys.readouterr().err

@@ -20,7 +20,7 @@ from alfalak.data.Coordinates import Coordinates
 from alfalak.exceptions import AlFalakError
 
 _ADJUST_RE = re.compile(
-    r"^(imsak|fajr|sunrise|dhuhr|asr|maghrib|isha|ishraq|dhuha)=(-?\d+)$"
+    r"^(imsak|fajr|sunrise|dhuhr|asr|maghrib|isha|ishraq|dhuha)=([+-]?\d+)$"
 )
 PRAYER_KEYS = (
     "imsak",
@@ -117,7 +117,12 @@ def parse_adjustments(
                 "(NAME in imsak,fajr,sunrise,dhuhr,asr,"
                 "maghrib,isha,ishraq,dhuha)"
             )
-        setattr(adjustments, match.group(1), int(match.group(2)))
+        minutes = int(match.group(2))
+        if abs(minutes) > 1_000_000:
+            parser.error(
+                f"invalid --adjust {spec} (magnitude must be <= 1000000 minutes)"
+            )
+        setattr(adjustments, match.group(1), minutes)
     return adjustments
 
 
@@ -197,13 +202,13 @@ def build_prayer_times(
             calculation_parameters=params,
             time_zone=parse_timezone(args.timezone, parser),
         )
-    except AlFalakError as exc:
+    except (AlFalakError, ValueError, OverflowError) as exc:
         parser.error(str(exc))
 
 
 def emit(mapping: dict[str, Any], as_json: bool) -> None:
     if as_json:
-        print(json.dumps(mapping))
+        print(json.dumps(mapping, separators=(",", ":")))
     else:
         for key, value in mapping.items():
             print(f"{key}={value}")

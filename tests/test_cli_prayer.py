@@ -173,3 +173,24 @@ def test_prayer_rejects_negative_dhuha_offset(capsys):
         main(_prayer_base(["--dhuha-offset", "-1"]))
     assert excinfo.value.code == 2
     assert "--dhuha-offset" in capsys.readouterr().err
+
+
+def test_prayer_adjust_plus_sign_accepted(capsys):
+    main(_prayer_base(["--adjust", "fajr=+2"]))
+    assert "fajr=" in capsys.readouterr().out
+
+
+def test_prayer_rejects_huge_adjust(capsys):
+    with pytest.raises(SystemExit) as excinfo:
+        main(_prayer_base(["--adjust", "fajr=999999999999999"]))
+    assert excinfo.value.code == 2
+    assert "--adjust" in capsys.readouterr().err
+
+
+def test_prayer_json_is_compact(capsys):
+    import json
+
+    main(_prayer_base([]) + ["--json"])
+    out = capsys.readouterr().out
+    assert json.loads(out)["fajr"]
+    assert '": "' not in out
