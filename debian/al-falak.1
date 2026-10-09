@@ -98,6 +98,11 @@ design \(em sunrise flows through). Negatives need the
 .I =
 form:
 .BR "--adjust isha=-1" .
+A leading
+.I +
+is also accepted
+.BR ( "--adjust fajr=+2" ).
+Magnitude is capped at 1000000 minutes; larger values are rejected.
 .TP
 .B --json
 Emit one compact JSON object instead of
@@ -320,7 +325,8 @@ lines.
 .PP
 Years outside 2005\(en2050 emit a
 .I UserWarning
-to stderr and extrapolate \(em the value still prints with exit 0.
+to stderr and extrapolate \(em the finite value still prints with exit 0
+(an absurd year whose polynomial overflows to non-finite exits 2).
 .SH EXIT STATUS
 .TP
 .B 0
@@ -328,7 +334,8 @@ Success. Warnings never fail: an out-of-range
 .B astro delta-t
 year prints a
 .I UserWarning
-to stderr but still prints the value with exit 0.
+to stderr but the finite value still prints with exit 0 (a non-finite
+overflow exits 2).
 .TP
 .B 2
 All user-fixable errors, reported via an argparse error: bad flags and
@@ -343,7 +350,13 @@ unreadable
 .B --offsets
 files, naive
 .B --start / --end
-anchors), out-of-range coordinates and angles, pre-floor dates, polar
+anchors or
+.B --start / --end
+without
+.BR --fraction ,
+absurd
+.B --adjust
+magnitudes), out-of-range coordinates and angles, pre-floor dates, polar
 day/night with no sunrise/sunset, and moon-sighting evenings with no
 sunset. Library
 .I ValidationError

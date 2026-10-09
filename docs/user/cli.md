@@ -58,7 +58,8 @@ Exit codes follow the argparse convention: `0` on success, `2` on
 anything user-fixable (bad flags, out-of-range coordinates/angles,
 unknown timezones, polar day/night, moon-sighting evenings with no
 sunset). Warnings never fail: an out-of-range `astro delta-t` year
-prints a `UserWarning` to stderr but still prints the value with exit 0.
+prints a `UserWarning` to stderr but the finite value still prints with
+exit 0 (an absurd year whose polynomial overflows to non-finite exits 2).
 
 ## prayer
 
@@ -85,9 +86,9 @@ isha=2015-07-13T01:57:00+00:00
 `imsak` defaults to Fajr − 10 minutes; `ishraq`/`dhuha` default to
 sunrise + 15/+ 28 minutes (see [Calculation Methods](calculation-methods/)).
 
-> Script consumers note: output used to be 6 lines (`fajr` through `isha`).
-> It is now 10 lines with the added `imsak`/`syuruk`/`ishraq`/`dhuha`
-> markers. Parse by `name=` key, not by line position.
+> Script consumers note: output is 10 lines (`imsak` through `isha`,
+> including `syuruk`, which always equals `sunrise`). Parse by `name=`
+> key, not by line position.
 
 ### Options
 
@@ -109,7 +110,7 @@ sunrise + 15/+ 28 minutes (see [Calculation Methods](calculation-methods/)).
 | `--elevation` | No | `0.0` | Observer eye height in metres (dip correction) |
 | `--ramadan` | No | Off | Umm al-Qura Ramadan mode (120 min Isha total; preset only) |
 | `--timezone` | No | UTC | IANA timezone name for display (e.g. `Asia/Kuala_Lumpur`) |
-| `--adjust NAME=MIN` | No | — | Repeatable per-prayer minute offset; `NAME` in `imsak,fajr,sunrise,dhuhr,asr,maghrib,isha,ishraq,dhuha` (no `syuruk` slot by design — sunrise flows through). Negatives need the `=` form: `--adjust isha=-1` |
+| `--adjust NAME=MIN` | No | — | Repeatable per-prayer minute offset; `NAME` in `imsak,fajr,sunrise,dhuhr,asr,maghrib,isha,ishraq,dhuha` (no `syuruk` slot by design — sunrise flows through). Negatives need the `=` form: `--adjust isha=-1` (a leading `+` is also accepted, e.g. `--adjust fajr=+2`); magnitude must be ≤ 1000000 minutes |
 | `--json` | No | Off | Emit one compact JSON object instead of `key=value` lines |
 
 Explicit `--fajr-angle`/`--isha-angle`/`--isha-interval` override the
@@ -120,6 +121,7 @@ attribute assignment.
 
 ```
 MUSLIM_WORLD_LEAGUE
+NONE
 NORTH_AMERICA
 EGYPTIAN
 KARACHI
@@ -363,7 +365,8 @@ declination=14.615404753403455
 | `delta-t` | `--json` | No | Off | Emit one compact JSON object instead of `key=value` lines |
 
 Years outside 2005–2050 emit a `UserWarning` to stderr and
-extrapolate — the value still prints with exit 0. See
+extrapolate — the finite value still prints with exit 0 (an absurd year
+whose polynomial overflows to non-finite exits 2). See
 [API Reference](api-reference/) for `LunarCoordinates` and `delta_t`.
 
 ## Error handling
@@ -378,9 +381,10 @@ al-falak prayer: error: argument --method: invalid choice: 'BOGUS' (choose from 
 Unknown methods, bad dates/times, `--latitude`/`--longitude` (use
 `--lat`/`--lon` with `hijri --sunset-transition`), gate misuse (missing
 `--country` with `mabims`, `--country` without it, `--adjustment-days`
-outside `tabular`, `--time`/`--lat`/`--lon` without
-`--sunset-transition`, unreadable `--offsets` files, out-of-range
-coordinates, pre-floor dates, naive `--start`/`--end` anchors), and
+outside `tabular` or with `hijri --month-length`, `--time`/`--lat`/`--lon` without
+`--sunset-transition`, `--start`/`--end` without `--fraction`,
+`--reverse`/`--month-length` clashes, unreadable `--offsets` files, out-of-range
+coordinates, absurd `--adjust` magnitudes, pre-floor dates, naive `--start`/`--end` anchors), and
 polar day/night all exit with code 2 via an argparse error.
 
 ## See also

@@ -77,7 +77,9 @@ python -m alfalak prayer --latitude 35.7750 --longitude -78.6336
 Output keys and order are unchanged (the same 10 `name=` lines). The
 `hijri` invocation is unchanged; five new subcommands (`qibla`,
 `sunnah`, `moon-sighting`, `astro`, plus `prayer`) cover the rest of
-the public API. See [CLI Usage](cli/) for the full command tree.
+the public API. Flags must come after the subcommand everywhere —
+`--date X hijri ...` (previously tolerated) now exits with code 2.
+See [CLI Usage](cli/) for the full command tree.
 
 ## Error handling
 

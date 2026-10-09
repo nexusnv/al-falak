@@ -14,8 +14,10 @@
   object, same key order).
 * Breaking: the bare invocation (`al-falak --latitude ...`, previously
   the prayer-times default) now exits with code 2 — insert `prayer`
-  (`al-falak prayer --latitude ...`). `hijri` invocations and all
-  existing `key=value` keys/order are unchanged.
+  (`al-falak prayer --latitude ...`). Forward `hijri` invocations (flags
+  after the subcommand) and all existing `key=value` keys/order are
+  unchanged; flags before the subcommand (e.g. `--date X hijri ...`) now
+  exit with code 2.
 * Docs: `docs/user/cli.md` rewritten around the six subcommands;
   `migration.md` notes the `bare → prayer` fix.
 
