@@ -6,6 +6,7 @@ from typing import Any
 
 from alfalak import SunnahTimes
 from alfalak.cli.common import (
+    add_city_args,
     add_json_arg,
     add_prayer_args,
     build_prayer_times,
@@ -17,6 +18,7 @@ from alfalak.exceptions import AlFalakError
 def register(subparsers: argparse._SubParsersAction[Any]) -> None:
     parser = subparsers.add_parser("sunnah", help="Print Sunnah night markers.")
     add_prayer_args(parser)
+    add_city_args(parser)
     parser.add_argument(
         "--fraction",
         type=float,

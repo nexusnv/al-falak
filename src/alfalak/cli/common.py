@@ -16,8 +16,9 @@ from alfalak.calculation.HighLatitudeRule import HighLatitudeRule
 from alfalak.calculation.Madhab import Madhab
 from alfalak.calculation.PolarCircleRule import PolarCircleRule
 from alfalak.calculation.PrayerAdjustments import PrayerAdjustments
+from alfalak.data.Cities import resolve_city
 from alfalak.data.Coordinates import Coordinates
-from alfalak.exceptions import AlFalakError
+from alfalak.exceptions import AlFalakError, ConfigurationError, ValidationError
 
 _ADJUST_RE = re.compile(
     r"^(imsak|fajr|sunrise|dhuhr|asr|maghrib|isha|ishraq|dhuha)=([+-]?\d+)$"
@@ -37,8 +38,20 @@ PRAYER_KEYS = (
 
 
 def add_coord_args(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--latitude", "--lat", type=float, required=True)
-    parser.add_argument("--longitude", "--lon", type=float, required=True)
+    parser.add_argument("--latitude", "--lat", type=float, required=False, default=None)
+    parser.add_argument(
+        "--longitude", "--lon", type=float, required=False, default=None
+    )
+
+
+def add_city_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--city",
+        default=None,
+        help='City as "Name,CC" (e.g. --city "Kuala Lumpur,MY"); '
+        "exclusive with --latitude/--longitude; "
+        "see 'al-falak cities' for the frozen table.",
+    )
 
 
 def add_date_arg(parser: argparse.ArgumentParser) -> None:
@@ -175,6 +188,66 @@ def _validate_overrides(
         )
 
 
+def resolve_location(
+    *,
+    city: str | None,
+    lat: float | None,
+    lon: float | None,
+    timezone_raw: str | None,
+    parser: argparse.ArgumentParser,
+) -> tuple[Coordinates, ZoneInfo | None]:
+    """Enforce `--city` XOR coords and supply coords + display tz.
+
+    Valid iff ``bool(city)`` XOR (lat and lon both set); partial coords
+    (exactly one of lat/lon) always fail, with or without ``--city``.
+    Explicit ``--timezone`` wins; else the city IANA zone is the default;
+    else UTC (``None``). City tz failures raise ``ConfigurationError``.
+    """
+    has_city = bool(city)
+    has_lat = lat is not None
+    has_lon = lon is not None
+    if has_lat != has_lon:
+        parser.error(
+            "invalid location: --latitude/--lat and --longitude/--lon "
+            "must be given together (or use --city)."
+        )
+    has_coords = has_lat and has_lon
+    if has_city and has_coords:
+        parser.error(
+            "invalid location: --city is exclusive with --latitude/--longitude."
+        )
+    if not has_city and not has_coords:
+        parser.error(
+            "invalid location: provide --city or --latitude/--longitude "
+            "(see 'al-falak cities')."
+        )
+    if has_city:
+        assert city is not None
+        try:
+            resolved = resolve_city(city)
+        except ValidationError as exc:
+            parser.error(str(exc))
+        try:
+            coordinates = Coordinates(resolved.latitude, resolved.longitude)
+        except ValidationError as exc:
+            parser.error(str(exc))
+        if timezone_raw is not None:
+            tz = parse_timezone(timezone_raw, parser)
+            return coordinates, tz
+        try:
+            return coordinates, ZoneInfo(resolved.timezone)
+        except ZoneInfoNotFoundError as exc:
+            raise ConfigurationError(
+                f"unknown timezone for --city {city!r}: {resolved.timezone}."
+            ) from exc
+    assert lat is not None and lon is not None
+    try:
+        coordinates = Coordinates(lat, lon)
+    except ValidationError as exc:
+        parser.error(str(exc))
+    return coordinates, parse_timezone(timezone_raw, parser)
+
+
 def build_prayer_times(
     args: argparse.Namespace, parser: argparse.ArgumentParser
 ) -> PrayerTimes:
@@ -196,11 +269,18 @@ def build_prayer_times(
     params.is_ramadan = args.ramadan
     params.adjustments = parse_adjustments(args.adjust, parser)
     try:
+        coordinates, tz = resolve_location(
+            city=getattr(args, "city", None),
+            lat=args.latitude,
+            lon=args.longitude,
+            timezone_raw=args.timezone,
+            parser=parser,
+        )
         return PrayerTimes(
-            Coordinates(args.latitude, args.longitude),
+            coordinates,
             parse_date(args.date, parser),
             calculation_parameters=params,
-            time_zone=parse_timezone(args.timezone, parser),
+            time_zone=tz,
         )
     except (AlFalakError, ValueError, OverflowError) as exc:
         parser.error(str(exc))
