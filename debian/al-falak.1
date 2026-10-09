@@ -3,7 +3,7 @@
 al-falak \- Islamic astronomy: prayer times, Qibla, Sunnah markers, Hijri dates, moon sighting, ephemeris
 .SH SYNOPSIS
 .B al-falak
-.RI < prayer " | " qibla " | " sunnah " | " hijri " | " moon-sighting " | " astro >
+.RI < prayer " | " qibla " | " sunnah " | " hijri " | " moon-sighting " | " astro " | " cities >
 .RI [ options "] [" --json ]
 .br
 .B "al-falak astro"
@@ -42,10 +42,15 @@ al-falak prayer --latitude 35.7750 --longitude -78.6336 \\
 .RE
 .TP
 .BR --latitude " / " --lat
-(required) Latitude, \-90 to 90.
+Latitude, \-90 to 90 (provide --city or --latitude/--longitude).
 .TP
 .BR --longitude " / " --lon
-(required) Longitude, \-180 to 180.
+Longitude, \-180 to 180 (provide --city or --latitude/--longitude).
+.TP
+.B --city NAME,CC
+City as "Name,CC", e.g. "Kuala Lumpur,MY"; exclusive with
+--latitude/--longitude (see al-falak cities). On prayer/sunnah the city
+IANA zone is the display default (explicit --timezone wins).
 .TP
 .B --date DATE
 Calendar date as YYYY-MM-DD (default: today, UTC).
@@ -126,10 +131,14 @@ a fourth
 line (compass heading) is added.
 .TP
 .BR --latitude " / " --lat
-(required) Latitude, \-90 to 90.
+Latitude, \-90 to 90 (provide --city or --latitude/--longitude).
 .TP
 .BR --longitude " / " --lon
-(required) Longitude, \-180 to 180.
+Longitude, \-180 to 180 (provide --city or --latitude/--longitude).
+.TP
+.B --city NAME,CC
+City as "Name,CC"; exclusive with --latitude/--longitude (coords only,
+no timezone).
 .TP
 .B --method MODEL
 Earth model: spherical (default) or ellipsoidal (WGS84 geodesic).
@@ -148,7 +157,7 @@ Print Sunnah night markers (middle_of_the_night, first_third_of_the_night,
 last_third_of_the_night, tahajjud_start, tahajjud_end). Accepts all
 .B prayer
 location and parameter flags
-.RB ( --latitude / --longitude ,
+.RB ( --latitude / --longitude / --city ,
 .BR --date ,
 .BR --method ,
 .BR --madhab ,
@@ -222,8 +231,12 @@ Tabular day shift in [\-2, 2] (default: 0; only with
 .TP
 .B --sunset-transition
 Roll the Hijri day over at Maghrib (requires
-.BR --lat / --lon / --time ).
+.BR --city " or " --lat / --lon / --time ).
 Off by default.
+.TP
+.B --city NAME,CC
+City as "Name,CC" for sunset rollover (requires --sunset-transition;
+exclusive with --lat/--lon; coords only, --time stays naive-as-UTC).
 .TP
 .B --lat LAT
 Observer latitude for sunset rollover (rejected without
@@ -245,7 +258,7 @@ JSON offset file ({YYYY-MM: shift}) applied last (forward mode only).
 .B --reverse HIJRI-DATE
 Hijri date as YYYY-MM-DD; convert back to a Gregorian date (mutually
 exclusive with
-.BR --date / --sunset-transition / --offsets ;
+.BR --date / --sunset-transition / --city / --lat / --lon / --time / --offsets ;
 .B --adjustment-days
 allowed with
 .BR "--calendar tabular" ).
@@ -253,7 +266,7 @@ allowed with
 .B --month-length YYYY-MM
 Hijri year-month; print the month length (29 or 30; mutually exclusive
 with
-.BR --date / --sunset-transition / --offsets / --adjustment-days ).
+.BR --date / --sunset-transition / --city / --lat / --lon / --time / --offsets / --adjustment-days ).
 .TP
 .B --json
 Emit one compact JSON object instead of
@@ -274,10 +287,13 @@ In JSON, non-finite floats (e.g. NaN lag when no moonset occurs) become
 .IR null .
 .TP
 .BR --latitude " / " --lat
-(required) Latitude, \-90 to 90.
+Latitude, \-90 to 90 (provide --city or --latitude/--longitude).
 .TP
 .BR --longitude " / " --lon
-(required) Longitude, \-180 to 180.
+Longitude, \-180 to 180 (provide --city or --latitude/--longitude).
+.TP
+.B --city NAME,CC
+City as "Name,CC"; exclusive with --latitude/--longitude (coords only).
 .TP
 .B --date DATE
 (required) Crescent evening as YYYY-MM-DD. No default \(em an explicit
@@ -291,6 +307,23 @@ polynomial).
 Emit one compact JSON object instead of
 .I key=value
 lines.
+.SS cities
+List the frozen 300-entry city table backing --city (as "Name,CC" with
+coords + timezone), sorted by (country, name).
+.PP
+.RS
+.nf
+al-falak cities --country MY
+.fi
+.RE
+.TP
+.B --country CODE
+Filter by 2-letter country code (case-insensitive). Well-formed but
+unmatched codes are empty success (no text lines / []); malformed codes
+are rejected.
+.TP
+.B --json
+Emit one JSON array instead of text blocks.
 .SS astro
 Low-level lookups behind one nested subcommand: lunar position or
 Delta-T.

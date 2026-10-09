@@ -15,6 +15,7 @@ _al-falak() {
     local polar_rules=(NONE NEAREST_LATITUDE NEAREST_DAY MAKKAH)
     local calendars=(tabular uqu mabims)
     local countries=(MY ID BN SG)
+    local cities_countries=(AE AF AL AM AO AR AT AU AZ BD BE BF BG BH BJ BN BO BR BY CA CD CH CI CL CM CN CO CR CU CZ DE DJ DK DO DZ EC EG ES ET FI FR GA GB GE GH GM GN GR GT GW GY HK HN HU ID IE IL IN IQ IR IT JM JO JP KE KG KH KM KP KR KW KZ LA LB LK LY MA ML MM MN MR MV MX MY MZ NE NG NI NL NO NP NZ OM PA PE PH PK PL PR PS PT PY QA RO RS RU SA SD SE SG SL SN SO SR SV SY TD TG TH TJ TL TM TN TR TW TZ UA UG US UY UZ VE VN YE ZA)
     local qibla_methods=(spherical ellipsoidal)
 
     _arguments -C \
@@ -31,6 +32,7 @@ _al-falak() {
                 hijri:"Convert a Gregorian date to a Hijri date."
                 moon-sighting:"Print crescent visibility scores."
                 astro:"Print lunar position and Delta-T."
+                cities:"List the frozen city table."
             )'
             ;;
         args)
@@ -41,6 +43,7 @@ _al-falak() {
                         '--lat=[Latitude, -90 to 90]:latitude:' \
                         '--longitude=[Longitude, -180 to 180]:longitude:' \
                         '--lon=[Longitude, -180 to 180]:longitude:' \
+                        '--city=[City as Name,CC]:city:' \
                         '--date=[Calendar date as YYYY-MM-DD (default: today, UTC)]:date:' \
                         "--method=[Calculation method (default: MUSLIM_WORLD_LEAGUE)]:method:($prayer_methods)" \
                         "--madhab=[SHAFI or HANAFI (default: SHAFI)]:madhab:($madhabs)" \
@@ -65,6 +68,7 @@ _al-falak() {
                         '--lat=[Latitude, -90 to 90]:latitude:' \
                         '--longitude=[Longitude, -180 to 180]:longitude:' \
                         '--lon=[Longitude, -180 to 180]:longitude:' \
+                        '--city=[City as Name,CC]:city:' \
                         "--method=[Earth model (default: spherical)]:model:($qibla_methods)" \
                         '--declination=[Local magnetic declination in degrees]:degrees:' \
                         '--json[Emit one compact JSON object]' \
@@ -76,6 +80,7 @@ _al-falak() {
                         '--lat=[Latitude, -90 to 90]:latitude:' \
                         '--longitude=[Longitude, -180 to 180]:longitude:' \
                         '--lon=[Longitude, -180 to 180]:longitude:' \
+                        '--city=[City as Name,CC]:city:' \
                         '--date=[Calendar date as YYYY-MM-DD (default: today, UTC)]:date:' \
                         "--method=[Calculation method (default: MUSLIM_WORLD_LEAGUE)]:method:($prayer_methods)" \
                         "--madhab=[SHAFI or HANAFI (default: SHAFI)]:madhab:($madhabs)" \
@@ -104,6 +109,7 @@ _al-falak() {
                         "--country=[MABIMS country]:country:($countries)" \
                         '--adjustment-days=[Tabular day shift in -2..2 (default: 0)]:days:' \
                         '--sunset-transition[Roll the Hijri day over at Maghrib]' \
+                        '--city=[City as Name,CC for sunset rollover]:city:' \
                         '--lat=[Observer latitude for sunset rollover]:latitude:' \
                         '--lon=[Observer longitude for sunset rollover]:longitude:' \
                         '--time=[Wall-clock time as HH:MM[:SS] on --date]:time:' \
@@ -119,9 +125,16 @@ _al-falak() {
                         '--lat=[Latitude, -90 to 90]:latitude:' \
                         '--longitude=[Longitude, -180 to 180]:longitude:' \
                         '--lon=[Longitude, -180 to 180]:longitude:' \
+                        '--city=[City as Name,CC]:city:' \
                         '--date=[Crescent evening as YYYY-MM-DD (required)]:date:' \
                         '--delta-t-override=[Delta-T override in seconds]:seconds:' \
                         '--json[Emit one compact JSON object]' \
+                        '(-h --help)'{-h,--help}'[show help message and exit]'
+                    ;;
+                cities)
+                    _arguments \
+                        "--country=[Filter by country code]:country:($cities_countries)" \
+                        '--json[Emit one JSON array]' \
                         '(-h --help)'{-h,--help}'[show help message and exit]'
                     ;;
                 astro)
