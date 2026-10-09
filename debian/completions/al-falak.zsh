@@ -125,13 +125,11 @@ _al-falak() {
                         '(-h --help)'{-h,--help}'[show help message and exit]'
                     ;;
                 astro)
-                    local astro_context astro_state astro_descr astro_line
-                    typeset -A astro_opt_args
                     _arguments -C \
                         '(-h --help)'{-h,--help}'[show help message and exit]' \
                         '1:astro leaf:->astro-leaf' \
                         '*:: :->astro-args' && return
-                    case $astro_state in
+                    case $state in
                         astro-leaf)
                             _describe -t astro-leaves 'astro leaf' '(
                                 lunar-position:"Print geocentric Moon position for a Julian Day (TT)."
@@ -139,7 +137,7 @@ _al-falak() {
                             )'
                             ;;
                         astro-args)
-                            case ${astro_line[1]} in
+                            case ${line[1]} in
                                 lunar-position)
                                     _arguments \
                                         '--julian-day=[Julian Day in Terrestrial Time]:julian-day:' \

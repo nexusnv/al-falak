@@ -93,7 +93,7 @@ _al_falak() {
             return 0
             ;;
         --offsets)
-            COMPREPLY=( $(compgen -f -- "$cur") )
+            mapfile -t COMPREPLY < <(compgen -f -- "$cur")
             return 0
             ;;
     esac
