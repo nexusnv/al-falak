@@ -233,3 +233,80 @@ def test_hijri_city_reverse_clash():
             ]
         )
     assert e.value.code == 2
+
+
+def test_cities_text_shape(capsys):
+    _run(["cities"])
+    out = capsys.readouterr().out
+    assert out and not out.endswith("\n\n")
+    assert not out.endswith("\n\n")
+    blocks = out.split("\n\n")
+    assert len(blocks) == 300
+    # sort by (country, name.lower()) byte order
+    keys = []
+    for block in blocks:
+        lines = block.splitlines()
+        assert len(lines) == 5
+        assert lines[0].startswith("city=")
+        assert lines[1].startswith("country=")
+        assert lines[2].startswith("latitude=")
+        assert lines[3].startswith("longitude=")
+        assert lines[4].startswith("timezone=")
+        city_disp = lines[0].split("=", 1)[1]
+        country = lines[1].split("=", 1)[1]
+        name = city_disp.rsplit(",", 1)[0]
+        keys.append((country, name.lower()))
+        # 4-decimal values
+        lat_s = lines[2].split("=", 1)[1]
+        lon_s = lines[3].split("=", 1)[1]
+        assert "." in lat_s and len(lat_s.split(".")[1]) == 4
+        assert "." in lon_s and len(lon_s.split(".")[1]) == 4
+    assert keys == sorted(keys)
+    # spot-check pinned entries
+    assert "city=Kuala Lumpur,MY\ncountry=MY\n" in out
+    assert "city=Makkah,SA\ncountry=SA\n" in out
+
+
+def test_cities_json_shape(capsys):
+    import json
+
+    _run(["cities", "--json"])
+    out = capsys.readouterr().out
+    data = json.loads(out)
+    assert isinstance(data, list)
+    assert len(data) == 300
+    for obj in data:
+        assert set(obj) == {"city", "country", "latitude", "longitude", "timezone"}
+    # same sort as text
+    keys = [(o["country"], o["city"].rsplit(",", 1)[0].lower()) for o in data]
+    assert keys == sorted(keys)
+
+
+def test_cities_country_filter(capsys):
+    import json
+
+    _run(["cities", "--country", "my"])
+    out_my = capsys.readouterr().out
+    _run(["cities", "--country", "MY"])
+    out_MY = capsys.readouterr().out
+    assert out_my == out_MY
+    assert "country=MY" in out_my
+    _run(["cities", "--country", "  my  ", "--json"])
+    data = json.loads(capsys.readouterr().out)
+    assert data and all(o["country"] == "MY" for o in data)
+
+
+def test_cities_bad_country_exit2(capsys):
+    with pytest.raises(SystemExit) as e:
+        _run(["cities", "--country", "M"])
+    assert e.value.code == 2
+    with pytest.raises(SystemExit) as e2:
+        _run(["cities", "--country", "MY1"])
+    assert e2.value.code == 2
+
+
+def test_cities_unmatched_empty_success(capsys):
+    _run(["cities", "--country", "ZZ"])
+    assert capsys.readouterr().out == ""
+    _run(["cities", "--country", "ZZ", "--json"])
+    assert capsys.readouterr().out.strip() == "[]"
