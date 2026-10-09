@@ -102,5 +102,6 @@ The calculation uses absolute elapsed time (UTC internally), so markers are corr
 
 ## See also
 
+- [CLI Usage](cli/) — `sunnah` subcommand printing the night markers (or a single `--fraction` line)
 - [API Reference](api-reference/) — full API documentation
 - [Timezone Handling](timezone/) — timezone conversion details

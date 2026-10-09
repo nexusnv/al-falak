@@ -161,6 +161,7 @@ Check in this order:
 
 ## See also
 
+- [CLI Usage](cli/) — `moon-sighting` subcommand printing this geometry plus all three scores in one block
 - [Hijri Converter](hijri-converter/) — Gregorian↔Hijri conversion on the observational rules
 - [API Reference](api-reference/) — full API documentation
 - [Errors](errors/) — error handling

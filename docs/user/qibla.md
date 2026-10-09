@@ -143,5 +143,6 @@ which to use is up to you:
 
 ## See also
 
+- [CLI Usage](cli/) — `qibla` subcommand printing direction, distance, and optional magnetic heading
 - [API Reference](api-reference/) — full API documentation
 - [Citations](citations/) — attribution and references

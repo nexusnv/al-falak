@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased
+
+* CLI expansion to six explicit subcommands covering almost all of
+  `alfalak.__all__`: `prayer` (full `CalculationParameters` parity),
+  `qibla` (spherical/ellipsoidal + optional magnetic heading),
+  `sunnah` (night markers + `--fraction`/`--start`/`--end`),
+  `hijri` (kept flags plus `--reverse` Hijri→Gregorian and
+  `--month-length`), `moon-sighting` (crescent geometry + Yallop/Odeh/
+  MABIMS scores in one block), and `astro` (`lunar-position`,
+  `delta-t`).
+* Every subcommand accepts `--json` (same keys, one compact JSON
+  object, same key order).
+* Breaking: the bare invocation (`al-falak --latitude ...`, previously
+  the prayer-times default) now exits with code 2 — insert `prayer`
+  (`al-falak prayer --latitude ...`). Forward `hijri` invocations (flags
+  after the subcommand) and all existing `key=value` keys/order are
+  unchanged; flags before the subcommand (e.g. `--date X hijri ...`) now
+  exit with code 2.
+* Docs: `docs/user/cli.md` rewritten around the six subcommands;
+  `migration.md` notes the `bare → prayer` fix.
+
 ## 1.2.1 — 2026-10-07 (hotfix: finite-real overflow, Qibla self doc)
 
 * Fix: `require_finite_real` now maps `float()` `OverflowError`/`ValueError`
