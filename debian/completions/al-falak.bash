@@ -134,4 +134,4 @@ _al_falak() {
     return 0
 }
 
-complete -F _al_falak al-falak
+complete -o filenames -F _al_falak al-falak
