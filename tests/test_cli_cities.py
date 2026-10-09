@@ -131,3 +131,105 @@ def test_bad_tz_wrap(monkeypatch, capsys):
     with pytest.raises(SystemExit) as e:
         _run(["prayer", "--city", "Badville,XX", "--date", "2025-03-01"])
     assert e.value.code == 2
+
+
+def test_hijri_city_needs_transition():
+    with pytest.raises(SystemExit) as e:
+        _run(
+            [
+                "hijri",
+                "--date",
+                "2025-03-01",
+                "--calendar",
+                "tabular",
+                "--city",
+                "Kuala Lumpur,MY",
+            ]
+        )
+    assert e.value.code == 2
+
+
+def test_hijri_city_clashes_with_latlon():
+    with pytest.raises(SystemExit) as e:
+        _run(
+            [
+                "hijri",
+                "--date",
+                "2025-03-01",
+                "--calendar",
+                "tabular",
+                "--sunset-transition",
+                "--city",
+                "Kuala Lumpur,MY",
+                "--lat",
+                "3.1390",
+                "--lon",
+                "101.6869",
+                "--time",
+                "12:00",
+            ]
+        )
+    assert e.value.code == 2
+
+
+def test_hijri_city_needs_time():
+    with pytest.raises(SystemExit) as e:
+        _run(
+            [
+                "hijri",
+                "--date",
+                "2025-03-01",
+                "--calendar",
+                "tabular",
+                "--sunset-transition",
+                "--city",
+                "Kuala Lumpur,MY",
+            ]
+        )
+    assert e.value.code == 2
+
+
+def test_hijri_city_sunset_parity(capsys):
+    base = ["hijri", "--date", "2025-03-01", "--calendar", "tabular"]
+    _run(
+        base
+        + [
+            "--sunset-transition",
+            "--city",
+            "Kuala Lumpur,MY",
+            "--time",
+            "12:00",
+        ]
+    )
+    out_city = capsys.readouterr().out
+    _run(
+        base
+        + [
+            "--sunset-transition",
+            "--lat",
+            "3.1390",
+            "--lon",
+            "101.6869",
+            "--time",
+            "12:00",
+        ]
+    )
+    out_coords = capsys.readouterr().out
+    assert out_city == out_coords
+    assert out_city == "hijri=1446-09-02\ncalendar=tabular\n"
+
+
+def test_hijri_city_reverse_clash():
+    with pytest.raises(SystemExit) as e:
+        _run(
+            [
+                "hijri",
+                "--calendar",
+                "tabular",
+                "--reverse",
+                "1446-09-01",
+                "--city",
+                "Kuala Lumpur,MY",
+            ]
+        )
+    assert e.value.code == 2
