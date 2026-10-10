@@ -110,6 +110,28 @@ def test_bad_cc_format_hint(capsys):
     assert "cities --country" not in err
 
 
+def test_empty_city_string_rejected(capsys):
+    with pytest.raises(SystemExit) as e:
+        _run(["prayer", "--city", "", "--date", "2025-03-01"])
+    assert e.value.code == 2
+    assert "expected NAME,CC" in capsys.readouterr().err
+    with pytest.raises(SystemExit) as e2:
+        _run(
+            [
+                "prayer",
+                "--city",
+                "",
+                "--latitude",
+                "3.1390",
+                "--longitude",
+                "101.6869",
+                "--date",
+                "2025-03-01",
+            ]
+        )
+    assert e2.value.code == 2
+
+
 def test_bad_tz_wrap(monkeypatch, capsys):
     from alfalak.data import Cities as cities_mod
     from alfalak.data.Cities import City

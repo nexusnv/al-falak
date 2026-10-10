@@ -198,12 +198,12 @@ def resolve_location(
 ) -> tuple[Coordinates, ZoneInfo | None]:
     """Enforce `--city` XOR coords and supply coords + display tz.
 
-    Valid iff ``bool(city)`` XOR (lat and lon both set); partial coords
+    Valid iff ``city is not None`` XOR (lat and lon both set); partial coords
     (exactly one of lat/lon) always fail, with or without ``--city``.
     Explicit ``--timezone`` wins; else the city IANA zone is the default;
     else UTC (``None``). City tz failures raise ``ConfigurationError``.
     """
-    has_city = bool(city)
+    has_city = city is not None
     has_lat = lat is not None
     has_lon = lon is not None
     if has_lat != has_lon:

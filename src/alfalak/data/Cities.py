@@ -148,7 +148,7 @@ CITY_TABLE: Mapping[str, City] = MappingProxyType(
             timezone="Africa/Douala",
         ),
         "ndjamena,TD": City(
-            name="NDjamena",
+            name="Ndjamena",
             country="TD",
             latitude=12.1348,
             longitude=15.0557,
