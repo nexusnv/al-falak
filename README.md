@@ -3,6 +3,14 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 ![pytest](https://github.com/nexusnv/al-falak/actions/workflows/test.yml/badge.svg)
 
+> Qur'an 10:5 · Surah Yunus
+>
+> هُوَ ٱلَّذِى جَعَلَ ٱلشَّمْسَ ضِيَآءً وَٱلْقَمَرَ نُورًا وَقَدَّرَهُۥ مَنَازِلَ لِتَعْلَمُوا۟ عَدَدَ ٱلسِّنِينَ وَٱلْحِسَابَ
+>
+> "It is He who made the sun a shining light and the moon a derived light and determined for it phases — that you may know the number of years and account [of time]."
+>
+> — Sahih International, excerpt from Qur'an 10:5
+
 `Al-Falak` is an offline library for Islamic astronomy, starting with precise prayer times and expanding into broader temporal calculations. It follows a pipeline architecture: input coordinates and date flow through astronomical models to produce accurate timekeeping outputs. It originates from the same [`batoulapps/adhan`](https://github.com/batoulapps/adhan) port lineage as [alphahm/adhanpy](https://github.com/alphahm/adhanpy) (via that Python port) and is developed and released as an independent library, from a detached fork of the original `adhanpy` repository.
 
 ## Features
