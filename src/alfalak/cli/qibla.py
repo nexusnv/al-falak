@@ -4,14 +4,20 @@ import argparse
 from typing import Any
 
 from alfalak import Qibla
-from alfalak.cli.common import add_coord_args, add_json_arg, emit
-from alfalak.data.Coordinates import Coordinates
+from alfalak.cli.common import (
+    add_city_args,
+    add_coord_args,
+    add_json_arg,
+    emit,
+    resolve_location,
+)
 from alfalak.exceptions import AlFalakError
 
 
 def register(subparsers: argparse._SubParsersAction[Any]) -> None:
     parser = subparsers.add_parser("qibla", help="Print Qibla direction.")
     add_coord_args(parser)
+    add_city_args(parser)
     parser.add_argument(
         "--method",
         default="spherical",
@@ -32,7 +38,14 @@ def register(subparsers: argparse._SubParsersAction[Any]) -> None:
 
 def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
     try:
-        qibla = Qibla(Coordinates(args.latitude, args.longitude), method=args.method)
+        coordinates, _tz = resolve_location(
+            city=getattr(args, "city", None),
+            lat=args.latitude,
+            lon=args.longitude,
+            timezone_raw=None,
+            parser=parser,
+        )
+        qibla = Qibla(coordinates, method=args.method)
         magnetic = (
             None
             if args.declination is None

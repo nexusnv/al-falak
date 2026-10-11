@@ -6,7 +6,7 @@ description: Use the al-falak command-line interface for prayer times, Qibla, Su
 # CLI Usage
 
 Al-Falak includes a command-line interface for quick terminal output.
-It has six explicit subcommands:
+It has seven explicit subcommands:
 
 ```
 al-falak <subcommand> [options] [--json]
@@ -16,6 +16,7 @@ al-falak <subcommand> [options] [--json]
   hijri          Convert a Gregorian date to a Hijri date (and back).
   moon-sighting  Print crescent visibility scores.
   astro          Print lunar position and Delta-T.
+  cities         List the frozen --city lookup table.
 ```
 
 Every subcommand accepts `--json` to emit the same keys as one compact
@@ -94,8 +95,9 @@ sunrise + 15/+ 28 minutes (see [Calculation Methods](calculation-methods/)).
 
 | Option | Required | Default | Description |
 |---|---|---|---|
-| `--latitude` / `--lat` | Yes | — | Latitude (-90 to 90) |
-| `--longitude` / `--lon` | Yes | — | Longitude (-180 to 180) |
+| `--latitude` / `--lat` | Yes, unless `--city` | — | Latitude (-90 to 90) |
+| `--longitude` / `--lon` | Yes, unless `--city` | — | Longitude (-180 to 180) |
+| `--city` | Yes, unless lat/lon | — | City as `Name,CC` (e.g. `--city "Kuala Lumpur,MY"`; exclusive with lat/lon; see `cities`) |
 | `--date` | No | Today (UTC) | Calendar date as YYYY-MM-DD |
 | `--method` | No | MUSLIM_WORLD_LEAGUE | Calculation method (see below) |
 | `--madhab` | No | SHAFI | `SHAFI` or `HANAFI` |
@@ -116,6 +118,13 @@ sunrise + 15/+ 28 minutes (see [Calculation Methods](calculation-methods/)).
 Explicit `--fajr-angle`/`--isha-angle`/`--isha-interval` override the
 `--method` preset exactly like `CalculationParameters(method=...)` then
 attribute assignment.
+
+`--city "Name,CC"` (e.g. `--city "Kuala Lumpur,MY"`) is exclusive with
+`--latitude`/`--longitude`; provide one or the other. Bare `--city`
+defaults the display timezone to the city's IANA zone (explicit
+`--timezone` wins, else UTC). The table is frozen at 300 entries —
+see `cities`. Canonical spelling is `Makkah,SA`; `Mecca,SA` is
+intentionally unknown.
 
 ### Available methods
 
@@ -155,8 +164,9 @@ Text prints the direction to 6 decimals and the distance to 3;
 
 | Option | Required | Default | Description |
 |---|---|---|---|
-| `--latitude` / `--lat` | Yes | — | Latitude (-90 to 90) |
-| `--longitude` / `--lon` | Yes | — | Longitude (-180 to 180) |
+| `--latitude` / `--lat` | Yes, unless `--city` | — | Latitude (-90 to 90) |
+| `--longitude` / `--lon` | Yes, unless `--city` | — | Longitude (-180 to 180) |
+| `--city` | Yes, unless lat/lon | — | City as `Name,CC` (exclusive with lat/lon; supplies coords only, no timezone) |
 | `--method` | No | `spherical` | Earth model: `spherical` or `ellipsoidal` (WGS84 geodesic) |
 | `--declination` | No | — | Local magnetic declination in degrees, positive east (negative west); also prints `magnetic=` |
 | `--json` | No | Off | Emit one compact JSON object instead of `key=value` lines |
@@ -192,7 +202,7 @@ night_fraction=2015-07-13T04:38:00+00:00
 ### Options
 
 `sunnah` accepts all `prayer` location and parameter flags
-(`--latitude`/`--longitude`, `--date`, `--method`, `--madhab`,
+(`--latitude`/`--longitude`, `--city`, `--date`, `--method`, `--madhab`,
 `--high-latitude-rule`, `--polar-rule`, `--fajr-angle`, `--isha-angle`,
 `--isha-interval`, `--imsak-offset`, `--ishraq-offset`, `--dhuha-offset`,
 `--elevation`, `--ramadan`, `--timezone`, `--adjust`), plus:
@@ -206,7 +216,8 @@ night_fraction=2015-07-13T04:38:00+00:00
 
 `--start`/`--end` must be timezone-aware (`2025-03-01T19:00:00+08:00`);
 naive values exit with code 2, as does any `--start`/`--end` without
-`--fraction`. See [Sunnah Times](sunnah-times/) for the
+`--fraction`. Bare `--city` defaults the display timezone like `prayer`
+(explicit `--timezone` wins). See [Sunnah Times](sunnah-times/) for the
 Maghrib-to-next-day-Fajr night definition and anchor alternatives.
 
 ## hijri
@@ -252,9 +263,10 @@ calendar=tabular
 | `--calendar` | Yes | — | Hijri calendar rule: `tabular`, `uqu`, or `mabims` |
 | `--country` | With `mabims` only | — | MABIMS country: `MY`, `ID`, `BN`, `SG` (case-insensitive; required with `--calendar mabims`, rejected otherwise) |
 | `--adjustment-days` | No | `0` | Tabular day shift in [-2, 2] (only with `--calendar tabular`) |
-| `--sunset-transition` | No | Off | Roll the Hijri day over at Maghrib (requires `--lat`, `--lon`, `--time`) |
+| `--sunset-transition` | No | Off | Roll the Hijri day over at Maghrib (requires `--city` or `--lat`, `--lon`, `--time`) |
+| `--city` | With `--sunset-transition` | — | City as `Name,CC` for sunset rollover (exclusive with `--lat`/`--lon`; supplies coords only, never a timezone) |
 | `--lat` / `--lon` | With `--sunset-transition` | — | Observer coordinates for sunset rollover (rejected without it) |
-| `--time` | With `--sunset-transition` | — | Wall-clock time as HH:MM[:SS] on `--date`; naive, treated as UTC (rejected without it) |
+| `--time` | With `--sunset-transition` | — | Wall-clock time as HH:MM[:SS] on `--date`; naive, treated as UTC (rejected without it; `--city` does not change this) |
 | `--offsets` | No | — | JSON offset file (`{"YYYY-MM": shift}`) applied last (forward mode only) |
 | `--reverse` | No | — | Hijri date as YYYY-MM-DD; convert back to a Gregorian date (mutually exclusive with `--date`/`--sunset-transition`/`--offsets`; `--adjustment-days` allowed with `--calendar tabular`) |
 | `--month-length` | No | — | Hijri year-month as YYYY-MM; print the month length (`29` or `30`; mutually exclusive with `--date`/`--sunset-transition`/`--offsets`/`--adjustment-days`) |
@@ -274,7 +286,8 @@ calendar=mabims-MY
 Sunset rollover switches the Hijri day at Maghrib (default prayer
 parameters); `--offsets` applies official-correction shifts after the
 rule. `--date`/`--time` are naive wall-clock values treated as UTC —
-a local wall-clock time misplaces sunset rollover by the UTC offset.
+a local wall-clock time misplaces sunset rollover by the UTC offset
+(`--city` supplies coordinates only; `hijri --time` stays UTC).
 
 > The `uqu` calendar (1423H month-start rule at Makkah) is not the
 > `UMM_AL_QURA` prayer preset. `tabular` is arithmetic and routinely
@@ -319,8 +332,9 @@ lag when no moonset occurs) become `null`.
 
 | Option | Required | Default | Description |
 |---|---|---|---|
-| `--latitude` / `--lat` | Yes | — | Latitude (-90 to 90) |
-| `--longitude` / `--lon` | Yes | — | Longitude (-180 to 180) |
+| `--latitude` / `--lat` | Yes, unless `--city` | — | Latitude (-90 to 90) |
+| `--longitude` / `--lon` | Yes, unless `--city` | — | Longitude (-180 to 180) |
+| `--city` | Yes, unless lat/lon | — | City as `Name,CC` (exclusive with lat/lon; supplies coords only) |
 | `--date` | Yes | — | Crescent evening as YYYY-MM-DD (no default — an explicit evening is required) |
 | `--delta-t-override` | No | Built-in polynomial | Delta-T override in seconds for the TT conversion |
 | `--json` | No | Off | Emit one compact JSON object instead of `key=value` lines |
@@ -329,6 +343,26 @@ Evenings with no sunset (polar day/night) exit with code 2. See
 [Moon Sighting](moon-sighting/) for how to read the scores — check
 `lag_hours` first, then the criteria, and only trust the 1992 age
 branch after conjunction.
+
+## cities
+
+```bash
+python -m alfalak cities --country MY
+```
+
+```
+city=Kuala Lumpur,MY
+country=MY
+latitude=3.1390
+longitude=101.6869
+timezone=Asia/Kuala_Lumpur
+```
+
+One 5-line block per city, sorted by `(country, name)` in byte order,
+blocks separated by one blank line (no trailing blank). `--json` emits
+one array of the same objects. `--country` filters case-insensitively
+(`my` == `MY`); a well-formed but unmatched `--country` is empty
+success (no text lines / `[]`, exit 0); a malformed `--country` exits 2.
 
 ## astro
 
@@ -378,8 +412,10 @@ $ python -m alfalak prayer --latitude 35 --longitude -78 --method BOGUS
 al-falak prayer: error: argument --method: invalid choice: 'BOGUS' (choose from ...)
 ```
 
-Unknown methods, bad dates/times, `--latitude`/`--longitude` (use
-`--lat`/`--lon` with `hijri --sunset-transition`), gate misuse (missing
+Unknown methods, bad dates/times, `--latitude`/`--longitude`/`--city`
+(use `--lat`/`--lon` or `--city` with `hijri --sunset-transition`),
+unknown `--city` (try `cities --country CC`) vs malformed `--city`
+(expected `NAME,CC`), gate misuse (missing
 `--country` with `mabims`, `--country` without it, `--adjustment-days`
 outside `tabular` or with `hijri --month-length`, `--time`/`--lat`/`--lon` without
 `--sunset-transition`, `--start`/`--end` without `--fraction`,

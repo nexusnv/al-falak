@@ -2,7 +2,7 @@
 # Install to /usr/share/bash-completion/completions/al-falak
 # (Debian: debian/completions/al-falak.bash) or source from ~/.bashrc.
 
-_al_falak_subcommands="prayer qibla sunnah hijri moon-sighting astro"
+_al_falak_subcommands="prayer qibla sunnah hijri moon-sighting astro cities"
 _al_falak_astro_leaves="lunar-position delta-t"
 
 _al_falak_prayer_methods="DUBAI EGYPTIAN JAKIM KARACHI KUWAIT MOON_SIGHTING_COMMITTEE MUSLIM_WORLD_LEAGUE NONE NORTH_AMERICA QATAR SINGAPORE UMM_AL_QURA UOIF"
@@ -11,6 +11,7 @@ _al_falak_hlrules="MIDDLE_OF_THE_NIGHT SEVENTH_OF_THE_NIGHT TWILIGHT_ANGLE"
 _al_falak_polar_rules="NONE NEAREST_LATITUDE NEAREST_DAY MAKKAH"
 _al_falak_calendars="tabular uqu mabims"
 _al_falak_countries="MY ID BN SG"
+_al_falak_cities_countries="AE AF AL AM AO AR AT AU AZ BD BE BF BG BH BJ BN BO BR BY CA CD CH CI CL CM CN CO CR CU CZ DE DJ DK DO DZ EC EG ES ET FI FR GA GB GE GH GM GN GR GT GW GY HK HN HU ID IE IL IN IQ IR IT JM JO JP KE KG KH KM KP KR KW KZ LA LB LK LY MA ML MM MN MR MV MX MY MZ NE NG NI NL NO NP NZ OM PA PE PH PK PL PR PS PT PY QA RO RS RU SA SD SE SG SL SN SO SR SV SY TD TG TH TJ TL TM TN TR TW TZ UA UG US UY UZ VE VN YE ZA"
 _al_falak_qibla_methods="spherical ellipsoidal"
 
 _al_falak() {
@@ -26,7 +27,7 @@ _al_falak() {
     for (( i = 1; i < cword; i++ )); do
         w="${words[i]}"
         case "$w" in
-            prayer|qibla|sunnah|hijri|moon-sighting|astro)
+            prayer|qibla|sunnah|hijri|moon-sighting|astro|cities)
                 sub="$w"
                 break
                 ;;
@@ -89,7 +90,11 @@ _al_falak() {
             return 0
             ;;
         --country)
-            COMPREPLY=( $(compgen -W "$_al_falak_countries" -- "$cur") )
+            if [[ "$sub" == "cities" ]]; then
+                COMPREPLY=( $(compgen -W "$_al_falak_cities_countries" -- "$cur") )
+            else
+                COMPREPLY=( $(compgen -W "$_al_falak_countries" -- "$cur") )
+            fi
             return 0
             ;;
         --offsets)
@@ -102,19 +107,22 @@ _al_falak() {
     local flags=""
     case "$sub" in
         prayer)
-            flags="--latitude --lat --longitude --lon --date --method --madhab --high-latitude-rule --polar-rule --fajr-angle --isha-angle --isha-interval --imsak-offset --ishraq-offset --dhuha-offset --elevation --ramadan --timezone --adjust --json -h --help"
+            flags="--latitude --lat --longitude --lon --city --date --method --madhab --high-latitude-rule --polar-rule --fajr-angle --isha-angle --isha-interval --imsak-offset --ishraq-offset --dhuha-offset --elevation --ramadan --timezone --adjust --json -h --help"
             ;;
         qibla)
-            flags="--latitude --lat --longitude --lon --method --declination --json -h --help"
+            flags="--latitude --lat --longitude --lon --city --method --declination --json -h --help"
             ;;
         sunnah)
-            flags="--latitude --lat --longitude --lon --date --method --madhab --high-latitude-rule --polar-rule --fajr-angle --isha-angle --isha-interval --imsak-offset --ishraq-offset --dhuha-offset --elevation --ramadan --timezone --adjust --fraction --start --end --json -h --help"
+            flags="--latitude --lat --longitude --lon --city --date --method --madhab --high-latitude-rule --polar-rule --fajr-angle --isha-angle --isha-interval --imsak-offset --ishraq-offset --dhuha-offset --elevation --ramadan --timezone --adjust --fraction --start --end --json -h --help"
             ;;
         hijri)
-            flags="--date --calendar --country --adjustment-days --sunset-transition --lat --lon --time --offsets --reverse --month-length --json -h --help"
+            flags="--date --calendar --country --adjustment-days --sunset-transition --city --lat --lon --time --offsets --reverse --month-length --json -h --help"
             ;;
         moon-sighting)
-            flags="--latitude --lat --longitude --lon --date --delta-t-override --json -h --help"
+            flags="--latitude --lat --longitude --lon --city --date --delta-t-override --json -h --help"
+            ;;
+        cities)
+            flags="--country --json -h --help"
             ;;
         "astro lunar-position")
             flags="--julian-day --json -h --help"

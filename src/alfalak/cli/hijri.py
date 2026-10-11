@@ -3,13 +3,12 @@ from __future__ import annotations
 import argparse
 import re
 from datetime import datetime, timezone
-from typing import Any, cast
+from typing import Any
 
 from alfalak.calendar import OffsetStore, get_calendar
 from alfalak.calendar.HijriDate import HijriDate
 from alfalak.calendar.bridge import gregorian_to_hijri
-from alfalak.cli.common import add_json_arg, emit
-from alfalak.data import Coordinates
+from alfalak.cli.common import add_json_arg, emit, resolve_location
 from alfalak.exceptions import AlFalakError, ConfigurationError
 
 _REVERSE_RE = re.compile(r"^(\d+)-(\d{1,2})-(\d{1,2})$")
@@ -71,7 +70,14 @@ def register(subparsers: argparse._SubParsersAction[Any]) -> None:
     hijri.add_argument(
         "--sunset-transition",
         action="store_true",
-        help="Roll the Hijri day over at Maghrib (requires --lat/--lon/--time).",
+        help="Roll the Hijri day over at Maghrib (requires --city or --lat/--lon/--time).",
+    )
+    hijri.add_argument(
+        "--city",
+        default=None,
+        help='City as "Name,CC" for sunset rollover '
+        "(requires --sunset-transition; exclusive with --lat/--lon; "
+        "see 'al-falak cities').",
     )
     hijri.add_argument(
         "--lat",
@@ -185,11 +191,18 @@ def _run_hijri(args: argparse.Namespace, parser: argparse.ArgumentParser) -> Non
         except ValueError:
             parser.error(f"invalid --date (expected YYYY-MM-DD): {raw_date}")
 
+    city: str | None = getattr(args, "city", None)
+    if city is not None and not args.sunset_transition:
+        raise ConfigurationError("--city requires --sunset-transition.")
     if args.time is not None and not args.sunset_transition:
         raise ConfigurationError("--time requires --sunset-transition.")
     if args.sunset_transition:
-        if args.lat is None or args.lon is None:
-            raise ConfigurationError("--sunset-transition requires --lat and --lon.")
+        if city is not None and (args.lat is not None or args.lon is not None):
+            raise ConfigurationError("--city is exclusive with --lat/--lon.")
+        if city is None and (args.lat is None or args.lon is None):
+            raise ConfigurationError(
+                "--sunset-transition requires --city or --lat and --lon."
+            )
         if args.time is None:
             raise ConfigurationError("--sunset-transition requires --time.")
     elif args.lat is not None or args.lon is not None:
@@ -214,9 +227,14 @@ def _run_hijri(args: argparse.Namespace, parser: argparse.ArgumentParser) -> Non
     )
     coordinates = None
     if args.sunset_transition:
-        lat: float = cast(float, args.lat)
-        lon: float = cast(float, args.lon)
-        coordinates = Coordinates(lat, lon)
+        coords, _tz = resolve_location(
+            city=city,
+            lat=args.lat,
+            lon=args.lon,
+            timezone_raw=None,
+            parser=parser,
+        )
+        coordinates = coords
     store = OffsetStore.from_json(args.offsets) if args.offsets is not None else None
     # Maghrib (sunset rollover) uses default CalculationParameters (MWL);
     # method selection is deferred.
@@ -251,6 +269,8 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
                 clashes.append("--lat")
             if args.lon is not None:
                 clashes.append("--lon")
+            if getattr(args, "city", None) is not None:
+                clashes.append("--city")
             if args.time is not None:
                 clashes.append("--time")
             if args.offsets is not None:

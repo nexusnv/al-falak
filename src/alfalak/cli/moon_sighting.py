@@ -14,8 +14,13 @@ from alfalak import (
     yallop_q,
     yallop_zone,
 )
-from alfalak.cli.common import add_coord_args, add_json_arg, emit
-from alfalak.data.Coordinates import Coordinates
+from alfalak.cli.common import (
+    add_city_args,
+    add_coord_args,
+    add_json_arg,
+    emit,
+    resolve_location,
+)
 from alfalak.exceptions import AlFalakError
 
 
@@ -24,6 +29,7 @@ def register(subparsers: argparse._SubParsersAction[Any]) -> None:
         "moon-sighting", help="Print crescent visibility scores."
     )
     add_coord_args(parser)
+    add_city_args(parser)
     parser.add_argument(
         "--date",
         required=True,
@@ -51,7 +57,13 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
         except ValueError:
             parser.error(f"invalid --date (expected YYYY-MM-DD): {args.date}")
         try:
-            coordinates = Coordinates(args.latitude, args.longitude)
+            coordinates, _tz = resolve_location(
+                city=getattr(args, "city", None),
+                lat=args.latitude,
+                lon=args.longitude,
+                timezone_raw=None,
+                parser=parser,
+            )
         except AlFalakError as exc:
             parser.error(str(exc))
         geometry = crescent_geometry_at_sunset(
