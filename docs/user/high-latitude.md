@@ -64,7 +64,18 @@ These rules are most relevant for locations above ~48° latitude during summer m
   Near the polar boundary the Asr clamps (`asr = dhuhr` when the shadow angle
   is unreachable, `asr = maghrib` when it spills past sunset) can also engage.
 
+### High-latitude risk note
+
+Locations near or above 60° latitude can experience polar day/night periods and
+very short twilight windows. The choice of `PolarCircleRule` and
+`HighLatitudeRule` has a significant impact on calculated times; verify results
+against authoritative local sources when operating in these regions.
+
+See [Timezone Handling](timezone.md) for details on deterministic timezone
+database behavior in tests and CI.
+
 ## See also
 
+- [Timezone Handling](timezone.md) — DST and timezone considerations
 - [Polar Regions](polar-regions/) — handling polar day/night
 - [Calculation Methods](calculation-methods/) — method-specific defaults

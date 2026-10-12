@@ -29,5 +29,7 @@ jobs:
         run: |
           mypy src
       - name: Test with pytest
+        env:
+          PYTHONTZPATH: ""
         run: |
           pytest --cov-fail-under=95

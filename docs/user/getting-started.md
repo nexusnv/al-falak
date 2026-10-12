@@ -75,8 +75,22 @@ prayer_times = PrayerTimes(
 )
 ```
 
+### Timezone database on Windows
+
+On Windows, Python’s `zoneinfo` requires the IANA database. Install it with:
+
+```bash
+pip install tzdata
+```
+
+See the [Timezone Handling](timezone/) guide for details on database pinning
+and DST behavior.
+
 ## Next steps
 
+- [Timezone Handling](timezone/) — DST and timezone considerations
 - [Calculation Methods](calculation-methods/) — compare all 11 methods
 - [API Reference](api-reference/) — full API documentation
 - [CLI Usage](cli/) — command-line interface
+
+For details about timezone database pinning and tested zones, see [Timezone Handling](timezone.md).

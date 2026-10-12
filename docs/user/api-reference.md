@@ -476,8 +476,27 @@ re-lookup of the destination month; months without an entry pass
 through untouched. `to_gregorian` ignores the store (display
 correction for the Gregorian→Hijri direction only).
 
+## Timezone support
+
+All prayer times are returned as timezone-aware `datetime` objects. By default,
+the display zone is `UTC`. Pass `time_zone=ZoneInfo("...")` to the
+`PrayerTimes` constructor to convert outputs to a specific local zone; existing
+instances can also be converted with `.astimezone(...)`. For details on pinned tzdata, CI configuration, and tested zones, see [Timezone Handling](timezone.md).
+tzdata, CI configuration, and tested zones, see
+[Timezone Handling](timezone/).
+- Internal calculations are performed in UTC; rounding is applied in UTC before
+  converting to the display zone (see [Rounding order](#rounding-order)).
+- DST transitions (including spring-forward gaps) are handled via `zoneinfo`;
+  no wall-clock time is constructed inside a gap. See
+  [Timezone Handling](timezone/#nonexistent-local-time-policy) for details.
+- For deterministic behavior across environments (especially CI and Windows),
+  the test suite pins `tzdata==2026.5` and sets `PYTHONTZPATH=""`. End users on
+  Windows may need `pip install tzdata`. For more details, see
+  [Timezone Handling](timezone/#tested-zones-and-db-pinning).
+
 ## See also
 
+- [Timezone Handling](timezone/) — zones, DST, and database pinning
 - [CLI Usage](cli/) — command-line access to this API (`prayer`, `qibla`, `sunnah`, `hijri`, `moon-sighting`, `astro`)
 - [Getting Started](getting-started/) — quick start guide
 - [Calculation Methods](calculation-methods/) — method details
