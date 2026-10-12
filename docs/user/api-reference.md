@@ -76,6 +76,7 @@ Exactly one of `calculation_method` or `calculation_parameters` must be provided
 | Method | Returns | Description |
 |---|---|---|
 | `time_for_prayer(prayer: Prayer)` | `datetime` | Get time for a specific prayer |
+| `time_for_prayer_unrounded(prayer: Prayer)` | `datetime` | Post-offset, pre-rounding UTC instant for a specific prayer (per-prayer `adjustments`/`method_adjustments` included, half-up minute rounding not yet applied); `syuruk` is the `sunrise` instant; `Prayer.NONE` or non-`Prayer` inputs raise `ConfigurationError` |
 
 ## Qibla
 
@@ -124,6 +125,24 @@ zone.
 | Method | Returns | Description |
 |---|---|---|
 | `night_fraction(fraction, start=None, end=None)` | `datetime` | Maghrib + `fraction` of the night (`0 < fraction < 1`, else `ValidationError`); accepts `int`/`float`/`Fraction`/`Decimal` (`bool` rejected); pass aware `start`/`end` datetimes for Isha-anchored or sunset-anchored variants, `end` must be after `start` |
+| `night_fraction_unrounded(fraction, start=None, end=None)` | `datetime` | Same computation and validation as `night_fraction` minus the minute rounding and display-zone conversion: Maghrib + `fraction` of the night in UTC, never rounded; invalid fractions raise `ValidationError` |
+
+## Rounding order
+
+Every second-precision result is derived from the exact solar instant in
+the same order:
+
+1. Per-prayer `adjustments` and `method_adjustments` (integer minutes) are
+   applied to the raw solar time **before** any rounding.
+2. The adjusted instant is rounded half-up to the nearest minute in UTC
+   (`rounded_minute`: seconds ≥ 30 round up, with hour/day rollover).
+3. Only the final wall-clock reads run `astimezone` to the display zone
+   (`time_zone`, default UTC); rounding is never re-applied afterwards.
+
+The unrounded accessors (`time_for_prayer_unrounded`,
+`night_fraction_unrounded`) return the step-2 input: the adjusted,
+pre-rounding instant in UTC, per-prayer offsets included. They do **not**
+return raw solar geometry — offsets are already inside the value.
 
 ## LunarCoordinates
 

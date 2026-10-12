@@ -237,5 +237,11 @@ def test_docs_cover_public_api():
 
     for name in alfalak.__all__:
         assert re.search(rf"\b{name}\b", api_docs), name
-    for name in ("time_for_prayer", "Qibla", "SunnahTimes"):
+    for name in (
+        "time_for_prayer",
+        "time_for_prayer_unrounded",
+        "night_fraction_unrounded",
+        "Qibla",
+        "SunnahTimes",
+    ):
         assert re.search(rf"\b{name}\b", api_docs), name

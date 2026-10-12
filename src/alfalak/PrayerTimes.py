@@ -234,6 +234,7 @@ class PrayerTimes:
         self.night_portions = self.calculation_parameters.night_portions()
 
         # Assign final times to properties with all offsets
+        self._unrounded: dict[Prayer, datetime] = {}
         self._set_fajr()
         self._set_imsak()
         self._set_sunrise()
@@ -246,6 +247,7 @@ class PrayerTimes:
             # past sunset (Asr lands after Maghrib); Asr cannot follow
             # Maghrib. Mirrors the Asr<Dhuhr saturation in _set_asr.
             self.asr = self.maghrib
+            self._unrounded[Prayer.ASR] = self.maghrib
         self._set_isha(self._sunset_components)
 
         self._adjust_prayers_time_zone()
@@ -319,7 +321,7 @@ class PrayerTimes:
         self.fajr = self._rounded_minute(
             self.calculation_parameters.adjustments,
             self.calculation_parameters.method_adjustments,
-            "fajr",
+            Prayer.FAJR,
             temp_fajr,
         )
 
@@ -331,7 +333,7 @@ class PrayerTimes:
         self.imsak = self._rounded_minute(
             self.calculation_parameters.adjustments,
             self.calculation_parameters.method_adjustments,
-            "imsak",
+            Prayer.IMSAK,
             self.fajr - timedelta(minutes=self.calculation_parameters.imsak_offset),
         )
 
@@ -339,7 +341,7 @@ class PrayerTimes:
         self.sunrise = self._rounded_minute(
             self.calculation_parameters.adjustments,
             self.calculation_parameters.method_adjustments,
-            "sunrise",
+            Prayer.SUNRISE,
             self._sunrise_components,
         )
 
@@ -349,16 +351,17 @@ class PrayerTimes:
         # sunrise+15; Dhuha is the start of the Dhuha window
         # (sunrise+28 per a single Malaysian source, not universal fiqh).
         self.syuruk = self.sunrise
+        self._unrounded[Prayer.SYURUK] = self._unrounded[Prayer.SUNRISE]
         self.ishraq = self._rounded_minute(
             self.calculation_parameters.adjustments,
             self.calculation_parameters.method_adjustments,
-            "ishraq",
+            Prayer.ISHRAQ,
             self.sunrise + timedelta(minutes=self.calculation_parameters.ishraq_offset),
         )
         self.dhuha = self._rounded_minute(
             self.calculation_parameters.adjustments,
             self.calculation_parameters.method_adjustments,
-            "dhuha",
+            Prayer.DHUHA,
             self.sunrise + timedelta(minutes=self.calculation_parameters.dhuha_offset),
         )
 
@@ -366,7 +369,7 @@ class PrayerTimes:
         self.dhuhr = self._rounded_minute(
             self.calculation_parameters.adjustments,
             self.calculation_parameters.method_adjustments,
-            "dhuhr",
+            Prayer.DHUHR,
             time,
         )
 
@@ -392,7 +395,7 @@ class PrayerTimes:
         self.asr = self._rounded_minute(
             self.calculation_parameters.adjustments,
             self.calculation_parameters.method_adjustments,
-            "asr",
+            Prayer.ASR,
             temp_asr,
         )
 
@@ -402,12 +405,13 @@ class PrayerTimes:
             # cannot precede Dhuhr (also covers dhuhr-only adjustments
             # and rounding splits).
             self.asr = self.dhuhr
+            self._unrounded[Prayer.ASR] = self.dhuhr
 
     def _set_maghrib(self) -> None:
         self.maghrib = self._rounded_minute(
             self.calculation_parameters.adjustments,
             self.calculation_parameters.method_adjustments,
-            "maghrib",
+            Prayer.MAGHRIB,
             self._sunset_components,
         )
 
@@ -472,7 +476,7 @@ class PrayerTimes:
         self.isha = self._rounded_minute(
             self.calculation_parameters.adjustments,
             self.calculation_parameters.method_adjustments,
-            "isha",
+            Prayer.ISHA,
             temp_isha,
         )
 
@@ -480,15 +484,17 @@ class PrayerTimes:
         self,
         adjustments: PrayerAdjustments,
         method_adjustments: PrayerAdjustments,
-        prayer_name: str,
+        prayer: Prayer,
         temp_prayer: datetime,
     ) -> datetime:
-        prayer_adjustments = getattr(adjustments, prayer_name)
-        method_prayer_adjustments = getattr(method_adjustments, prayer_name)
-        return rounded_minute(
-            (temp_prayer + timedelta(minutes=prayer_adjustments))
-            + timedelta(minutes=method_prayer_adjustments)
+        name = prayer.name.lower()
+        adjusted = (
+            temp_prayer
+            + timedelta(minutes=getattr(adjustments, name))
+            + timedelta(minutes=getattr(method_adjustments, name))
         )
+        self._unrounded[prayer] = adjusted
+        return rounded_minute(adjusted)
 
     def time_for_prayer(self, prayer: Prayer) -> datetime:
         """Return the computed time for a Prayer enum member."""
@@ -513,6 +519,19 @@ class PrayerTimes:
         elif prayer == Prayer.ISHA:
             return self.isha
         raise ConfigurationError(f"Unknown prayer: {prayer!r}.")
+
+    def time_for_prayer_unrounded(self, prayer: Prayer) -> datetime:
+        """Return the post-offset, pre-rounding UTC instant for ``prayer``.
+
+        Per-prayer ``adjustments`` and ``method_adjustments`` are included; the
+        value is the instant immediately before half-up minute rounding, in UTC.
+        ``time_for_prayer`` is its rounded, display-zone counterpart. ``syuruk``
+        is the ``sunrise`` instant. ``Prayer.NONE`` and non-``Prayer`` inputs
+        raise ``ConfigurationError``.
+        """
+        if not isinstance(prayer, Prayer) or prayer not in self._unrounded:
+            raise ConfigurationError(f"Unknown prayer: {prayer!r}.")
+        return self._unrounded[prayer]
 
     def _adjust_prayers_time_zone(self) -> None:
         if self.time_zone is not None:
