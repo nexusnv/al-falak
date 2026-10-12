@@ -528,6 +528,11 @@ class PrayerTimes:
         ``time_for_prayer`` is its rounded, display-zone counterpart. ``syuruk``
         is the ``sunrise`` instant. ``Prayer.NONE`` and non-``Prayer`` inputs
         raise ``ConfigurationError``.
+
+        When ``asr`` saturates to ``dhuhr`` or ``maghrib`` (polar edge), the
+        returned value is that already-rounded saturation target: the clamp is
+        the final instant, so ``rounded_minute`` of it still round-trips to
+        ``time_for_prayer``.
         """
         if not isinstance(prayer, Prayer) or prayer not in self._unrounded:
             raise ConfigurationError(f"Unknown prayer: {prayer!r}.")

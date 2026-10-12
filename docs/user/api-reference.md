@@ -76,7 +76,7 @@ Exactly one of `calculation_method` or `calculation_parameters` must be provided
 | Method | Returns | Description |
 |---|---|---|
 | `time_for_prayer(prayer: Prayer)` | `datetime` | Get time for a specific prayer |
-| `time_for_prayer_unrounded(prayer: Prayer)` | `datetime` | Post-offset, pre-rounding UTC instant for a specific prayer (per-prayer `adjustments`/`method_adjustments` included, half-up minute rounding not yet applied); `syuruk` is the `sunrise` instant; `Prayer.NONE` or non-`Prayer` inputs raise `ConfigurationError` |
+| `time_for_prayer_unrounded(prayer: Prayer)` | `datetime` | Post-offset, pre-rounding UTC instant for a specific prayer (per-prayer `adjustments`/`method_adjustments` included, half-up minute rounding not yet applied); `syuruk` is the `sunrise` instant; when `asr` saturates to `dhuhr`/`maghrib` (polar edge) the value is that already-rounded target; `Prayer.NONE` or non-`Prayer` inputs raise `ConfigurationError` |
 
 ## Qibla
 
@@ -142,7 +142,12 @@ the same order:
 The unrounded accessors (`time_for_prayer_unrounded`,
 `night_fraction_unrounded`) return the step-2 input: the adjusted,
 pre-rounding instant in UTC, per-prayer offsets included. They do **not**
-return raw solar geometry — offsets are already inside the value.
+return raw solar geometry — offsets are already inside the value. One
+exception: when `asr` saturates to `dhuhr` or `maghrib` (polar edge), the
+clamp target is already rounded, so `time_for_prayer_unrounded(Prayer.ASR)`
+equals that rounded prayer — this keeps `rounded_minute` round-tripping to
+`time_for_prayer`, and on such a day the true Asr genuinely coincides with
+the clamp target.
 
 ## LunarCoordinates
 
