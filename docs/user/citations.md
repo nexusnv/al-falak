@@ -62,6 +62,12 @@ The Qibla direction, distance, and compass-heading calculations are derived from
 | Singapore | Fajr angle 20°, Isha angle 18° |
 | UOIF | Fajr angle 12°, Isha angle 12° |
 
+## Golden test references
+
+- Meeus, J. — *Astronomical Algorithms* (2nd ed., Willmann-Bell, 1998), Ex. 25.a (p. 165) and Ex. 28.a (p. 183). Used for the Greenwich solar transit chain-consistency test on 1992-10-13 (±10 s tolerance).
+- Jabatan Kemajuan Islam Malaysia (JAKIM) e-solat API — Takwim Solat (duration). Kuala Lumpur/Putrajaya zone `WLY01`, 2025-01-16 (local MYT UTC+8), retrieved 2026-10-12. URL: `https://www.e-solat.gov.my/index.php?r=esolatApi/takwimsolat&period=duration&zone=WLY01`
+- Jabatan Kemajuan Islam Malaysia (JAKIM) e-solat API — Takwim Solat (duration). Sabah (Kota Kinabalu area) zone `SBH07`, 2025-01-16 (local MYT UTC+8), retrieved 2026-10-12. URL: `https://www.e-solat.gov.my/index.php?r=esolatApi/takwimsolat&period=duration&zone=SBH07`
+
 ## License
 
 This project is licensed under the MIT License — see [LICENSE](https://github.com/nexusnv/al-falak/blob/main/LICENSE) for details.

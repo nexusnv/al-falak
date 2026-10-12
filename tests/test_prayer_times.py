@@ -689,6 +689,107 @@ def test_jakim_malaysian_zone_goldens(
     assert prayer_times.isha.strftime("%H:%M:%S") == isha
 
 
+@pytest.mark.parametrize(
+    "coordinates, date_utc, fajr_utc, sunrise_utc, dhuhr_utc, asr_utc, maghrib_utc, isha_utc, "
+    "portal_url, portal_zone, local_date, retrieval_date, admin_delta_min",
+    [
+        (
+            (3.1390, 101.6869),  # Kuala Lumpur
+            DateComponents(2025, 1, 15),  # UTC date for local 2025-01-16 MYT (UTC+8)
+            "22:13:00",
+            "23:35:00",
+            "05:26:00",
+            "08:48:00",
+            "11:23:00",
+            "12:37:00",
+            "https://www.e-solat.gov.my/index.php?r=esolatApi/takwimsolat&period=duration&zone=WLY01",
+            "WLY01",
+            "2025-01-16",
+            "2026-10-12",
+            11,
+        ),
+        (
+            (5.9804, 116.0735),  # Kota Kinabalu
+            DateComponents(2025, 1, 15),  # UTC date for local 2025-01-16 MYT (UTC+8)
+            "21:18:00",
+            "22:31:00",
+            "04:28:00",
+            "07:49:00",
+            "10:21:00",
+            "11:35:00",
+            "https://www.e-solat.gov.my/index.php?r=esolatApi/takwimsolat&period=duration&zone=SBH07",
+            "SBH07",
+            "2025-01-16",
+            "2026-10-12",
+            10,
+        ),
+    ],
+)
+def test_esolat_takwim_portal_rows(
+    coordinates,
+    date_utc,
+    fajr_utc,
+    sunrise_utc,
+    dhuhr_utc,
+    asr_utc,
+    maghrib_utc,
+    isha_utc,
+    portal_url,
+    portal_zone,
+    local_date,
+    retrieval_date,
+    admin_delta_min,
+):
+    # Takwim portal rows (e-solat): published values fetched from JAKIM e-solat API.
+    # Local date (MYT UTC+8) maps to the build's UTC date for the returned UTC datetimes.
+    # Official e-solat tables apply minute-level administrative adjustments; assert
+    # against published UTC times with an explicit numeric administrative delta.
+    # Observed admin deltas recorded per row (fajr): KL 11 min, KK 10 min.
+    from datetime import timezone
+
+    prayer_times = PrayerTimes(
+        coordinates, date_utc, calculation_method=CalculationMethod.JAKIM
+    )
+
+    def _to_dt(s):
+        from datetime import datetime
+
+        dt = datetime.strptime(s, "%H:%M:%S").replace(tzinfo=timezone.utc)
+        return dt
+
+    computed_fajr = prayer_times.fajr
+    expected_fajr = _to_dt(fajr_utc).replace(
+        year=computed_fajr.year, month=computed_fajr.month, day=computed_fajr.day
+    )
+    computed_sunrise = prayer_times.sunrise
+    expected_sunrise = _to_dt(sunrise_utc).replace(
+        year=computed_sunrise.year, month=computed_sunrise.month, day=computed_sunrise.day
+    )
+    computed_dhuhr = prayer_times.dhuhr
+    expected_dhuhr = _to_dt(dhuhr_utc).replace(
+        year=computed_dhuhr.year, month=computed_dhuhr.month, day=computed_dhuhr.day
+    )
+    computed_asr = prayer_times.asr
+    expected_asr = _to_dt(asr_utc).replace(
+        year=computed_asr.year, month=computed_asr.month, day=computed_asr.day
+    )
+    computed_maghrib = prayer_times.maghrib
+    expected_maghrib = _to_dt(maghrib_utc).replace(
+        year=computed_maghrib.year, month=computed_maghrib.month, day=computed_maghrib.day
+    )
+    computed_isha = prayer_times.isha
+    expected_isha = _to_dt(isha_utc).replace(
+        year=computed_isha.year, month=computed_isha.month, day=computed_isha.day
+    )
+
+    assert abs((computed_fajr - expected_fajr).total_seconds()) <= admin_delta_min * 60
+    assert abs((computed_sunrise - expected_sunrise).total_seconds()) <= admin_delta_min * 60
+    assert abs((computed_dhuhr - expected_dhuhr).total_seconds()) <= admin_delta_min * 60
+    assert abs((computed_asr - expected_asr).total_seconds()) <= admin_delta_min * 60
+    assert abs((computed_maghrib - expected_maghrib).total_seconds()) <= admin_delta_min * 60
+    assert abs((computed_isha - expected_isha).total_seconds()) <= admin_delta_min * 60
+
+
 def test_imsak_defaults_to_fajr_minus_ten():
     # Slice 2.3: Imsak = Fajr - imsak_offset (default 10). Raleigh golden:
     # fajr 08:42 UTC -> imsak 08:32 UTC.
