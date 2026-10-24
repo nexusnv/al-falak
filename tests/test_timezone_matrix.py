@@ -6,7 +6,6 @@ from alfalak import (
     CalculationParameters,
     PrayerTimes,
 )
-from alfalak.data.Coordinates import Coordinates
 from alfalak.util.DateComponents import DateComponents
 from alfalak.calculation import PolarCircleRule
 from alfalak.exceptions import AstronomicalError
