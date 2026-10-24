@@ -68,12 +68,12 @@ Tolerances are two-tier and deliberately narrow:
 
 - **Transit / equation-of-time full-chain**: ±10 s. The Greenwich transit case is a chain-consistency lock derived from the published Meeus examples, not an independent physical truth.
 - **USNO rise/set**: ±60 s, matching the resolution of the published one-day tables.
-- **Takwim / e-solat**: minute agreement plus a documented numeric administrative delta (JAKIM applies minute-level adjustments).
+- **Takwim / e-solat**: exact agreement after subtracting a documented per-prayer administrative delta (JAKIM applies minute-level adjustments).
 - **Unchanged tighter bars**: Meeus Ex. 25.a right ascension `abs=1e-5` deg and the equation-of-time golden `abs=0.17` min (±10.2 s).
 
 - Meeus, J. — *Astronomical Algorithms* (2nd ed., Willmann-Bell, 1998), Ex. 25.a (p. 165) and Ex. 28.a (p. 183). Used for the Greenwich solar transit chain-consistency test on 1992-10-13 (±10 s tolerance).
-- Jabatan Kemajuan Islam Malaysia (JAKIM) e-solat API — Takwim Solat (duration). Kuala Lumpur/Putrajaya zone `WLY01`, 2025-01-16 (local MYT UTC+8), retrieved 2026-10-12. URL: `https://www.e-solat.gov.my/index.php?r=esolatApi/takwimsolat&period=duration&zone=WLY01`
-- Jabatan Kemajuan Islam Malaysia (JAKIM) e-solat API — Takwim Solat (duration). Sabah (Kota Kinabalu area) zone `SBH07`, 2025-01-16 (local MYT UTC+8), retrieved 2026-10-12. URL: `https://www.e-solat.gov.my/index.php?r=esolatApi/takwimsolat&period=duration&zone=SBH07`
+- Pejabat Mufti Wilayah Persekutuan — *Jadual Waktu Solat Wilayah Persekutuan Kuala Lumpur dan Putrajaya bagi Tahun 2025* (Sumber: Almanak Falak Syarie JAKIM), 16 January row (06:03 06:13 07:24 13:26 16:48 19:23 20:37). Zone `WLY01`, local MYT (UTC+8), retrieved 2026-10-24. URL: `https://muftiwp.gov.my/images/falak/takwim/jadual-waktu-solat/KL-dan-Putrajaya/JADUAL-WAKTU-SOLAT-WPKLPTJ-2025.pdf`
+- Jabatan Kemajuan Islam Malaysia (JAKIM) e-solat XML feed — Kota Kinabalu/Ranau/Kota Belud/Tuaran/Penampang/Papar/Putatan zone `SBH07`, 16 January 2025 (local MYT UTC+8), retrieved 2026-10-24. Archived snapshot: `https://web.archive.org/web/20250116103115/https://www.e-solat.gov.my/index.php?r=esolatApi/xmlfeed&zon=SBH07`
 
 ## License
 

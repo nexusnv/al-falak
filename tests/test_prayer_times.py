@@ -1,6 +1,6 @@
 import math
 import pytest
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from unittest.mock import patch
 from alfalak.data.Coordinates import Coordinates
 from alfalak.data.Prayer import Prayer
@@ -623,7 +623,7 @@ def test_jakim_matches_singapore_by_design():
         singapore.method_adjustments.isha,
     )
 
-    for coordinates, date in [
+    for coordinates, prayer_date in [
         ((35.7750, -78.6336), DateComponents(2015, 7, 12)),
         ((3.1390, 101.6869), DateComponents(2015, 7, 12)),
         ((5.9804, 116.0735), DateComponents(2015, 7, 12)),
@@ -631,10 +631,10 @@ def test_jakim_matches_singapore_by_design():
         ((5.9804, 116.0735), DateComponents(2025, 1, 15)),
     ]:
         jakim_times = PrayerTimes(
-            coordinates, date, calculation_method=CalculationMethod.JAKIM
+            coordinates, prayer_date, calculation_method=CalculationMethod.JAKIM
         )
         singapore_times = PrayerTimes(
-            coordinates, date, calculation_method=CalculationMethod.SINGAPORE
+            coordinates, prayer_date, calculation_method=CalculationMethod.SINGAPORE
         )
 
         assert jakim_times.fajr == singapore_times.fajr
@@ -690,116 +690,82 @@ def test_jakim_malaysian_zone_goldens(
 
 
 @pytest.mark.parametrize(
-    "coordinates, date_utc, fajr_utc, sunrise_utc, dhuhr_utc, asr_utc, maghrib_utc, isha_utc, "
-    "portal_url, portal_zone, local_date, retrieval_date, admin_delta_min",
+    "coordinates, local_date, official_utc, admin_delta_minutes",
     [
-        (
+        pytest.param(
             (3.1390, 101.6869),  # Kuala Lumpur
-            DateComponents(2025, 1, 15),  # UTC date for local 2025-01-16 MYT (UTC+8)
-            "22:13:00",
-            "23:35:00",
-            "05:26:00",
-            "08:48:00",
-            "11:23:00",
-            "12:37:00",
-            "https://www.e-solat.gov.my/index.php?r=esolatApi/takwimsolat&period=duration&zone=WLY01",
-            "WLY01",
-            "2025-01-16",
-            "2026-10-12",
-            11,
+            date(2025, 1, 16),
+            {
+                "fajr": "2025-01-15T22:13:00+00:00",
+                "sunrise": "2025-01-15T23:24:00+00:00",
+                "dhuhr": "2025-01-16T05:26:00+00:00",
+                "asr": "2025-01-16T08:48:00+00:00",
+                "maghrib": "2025-01-16T11:23:00+00:00",
+                "isha": "2025-01-16T12:37:00+00:00",
+            },
+            {
+                "fajr": 11,
+                "sunrise": 0,
+                "dhuhr": 2,
+                "asr": 1,
+                "maghrib": 1,
+                "isha": 2,
+            },
+            id="WLY01-2025-01-16",
         ),
-        (
+        pytest.param(
             (5.9804, 116.0735),  # Kota Kinabalu
-            DateComponents(2025, 1, 15),  # UTC date for local 2025-01-16 MYT (UTC+8)
-            "21:18:00",
-            "22:31:00",
-            "04:28:00",
-            "07:49:00",
-            "10:21:00",
-            "11:35:00",
-            "https://www.e-solat.gov.my/index.php?r=esolatApi/takwimsolat&period=duration&zone=SBH07",
-            "SBH07",
-            "2025-01-16",
-            "2026-10-12",
-            10,
+            date(2025, 1, 16),
+            {
+                "fajr": "2025-01-15T21:18:00+00:00",
+                "sunrise": "2025-01-15T22:31:00+00:00",
+                "dhuhr": "2025-01-16T04:28:00+00:00",
+                "asr": "2025-01-16T07:49:00+00:00",
+                "maghrib": "2025-01-16T10:21:00+00:00",
+                "isha": "2025-01-16T11:35:00+00:00",
+            },
+            {
+                "fajr": 9,
+                "sunrise": 0,
+                "dhuhr": 2,
+                "asr": 1,
+                "maghrib": 1,
+                "isha": 1,
+            },
+            id="SBH07-2025-01-16",
         ),
     ],
 )
 def test_esolat_takwim_portal_rows(
-    coordinates,
-    date_utc,
-    fajr_utc,
-    sunrise_utc,
-    dhuhr_utc,
-    asr_utc,
-    maghrib_utc,
-    isha_utc,
-    portal_url,
-    portal_zone,
-    local_date,
-    retrieval_date,
-    admin_delta_min,
+    coordinates, local_date, official_utc, admin_delta_minutes
 ):
-    # Takwim portal rows (e-solat): published values fetched from JAKIM e-solat API.
-    # Local date (MYT UTC+8) maps to the build's UTC date for the returned UTC datetimes.
-    # Official e-solat tables apply minute-level administrative adjustments; assert
-    # against published UTC times with an explicit numeric administrative delta.
-    # Observed admin deltas recorded per row (fajr): KL 11 min, KK 10 min.
-    from datetime import timezone
-
+    # Official JAKIM Takwim rows for the local prayer date 2025-01-16
+    # (MYT, UTC+8), converted to UTC. Retrieved 2026-10-24 from:
+    # - WLY01 (KL/Putrajaya): JADUAL-WAKTU-SOLAT-WPKLPTJ-2025.pdf, 16 Jan row
+    #   (06:03 06:13 07:24 13:26 16:48 19:23 20:37).
+    # - SBH07 (Kota Kinabalu): e-solat XML feed snapshot 2025-01-16 10:31:15
+    #   (05:08 05:18 06:31 12:28 15:49 18:21 19:35).
+    # The published tables apply minute-level administrative adjustments; the
+    # per-prayer deltas below are official minus computed. Subtracting them
+    # and asserting exact equality keeps the golden tight (a one-minute drift
+    # fails).
     prayer_times = PrayerTimes(
-        coordinates, date_utc, calculation_method=CalculationMethod.JAKIM
+        coordinates,
+        DateComponents(local_date.year, local_date.month, local_date.day),
+        calculation_method=CalculationMethod.JAKIM,
     )
+    myt = timezone(timedelta(hours=8))
 
-    def _to_dt(s):
-        from datetime import datetime
-
-        dt = datetime.strptime(s, "%H:%M:%S").replace(tzinfo=timezone.utc)
-        return dt
-
-    computed_fajr = prayer_times.fajr
-    expected_fajr = _to_dt(fajr_utc).replace(
-        year=computed_fajr.year, month=computed_fajr.month, day=computed_fajr.day
-    )
-    computed_sunrise = prayer_times.sunrise
-    expected_sunrise = _to_dt(sunrise_utc).replace(
-        year=computed_sunrise.year,
-        month=computed_sunrise.month,
-        day=computed_sunrise.day,
-    )
-    computed_dhuhr = prayer_times.dhuhr
-    expected_dhuhr = _to_dt(dhuhr_utc).replace(
-        year=computed_dhuhr.year, month=computed_dhuhr.month, day=computed_dhuhr.day
-    )
-    computed_asr = prayer_times.asr
-    expected_asr = _to_dt(asr_utc).replace(
-        year=computed_asr.year, month=computed_asr.month, day=computed_asr.day
-    )
-    computed_maghrib = prayer_times.maghrib
-    expected_maghrib = _to_dt(maghrib_utc).replace(
-        year=computed_maghrib.year,
-        month=computed_maghrib.month,
-        day=computed_maghrib.day,
-    )
-    computed_isha = prayer_times.isha
-    expected_isha = _to_dt(isha_utc).replace(
-        year=computed_isha.year, month=computed_isha.month, day=computed_isha.day
-    )
-
-    assert abs((computed_fajr - expected_fajr).total_seconds()) <= admin_delta_min * 60
-    assert (
-        abs((computed_sunrise - expected_sunrise).total_seconds())
-        <= admin_delta_min * 60
-    )
-    assert (
-        abs((computed_dhuhr - expected_dhuhr).total_seconds()) <= admin_delta_min * 60
-    )
-    assert abs((computed_asr - expected_asr).total_seconds()) <= admin_delta_min * 60
-    assert (
-        abs((computed_maghrib - expected_maghrib).total_seconds())
-        <= admin_delta_min * 60
-    )
-    assert abs((computed_isha - expected_isha).total_seconds()) <= admin_delta_min * 60
+    for prayer, official in official_utc.items():
+        computed = getattr(prayer_times, prayer)
+        assert computed.astimezone(myt).date() == local_date, prayer
+        expected = datetime.fromisoformat(official) - timedelta(
+            minutes=admin_delta_minutes[prayer]
+        )
+        assert computed == expected, (
+            f"{prayer} on {local_date}: computed {computed.isoformat()}, "
+            f"official {official} minus {admin_delta_minutes[prayer]}m"
+        )
 
 
 def test_imsak_defaults_to_fajr_minus_ten():

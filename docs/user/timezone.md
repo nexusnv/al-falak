@@ -89,11 +89,13 @@ wins over the system copy.
   `TZPATH` in `try/finally`.
 - **Diagnostics**: tests may log `zoneinfo.TZPATH` and the installed `tzdata`
   version for troubleshooting; these values are never asserted for equality.
-- **Coverage**: the timezone matrix exercises high-latitude cases (toward
-  60°+), modern political/DST changes, polar day/night, far-eastern zones,
-  UTC across DST boundaries, and common regions such as Europe/Paris and
-  America/New_York. Assertions verify offsets, ordering, and transition
-  effects — not merely absence of errors.
+- **Coverage**: the timezone matrix exercises high-latitude cases (69.6°N,
+  including polar day/night resolution and the `PolarCircleRule.NONE` error
+  path), modern political/DST changes (Mexico City's 2022 DST abolition,
+  Europe/Paris and America/New_York spring-forward dates), far-eastern zones
+  (Tokyo and Pacific/Kiritimati, including the +14 date shift), and UTC
+  offsets. Assertions verify offsets, ordering, and date/transition effects —
+  not merely absence of errors.
 
 The `zoneinfo` module first looks in directories given by `TZPATH`; setting
 `PYTHONTZPATH=""` disables that search path so the distribution-provided

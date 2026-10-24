@@ -57,6 +57,7 @@ def test_unrounded_round_trips_every_prayer(tz):
     pt = _pt(tz)
     display = tz or timezone.utc
     for prayer in ALL:
+        assert pt.time_for_prayer_unrounded(prayer).utcoffset() == timedelta(0), prayer
         assert rounded_minute(pt.time_for_prayer_unrounded(prayer)).astimezone(
             display
         ) == pt.time_for_prayer(prayer), prayer
@@ -79,6 +80,17 @@ def test_unrounded_syuruk_aliases_sunrise():
     assert pt.time_for_prayer_unrounded(Prayer.SYURUK) == pt.time_for_prayer_unrounded(
         Prayer.SUNRISE
     )
+
+
+def test_unrounded_derived_markers_keep_second_precision():
+    pt = _pt()
+    fajr = pt.time_for_prayer_unrounded(Prayer.FAJR)
+    sunrise = pt.time_for_prayer_unrounded(Prayer.SUNRISE)
+    assert fajr - pt.time_for_prayer_unrounded(Prayer.IMSAK) == timedelta(minutes=10)
+    assert pt.time_for_prayer_unrounded(Prayer.ISHRAQ) - sunrise == timedelta(
+        minutes=15
+    )
+    assert pt.time_for_prayer_unrounded(Prayer.DHUHA) - sunrise == timedelta(minutes=28)
 
 
 def test_unrounded_asr_clamp_dhuhr():

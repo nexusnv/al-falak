@@ -489,10 +489,11 @@ correction for the Gregorian→Hijri direction only).
 
 All prayer times are returned as timezone-aware `datetime` objects. By default,
 the display zone is `UTC`. Pass `time_zone=ZoneInfo("...")` to the
-`PrayerTimes` constructor to convert outputs to a specific local zone; existing
-instances can also be converted with `.astimezone(...)`. For details on pinned tzdata, CI configuration, and tested zones, see [Timezone Handling](timezone.md).
-tzdata, CI configuration, and tested zones, see
+`PrayerTimes` constructor to convert outputs to a specific local zone; the
+returned datetimes can also be converted with `.astimezone(...)`. For details
+on pinned tzdata, CI configuration, and tested zones, see
 [Timezone Handling](timezone/).
+
 - Internal calculations are performed in UTC; rounding is applied in UTC before
   converting to the display zone (see [Rounding order](#rounding-order)).
 - DST transitions (including spring-forward gaps) are handled via `zoneinfo`;

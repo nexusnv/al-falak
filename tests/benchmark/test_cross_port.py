@@ -16,7 +16,7 @@ Comparison tiers (spec §3.2, with the recorded tier-(b) deviation for
 adhanpy's minute-59 rollover):
 
 - tier-(a): the six astronomical prayers, our post-offset pre-round instant
-  within 1 s of the port's whole-second value.
+  within 1 s of the port's unrounded value.
 - tier-(b): public rounded fields. A single ±60 s flip is accepted only when
   one side's pre-round second is within 1 s of the :30 half-up boundary. For
   minute-only sources, accept exactly adhanpy's documented
@@ -25,7 +25,7 @@ adhanpy's minute-59 rollover):
 
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -71,10 +71,6 @@ def _to_utc(value):
     if value.tzinfo is None:
         return value.replace(tzinfo=timezone.utc)
     return value.astimezone(timezone.utc)
-
-
-def _floor_second(value):
-    return _to_utc(value).replace(microsecond=0)
 
 
 def _parse_iso_utc(value):
@@ -134,10 +130,10 @@ def _assert_grid_coverage(data):
 def _compare_tier_a(source, entry, prayer_times):
     max_delta = 0.0
     for prayer_name in ASTRONOMICAL:
-        our_unrounded = _floor_second(
-            prayer_times.time_for_prayer_unrounded(PRAYER_BY_NAME[prayer_name])
+        our_unrounded = prayer_times.time_for_prayer_unrounded(
+            PRAYER_BY_NAME[prayer_name]
         )
-        their_unrounded = _floor_second(_parse_iso_utc(entry["unrounded"][prayer_name]))
+        their_unrounded = _parse_iso_utc(entry["unrounded"][prayer_name])
         delta = abs((our_unrounded - their_unrounded).total_seconds())
         max_delta = max(max_delta, delta)
         assert delta <= 1.0, (
@@ -152,21 +148,18 @@ def _compare_tier_b(source, entry, prayer_times, minute_only):
     for prayer_name in ASTRONOMICAL:
         our_rounded = _to_utc(getattr(prayer_times, prayer_name))
         their_rounded = _to_utc(_parse_iso_utc(entry["rounded"][prayer_name]))
-        our_unrounded = _floor_second(
-            prayer_times.time_for_prayer_unrounded(PRAYER_BY_NAME[prayer_name])
+        our_unrounded = prayer_times.time_for_prayer_unrounded(
+            PRAYER_BY_NAME[prayer_name]
         )
         if minute_only:
             equal = _minute_only_equal(our_rounded, our_unrounded, their_rounded)
         else:
-            their_unrounded = _floor_second(
-                _parse_iso_utc(entry["unrounded"][prayer_name])
-            )
+            their_unrounded = _parse_iso_utc(entry["unrounded"][prayer_name])
             equal = _boundary_minute_equal(
                 our_rounded, our_unrounded, their_rounded, their_unrounded
             )
-        if not equal:
-            delta = abs((our_rounded - their_rounded).total_seconds())
-            max_delta = max(max_delta, delta)
+        delta = abs((our_rounded - their_rounded).total_seconds())
+        max_delta = max(max_delta, delta)
         assert equal, (
             f"tier-b {source} {entry['city']} {entry['date']} "
             f"{entry['method']} {prayer_name}: "
@@ -191,11 +184,47 @@ def test_cross_port(vector_path):
 
     _assert_grid_coverage(data)
 
+    tier_a_max = 0.0
+    tier_b_max = 0.0
     for entry in data["entries"]:
         prayer_times = _build_prayer_times(entry)
         if not minute_only:
-            _compare_tier_a(source, entry, prayer_times)
-        _compare_tier_b(source, entry, prayer_times, minute_only)
+            tier_a_max = max(tier_a_max, _compare_tier_a(source, entry, prayer_times))
+        tier_b_max = max(
+            tier_b_max, _compare_tier_b(source, entry, prayer_times, minute_only)
+        )
 
         # syuruk is the sunrise alias; only the rounded field is comparable.
         assert prayer_times.syuruk == prayer_times.sunrise
+
+    print(
+        f"{source}: {len(data['entries'])} entries; "
+        f"tier-a max delta {tier_a_max:.3f}s; "
+        f"tier-b max delta {tier_b_max:.3f}s"
+    )
+    assert tier_a_max <= 1.0
+    assert tier_b_max <= 60.0
+
+
+def test_vectors_directory_is_not_empty():
+    assert _vector_paths(), "no cross-port vectors found; vendored JSON is missing"
+
+
+def test_boundary_minute_equal_requires_a_boundary_value():
+    our_rounded = datetime(2024, 1, 1, 12, 0, tzinfo=timezone.utc)
+    their_rounded = datetime(2024, 1, 1, 12, 1, tzinfo=timezone.utc)
+    near_boundary = datetime(2024, 1, 1, 12, 0, 29, 500_000, tzinfo=timezone.utc)
+    far_from_boundary = datetime(2024, 1, 1, 12, 0, 20, tzinfo=timezone.utc)
+
+    assert _boundary_minute_equal(
+        our_rounded, near_boundary, their_rounded, near_boundary
+    )
+    assert not _boundary_minute_equal(
+        our_rounded, far_from_boundary, their_rounded, far_from_boundary
+    )
+    assert not _boundary_minute_equal(
+        our_rounded,
+        near_boundary,
+        their_rounded + timedelta(minutes=1),
+        near_boundary,
+    )

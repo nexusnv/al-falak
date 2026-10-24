@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* API: add `PrayerTimes.time_for_prayer_unrounded(prayer)` and
+  `SunnahTimes.night_fraction_unrounded(fraction, start=None, end=None)` for
+  second-precision, post-offset, pre-rounding UTC values; existing rounded
+  fields and accessors are unchanged.
 * CLI expansion to six explicit subcommands covering almost all of
   `alfalak.__all__`: `prayer` (full `CalculationParameters` parity),
   `qibla` (spherical/ellipsoidal + optional magnetic heading),

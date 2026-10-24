@@ -326,15 +326,17 @@ class PrayerTimes:
         )
 
     def _set_imsak(self) -> None:
-        # Imsak tracks the rounded Fajr (fajr adjustments flow through),
-        # minus the configurable offset. Integer-minute offsets commute with
-        # half-up minute rounding, so pre/post-rounding order is equivalent;
-        # imsak-specific adjustments apply on top via _rounded_minute.
+        # Imsak derives from the unrounded Fajr (fajr adjustments flow
+        # through), minus the configurable offset. Integer-minute offsets
+        # commute with half-up minute rounding, so the rounded field is
+        # unchanged; using the unrounded base keeps
+        # time_for_prayer_unrounded(IMSAK) pre-rounding.
         self.imsak = self._rounded_minute(
             self.calculation_parameters.adjustments,
             self.calculation_parameters.method_adjustments,
             Prayer.IMSAK,
-            self.fajr - timedelta(minutes=self.calculation_parameters.imsak_offset),
+            self._unrounded[Prayer.FAJR]
+            - timedelta(minutes=self.calculation_parameters.imsak_offset),
         )
 
     def _set_sunrise(self) -> None:
@@ -356,13 +358,15 @@ class PrayerTimes:
             self.calculation_parameters.adjustments,
             self.calculation_parameters.method_adjustments,
             Prayer.ISHRAQ,
-            self.sunrise + timedelta(minutes=self.calculation_parameters.ishraq_offset),
+            self._unrounded[Prayer.SUNRISE]
+            + timedelta(minutes=self.calculation_parameters.ishraq_offset),
         )
         self.dhuha = self._rounded_minute(
             self.calculation_parameters.adjustments,
             self.calculation_parameters.method_adjustments,
             Prayer.DHUHA,
-            self.sunrise + timedelta(minutes=self.calculation_parameters.dhuha_offset),
+            self._unrounded[Prayer.SUNRISE]
+            + timedelta(minutes=self.calculation_parameters.dhuha_offset),
         )
 
     def _set_dhuhr(self, time: datetime) -> None:

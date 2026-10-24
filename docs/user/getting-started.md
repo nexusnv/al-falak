@@ -92,5 +92,3 @@ and DST behavior.
 - [Calculation Methods](calculation-methods/) — compare all 11 methods
 - [API Reference](api-reference/) — full API documentation
 - [CLI Usage](cli/) — command-line interface
-
-For details about timezone database pinning and tested zones, see [Timezone Handling](timezone.md).
