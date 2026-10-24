@@ -69,9 +69,9 @@ def test_julian_day_gregorian_only_reform_boundary():
     # Gregorian (11 days, no 10-day jump). Correct for prayer use -- all
     # operational dates are centuries past the reform -- but asserted here
     # so the limitation is a decision, not a latent quirk.
-    assert CalendricalHelper.julian_day(
-        1582, 10, 15
-    ) - CalendricalHelper.julian_day(1582, 10, 4) == pytest.approx(11.0)
+    assert CalendricalHelper.julian_day(1582, 10, 15) - CalendricalHelper.julian_day(
+        1582, 10, 4
+    ) == pytest.approx(11.0)
     # Historical Julian-calendar JD of 1582-10-04 is 2299159.5; the
     # proleptic-Gregorian value differs by exactly the 10 omitted days.
     assert CalendricalHelper.julian_day(1582, 10, 4) == pytest.approx(

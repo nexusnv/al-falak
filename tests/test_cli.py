@@ -51,9 +51,7 @@ def test_cli_defaults_to_today(capsys):
 
 def test_cli_rejects_unknown_method():
     with pytest.raises(SystemExit) as excinfo:
-        main(
-            ["prayer", "--latitude", "35", "--longitude", "-78", "--method", "BOGUS"]
-        )
+        main(["prayer", "--latitude", "35", "--longitude", "-78", "--method", "BOGUS"])
 
     assert excinfo.value.code == 2
 

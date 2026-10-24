@@ -763,7 +763,9 @@ def test_esolat_takwim_portal_rows(
     )
     computed_sunrise = prayer_times.sunrise
     expected_sunrise = _to_dt(sunrise_utc).replace(
-        year=computed_sunrise.year, month=computed_sunrise.month, day=computed_sunrise.day
+        year=computed_sunrise.year,
+        month=computed_sunrise.month,
+        day=computed_sunrise.day,
     )
     computed_dhuhr = prayer_times.dhuhr
     expected_dhuhr = _to_dt(dhuhr_utc).replace(
@@ -775,7 +777,9 @@ def test_esolat_takwim_portal_rows(
     )
     computed_maghrib = prayer_times.maghrib
     expected_maghrib = _to_dt(maghrib_utc).replace(
-        year=computed_maghrib.year, month=computed_maghrib.month, day=computed_maghrib.day
+        year=computed_maghrib.year,
+        month=computed_maghrib.month,
+        day=computed_maghrib.day,
     )
     computed_isha = prayer_times.isha
     expected_isha = _to_dt(isha_utc).replace(
@@ -783,10 +787,18 @@ def test_esolat_takwim_portal_rows(
     )
 
     assert abs((computed_fajr - expected_fajr).total_seconds()) <= admin_delta_min * 60
-    assert abs((computed_sunrise - expected_sunrise).total_seconds()) <= admin_delta_min * 60
-    assert abs((computed_dhuhr - expected_dhuhr).total_seconds()) <= admin_delta_min * 60
+    assert (
+        abs((computed_sunrise - expected_sunrise).total_seconds())
+        <= admin_delta_min * 60
+    )
+    assert (
+        abs((computed_dhuhr - expected_dhuhr).total_seconds()) <= admin_delta_min * 60
+    )
     assert abs((computed_asr - expected_asr).total_seconds()) <= admin_delta_min * 60
-    assert abs((computed_maghrib - expected_maghrib).total_seconds()) <= admin_delta_min * 60
+    assert (
+        abs((computed_maghrib - expected_maghrib).total_seconds())
+        <= admin_delta_min * 60
+    )
     assert abs((computed_isha - expected_isha).total_seconds()) <= admin_delta_min * 60
 
 

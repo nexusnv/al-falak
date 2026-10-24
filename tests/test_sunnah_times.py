@@ -113,16 +113,13 @@ def test_night_fraction_accepts_decimal_and_fraction():
     sunnah_times = SunnahTimes(_prayer_times())
 
     assert (
-        sunnah_times.night_fraction(Decimal("0.5"))
-        == sunnah_times.middle_of_the_night
+        sunnah_times.night_fraction(Decimal("0.5")) == sunnah_times.middle_of_the_night
     )
     assert (
-        sunnah_times.night_fraction(Fraction(1, 2))
-        == sunnah_times.middle_of_the_night
+        sunnah_times.night_fraction(Fraction(1, 2)) == sunnah_times.middle_of_the_night
     )
-    assert (
-        sunnah_times.night_fraction(Decimal("0.25"))
-        == sunnah_times.night_fraction(1 / 4)
+    assert sunnah_times.night_fraction(Decimal("0.25")) == sunnah_times.night_fraction(
+        1 / 4
     )
 
 
@@ -139,13 +136,9 @@ def test_night_fraction_exact_tiny_and_near_one_accepted():
         ),
     )
 
-    assert sunnah_times.night_fraction(
-        Fraction(1, 10**400)
-    ) == prayer_times.maghrib
+    assert sunnah_times.night_fraction(Fraction(1, 10**400)) == prayer_times.maghrib
     assert sunnah_times.night_fraction(Decimal("1E-400")) == prayer_times.maghrib
-    assert sunnah_times.night_fraction(
-        Fraction(10**400 - 1, 10**400)
-    ) == tomorrow.fajr
+    assert sunnah_times.night_fraction(Fraction(10**400 - 1, 10**400)) == tomorrow.fajr
 
 
 def test_night_fraction_decimal_nan_signaling_raises_validation_error():
@@ -163,9 +156,9 @@ def test_night_fraction_sub_minute_anchors_round_half_up():
     sunnah_times = SunnahTimes(_prayer_times())
     start = datetime(2015, 7, 13, 0, 0, 0, 900000, tzinfo=timezone.utc)
     end = start + timedelta(seconds=59)
-    assert sunnah_times.night_fraction(
-        1 / 2, start=start, end=end
-    ) == datetime(2015, 7, 13, 0, 1, tzinfo=timezone.utc)
+    assert sunnah_times.night_fraction(1 / 2, start=start, end=end) == datetime(
+        2015, 7, 13, 0, 1, tzinfo=timezone.utc
+    )
 
 
 def test_night_fraction_end_only_and_fully_custom():
@@ -189,12 +182,12 @@ def test_night_fraction_end_only_and_fully_custom():
     # Fully explicit pair, independent of prayer times.
     start = datetime(2015, 7, 12, 22, 0, tzinfo=timezone.utc)
     end = datetime(2015, 7, 13, 6, 0, tzinfo=timezone.utc)
-    assert sunnah_times.night_fraction(
-        1 / 2, start=start, end=end
-    ) == datetime(2015, 7, 13, 2, 0, tzinfo=timezone.utc)
-    assert sunnah_times.night_fraction(
-        1 / 4, start=start, end=end
-    ) == datetime(2015, 7, 13, 0, 0, tzinfo=timezone.utc)
+    assert sunnah_times.night_fraction(1 / 2, start=start, end=end) == datetime(
+        2015, 7, 13, 2, 0, tzinfo=timezone.utc
+    )
+    assert sunnah_times.night_fraction(1 / 4, start=start, end=end) == datetime(
+        2015, 7, 13, 0, 0, tzinfo=timezone.utc
+    )
 
 
 def test_sunnah_times_degenerate_night_raises():

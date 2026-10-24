@@ -80,9 +80,7 @@ def test_closest_angle(angle, expected, tolerance):
 
 def test_unwind_angle_in_range_and_idempotent():
     rng = random.Random(ANGLE_INVARIANT_SEED)
-    values = list(ANGLE_EDGE_CASES) + [
-        rng.uniform(-2000, 2000) for _ in range(200)
-    ]
+    values = list(ANGLE_EDGE_CASES) + [rng.uniform(-2000, 2000) for _ in range(200)]
     for value in values:
         once = FloatUtil.unwind_angle(value)
         assert 0 <= once < 360
@@ -91,9 +89,7 @@ def test_unwind_angle_in_range_and_idempotent():
 
 def test_closest_angle_in_range():
     rng = random.Random(ANGLE_INVARIANT_SEED + 1)
-    values = list(ANGLE_EDGE_CASES) + [
-        rng.uniform(-2000, 2000) for _ in range(200)
-    ]
+    values = list(ANGLE_EDGE_CASES) + [rng.uniform(-2000, 2000) for _ in range(200)]
     for angle in values:
         assert -180 <= FloatUtil.closest_angle(angle) <= 180
 
@@ -107,9 +103,7 @@ def test_angle_helpers_round_trip_consistent():
         closest = FloatUtil.closest_angle(value)
         assert 0 <= unwound < 360
         assert -180 <= closest <= 180
-        assert FloatUtil.unwind_angle(closest) == pytest.approx(
-            unwound, abs=1e-9
-        )
+        assert FloatUtil.unwind_angle(closest) == pytest.approx(unwound, abs=1e-9)
 
 
 def test_require_finite_real_rejects_huge_int_overflow():

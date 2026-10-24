@@ -44,9 +44,7 @@ def test_sunnah_fraction_half_equals_middle(capsys):
             "0.5",
         ]
     )
-    assert capsys.readouterr().out == (
-        "night_fraction=2015-07-13T04:38:00+00:00\n"
-    )
+    assert capsys.readouterr().out == ("night_fraction=2015-07-13T04:38:00+00:00\n")
 
 
 def test_sunnah_naive_anchor_rejected(capsys):

@@ -35,8 +35,7 @@ def test_yallop_q_scale_matches_zone_thresholds():
     # [-1, 1] where the A-F zone boundaries (+0.216 .. -0.293) live.
     # Without the scaling every evening crescent would collapse to A/F.
     assert yallop_q(10.0, 0.5) == pytest.approx(
-        (10.0 - (-0.1018 * 0.5**3 + 0.7319 * 0.5**2 - 6.3226 * 0.5 + 11.8371))
-        / 10.0,
+        (10.0 - (-0.1018 * 0.5**3 + 0.7319 * 0.5**2 - 6.3226 * 0.5 + 11.8371)) / 10.0,
         rel=1e-12,
     )
 

@@ -200,15 +200,13 @@ def test_equation_of_time_curve_spots():
     ]
     for (year, month, day), expected in spots:
         jd = CalendricalHelper.julian_day(year, month, day)
-        assert Astronomical.equation_of_time(jd) == pytest.approx(
-            expected, abs=1.0
-        )
+        assert Astronomical.equation_of_time(jd) == pytest.approx(expected, abs=1.0)
 
 
 def test_equation_of_time_agrees_with_transit():
     # Characterization: the Ch.28 direct EoT path and the Ch.15 interpolated
     # transit path agree. For Greenwich (lon 0): transit ≈ 12:00 − E/60.
-    for (year, month, day) in [(1992, 10, 13), (2025, 2, 11), (2025, 11, 3)]:
+    for year, month, day in [(1992, 10, 13), (2025, 2, 11), (2025, 11, 3)]:
         jd = CalendricalHelper.julian_day(year, month, day)
         eot_hours = Astronomical.equation_of_time(jd) / 60.0
         transit = SolarTime(
@@ -231,7 +229,5 @@ def test_greenwich_solar_transit_chain_consistency():
     # The independent transit truth is the USNO spot rows in test_solar_time.py;
     # this case locks the second-level chain. Expected value is not taken from
     # this repo's corrected_transit.
-    transit = SolarTime(
-        DateComponents(1992, 10, 13), Coordinates(51.4779, 0.0)
-    ).transit
+    transit = SolarTime(DateComponents(1992, 10, 13), Coordinates(51.4779, 0.0)).transit
     assert transit == pytest.approx(11 + 46 / 60 + 18 / 3600, abs=10 / 3600)

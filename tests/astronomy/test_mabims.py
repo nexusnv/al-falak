@@ -106,9 +106,7 @@ def test_criteria_agreement_matrix():
         moon_alt = g.moon_alt_topo_deg
         assert math.isfinite(g.moon_age_at_moonset_days)
         neo = is_neo_mabims_2021(moon_alt, g.arcl_deg)
-        old = is_mabims_1992(
-            moon_alt, g.arcl_deg, g.moon_age_at_moonset_days * 24.0
-        )
+        old = is_mabims_1992(moon_alt, g.arcl_deg, g.moon_age_at_moonset_days * 24.0)
         assert type(neo) is bool
         assert type(old) is bool
         assert math.isfinite(moon_alt)

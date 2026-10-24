@@ -35,9 +35,7 @@ def test_xor_both_neither_partial(capsys):
     assert e3.value.code == 2
     # city + lat-only partial
     with pytest.raises(SystemExit) as e4:
-        _run(
-            ["prayer", "--city", "Kuala Lumpur,MY", "--latitude", "3.1390"]
-        )
+        _run(["prayer", "--city", "Kuala Lumpur,MY", "--latitude", "3.1390"])
     assert e4.value.code == 2
 
 
@@ -56,9 +54,7 @@ def _capture(args, capsys):
 )
 def test_parity_a_explicit_tz(capsys, city, lat, lon, tz):
     base = ["--date", "2025-03-01", "--method", "MUSLIM_WORLD_LEAGUE"]
-    out_city = _capture(
-        ["prayer", "--city", city, "--timezone", tz] + base, capsys
-    )
+    out_city = _capture(["prayer", "--city", city, "--timezone", tz] + base, capsys)
     out_coords = _capture(
         ["prayer", "--latitude", lat, "--longitude", lon, "--timezone", tz] + base,
         capsys,

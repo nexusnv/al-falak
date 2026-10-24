@@ -147,9 +147,9 @@ def test_decimal_coordinates_normalized_to_float():
 
     assert isinstance(coords.latitude, float)
     assert isinstance(coords.longitude, float)
-    assert Qibla(
-        (Decimal("35.7750"), Decimal("-78.6336"))
-    ).direction == pytest.approx(Qibla((35.7750, -78.6336)).direction)
+    assert Qibla((Decimal("35.7750"), Decimal("-78.6336"))).direction == pytest.approx(
+        Qibla((35.7750, -78.6336)).direction
+    )
 
 
 def test_coordinates_are_frozen():
