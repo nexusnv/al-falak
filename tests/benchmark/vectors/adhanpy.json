@@ -1,0 +1,371 @@
+{
+  "source": "adhanpy",
+  "version": "f9cfed51",
+  "sha": "f9cfed51a857cb6a8436ad4f5685e7ac27896782",
+  "generator": "tests/benchmark/generate_adhanpy.py",
+  "seconds_procedure": "minute-only",
+  "rounded_rounding": "adhanpy CalendarUtil.rounded_minute (round-half-even on second/60; minute-59 truncation fallback)",
+  "high_latitude_rule": "MIDDLE_OF_THE_NIGHT",
+  "entries": [
+    {
+      "city": "Raleigh",
+      "latitude": 35.775,
+      "longitude": -78.6336,
+      "date": "2015-07-12",
+      "method": "MUSLIM_WORLD_LEAGUE",
+      "rounded": {
+        "fajr": "2015-07-12T08:22:00Z",
+        "sunrise": "2015-07-12T10:08:00Z",
+        "dhuhr": "2015-07-12T17:21:00Z",
+        "asr": "2015-07-12T21:09:00Z",
+        "maghrib": "2015-07-13T00:32:00Z",
+        "isha": "2015-07-13T02:11:00Z"
+      }
+    },
+    {
+      "city": "Raleigh",
+      "latitude": 35.775,
+      "longitude": -78.6336,
+      "date": "2015-07-12",
+      "method": "NORTH_AMERICA",
+      "rounded": {
+        "fajr": "2015-07-12T08:42:00Z",
+        "sunrise": "2015-07-12T10:08:00Z",
+        "dhuhr": "2015-07-12T17:21:00Z",
+        "asr": "2015-07-12T21:09:00Z",
+        "maghrib": "2015-07-13T00:32:00Z",
+        "isha": "2015-07-13T01:57:00Z"
+      }
+    },
+    {
+      "city": "Raleigh",
+      "latitude": 35.775,
+      "longitude": -78.6336,
+      "date": "2015-12-01",
+      "method": "MUSLIM_WORLD_LEAGUE",
+      "rounded": {
+        "fajr": "2015-12-01T10:35:00Z",
+        "sunrise": "2015-12-01T12:06:00Z",
+        "dhuhr": "2015-12-01T17:05:00Z",
+        "asr": "2015-12-01T19:42:00Z",
+        "maghrib": "2015-12-01T22:01:00Z",
+        "isha": "2015-12-01T23:26:00Z"
+      }
+    },
+    {
+      "city": "Raleigh",
+      "latitude": 35.775,
+      "longitude": -78.6336,
+      "date": "2015-12-01",
+      "method": "NORTH_AMERICA",
+      "rounded": {
+        "fajr": "2015-12-01T10:51:00Z",
+        "sunrise": "2015-12-01T12:06:00Z",
+        "dhuhr": "2015-12-01T17:05:00Z",
+        "asr": "2015-12-01T19:42:00Z",
+        "maghrib": "2015-12-01T22:01:00Z",
+        "isha": "2015-12-01T23:16:00Z"
+      }
+    },
+    {
+      "city": "London",
+      "latitude": 51.5074,
+      "longitude": -0.1278,
+      "date": "2024-06-21",
+      "method": "MUSLIM_WORLD_LEAGUE",
+      "rounded": {
+        "fajr": "2024-06-21T00:02:00Z",
+        "sunrise": "2024-06-21T03:43:00Z",
+        "dhuhr": "2024-06-21T12:03:00Z",
+        "asr": "2024-06-21T16:25:00Z",
+        "maghrib": "2024-06-21T20:22:00Z",
+        "isha": "2024-06-22T00:03:00Z"
+      }
+    },
+    {
+      "city": "London",
+      "latitude": 51.5074,
+      "longitude": -0.1278,
+      "date": "2024-06-21",
+      "method": "NORTH_AMERICA",
+      "rounded": {
+        "fajr": "2024-06-21T00:15:00Z",
+        "sunrise": "2024-06-21T03:43:00Z",
+        "dhuhr": "2024-06-21T12:03:00Z",
+        "asr": "2024-06-21T16:25:00Z",
+        "maghrib": "2024-06-21T20:22:00Z",
+        "isha": "2024-06-21T23:49:00Z"
+      }
+    },
+    {
+      "city": "London",
+      "latitude": 51.5074,
+      "longitude": -0.1278,
+      "date": "2024-12-21",
+      "method": "MUSLIM_WORLD_LEAGUE",
+      "rounded": {
+        "fajr": "2024-12-21T05:59:00Z",
+        "sunrise": "2024-12-21T08:04:00Z",
+        "dhuhr": "2024-12-21T11:59:00Z",
+        "asr": "2024-12-21T13:38:00Z",
+        "maghrib": "2024-12-21T15:54:00Z",
+        "isha": "2024-12-21T17:51:00Z"
+      }
+    },
+    {
+      "city": "London",
+      "latitude": 51.5074,
+      "longitude": -0.1278,
+      "date": "2024-12-21",
+      "method": "NORTH_AMERICA",
+      "rounded": {
+        "fajr": "2024-12-21T06:20:00Z",
+        "sunrise": "2024-12-21T08:04:00Z",
+        "dhuhr": "2024-12-21T11:59:00Z",
+        "asr": "2024-12-21T13:38:00Z",
+        "maghrib": "2024-12-21T15:54:00Z",
+        "isha": "2024-12-21T17:38:00Z"
+      }
+    },
+    {
+      "city": "Singapore",
+      "latitude": 1.3521,
+      "longitude": 103.8198,
+      "date": "2024-03-20",
+      "method": "MUSLIM_WORLD_LEAGUE",
+      "rounded": {
+        "fajr": "2024-03-19T22:00:00Z",
+        "sunrise": "2024-03-19T23:09:00Z",
+        "dhuhr": "2024-03-20T05:13:00Z",
+        "asr": "2024-03-20T08:15:00Z",
+        "maghrib": "2024-03-20T11:15:00Z",
+        "isha": "2024-03-20T12:20:00Z"
+      }
+    },
+    {
+      "city": "Singapore",
+      "latitude": 1.3521,
+      "longitude": 103.8198,
+      "date": "2024-03-20",
+      "method": "NORTH_AMERICA",
+      "rounded": {
+        "fajr": "2024-03-19T22:12:00Z",
+        "sunrise": "2024-03-19T23:09:00Z",
+        "dhuhr": "2024-03-20T05:13:00Z",
+        "asr": "2024-03-20T08:15:00Z",
+        "maghrib": "2024-03-20T11:15:00Z",
+        "isha": "2024-03-20T12:12:00Z"
+      }
+    },
+    {
+      "city": "Tokyo",
+      "latitude": 35.6762,
+      "longitude": 139.6503,
+      "date": "2024-09-01",
+      "method": "MUSLIM_WORLD_LEAGUE",
+      "rounded": {
+        "fajr": "2024-08-31T18:44:00Z",
+        "sunrise": "2024-08-31T20:13:00Z",
+        "dhuhr": "2024-09-01T02:42:00Z",
+        "asr": "2024-09-01T06:19:00Z",
+        "maghrib": "2024-09-01T09:09:00Z",
+        "isha": "2024-09-01T10:32:00Z"
+      }
+    },
+    {
+      "city": "Tokyo",
+      "latitude": 35.6762,
+      "longitude": 139.6503,
+      "date": "2024-09-01",
+      "method": "NORTH_AMERICA",
+      "rounded": {
+        "fajr": "2024-08-31T19:01:00Z",
+        "sunrise": "2024-08-31T20:13:00Z",
+        "dhuhr": "2024-09-01T02:42:00Z",
+        "asr": "2024-09-01T06:19:00Z",
+        "maghrib": "2024-09-01T09:09:00Z",
+        "isha": "2024-09-01T10:21:00Z"
+      }
+    },
+    {
+      "city": "Sydney",
+      "latitude": -33.8688,
+      "longitude": 151.2093,
+      "date": "2024-01-15",
+      "method": "MUSLIM_WORLD_LEAGUE",
+      "rounded": {
+        "fajr": "2024-01-14T17:19:00Z",
+        "sunrise": "2024-01-14T18:59:00Z",
+        "dhuhr": "2024-01-15T02:05:00Z",
+        "asr": "2024-01-15T05:49:00Z",
+        "maghrib": "2024-01-15T09:09:00Z",
+        "isha": "2024-01-15T10:43:00Z"
+      }
+    },
+    {
+      "city": "Sydney",
+      "latitude": -33.8688,
+      "longitude": 151.2093,
+      "date": "2024-01-15",
+      "method": "NORTH_AMERICA",
+      "rounded": {
+        "fajr": "2024-01-14T17:38:00Z",
+        "sunrise": "2024-01-14T18:59:00Z",
+        "dhuhr": "2024-01-15T02:05:00Z",
+        "asr": "2024-01-15T05:49:00Z",
+        "maghrib": "2024-01-15T09:09:00Z",
+        "isha": "2024-01-15T10:30:00Z"
+      }
+    },
+    {
+      "city": "Nairobi",
+      "latitude": -1.2921,
+      "longitude": 36.8219,
+      "date": "2024-04-10",
+      "method": "MUSLIM_WORLD_LEAGUE",
+      "rounded": {
+        "fajr": "2024-04-10T02:22:00Z",
+        "sunrise": "2024-04-10T03:31:00Z",
+        "dhuhr": "2024-04-10T09:35:00Z",
+        "asr": "2024-04-10T12:48:00Z",
+        "maghrib": "2024-04-10T15:36:00Z",
+        "isha": "2024-04-10T16:42:00Z"
+      }
+    },
+    {
+      "city": "Nairobi",
+      "latitude": -1.2921,
+      "longitude": 36.8219,
+      "date": "2024-04-10",
+      "method": "NORTH_AMERICA",
+      "rounded": {
+        "fajr": "2024-04-10T02:34:00Z",
+        "sunrise": "2024-04-10T03:31:00Z",
+        "dhuhr": "2024-04-10T09:35:00Z",
+        "asr": "2024-04-10T12:48:00Z",
+        "maghrib": "2024-04-10T15:36:00Z",
+        "isha": "2024-04-10T16:34:00Z"
+      }
+    },
+    {
+      "city": "New York",
+      "latitude": 40.7128,
+      "longitude": -74.006,
+      "date": "2024-11-03",
+      "method": "MUSLIM_WORLD_LEAGUE",
+      "rounded": {
+        "fajr": "2024-11-03T09:56:00Z",
+        "sunrise": "2024-11-03T11:29:00Z",
+        "dhuhr": "2024-11-03T16:41:00Z",
+        "asr": "2024-11-03T19:25:00Z",
+        "maghrib": "2024-11-03T21:49:00Z",
+        "isha": "2024-11-03T23:17:00Z"
+      }
+    },
+    {
+      "city": "New York",
+      "latitude": 40.7128,
+      "longitude": -74.006,
+      "date": "2024-11-03",
+      "method": "NORTH_AMERICA",
+      "rounded": {
+        "fajr": "2024-11-03T10:12:00Z",
+        "sunrise": "2024-11-03T11:29:00Z",
+        "dhuhr": "2024-11-03T16:41:00Z",
+        "asr": "2024-11-03T19:25:00Z",
+        "maghrib": "2024-11-03T21:49:00Z",
+        "isha": "2024-11-03T23:06:00Z"
+      }
+    },
+    {
+      "city": "Cape Town",
+      "latitude": -33.9249,
+      "longitude": 18.4241,
+      "date": "2024-07-01",
+      "method": "MUSLIM_WORLD_LEAGUE",
+      "rounded": {
+        "fajr": "2024-07-01T04:23:00Z",
+        "sunrise": "2024-07-01T05:52:00Z",
+        "dhuhr": "2024-07-01T10:51:00Z",
+        "asr": "2024-07-01T13:30:00Z",
+        "maghrib": "2024-07-01T15:48:00Z",
+        "isha": "2024-07-01T17:13:00Z"
+      }
+    },
+    {
+      "city": "Cape Town",
+      "latitude": -33.9249,
+      "longitude": 18.4241,
+      "date": "2024-07-01",
+      "method": "NORTH_AMERICA",
+      "rounded": {
+        "fajr": "2024-07-01T04:38:00Z",
+        "sunrise": "2024-07-01T05:52:00Z",
+        "dhuhr": "2024-07-01T10:51:00Z",
+        "asr": "2024-07-01T13:30:00Z",
+        "maghrib": "2024-07-01T15:48:00Z",
+        "isha": "2024-07-01T17:02:00Z"
+      }
+    },
+    {
+      "city": "Madrid",
+      "latitude": 40.4168,
+      "longitude": -3.7038,
+      "date": "2024-02-29",
+      "method": "MUSLIM_WORLD_LEAGUE",
+      "rounded": {
+        "fajr": "2024-02-29T05:19:00Z",
+        "sunrise": "2024-02-29T06:49:00Z",
+        "dhuhr": "2024-02-29T12:28:00Z",
+        "asr": "2024-02-29T15:36:00Z",
+        "maghrib": "2024-02-29T18:06:00Z",
+        "isha": "2024-02-29T19:31:00Z"
+      }
+    },
+    {
+      "city": "Madrid",
+      "latitude": 40.4168,
+      "longitude": -3.7038,
+      "date": "2024-02-29",
+      "method": "NORTH_AMERICA",
+      "rounded": {
+        "fajr": "2024-02-29T05:35:00Z",
+        "sunrise": "2024-02-29T06:49:00Z",
+        "dhuhr": "2024-02-29T12:28:00Z",
+        "asr": "2024-02-29T15:36:00Z",
+        "maghrib": "2024-02-29T18:06:00Z",
+        "isha": "2024-02-29T19:20:00Z"
+      }
+    },
+    {
+      "city": "Kuala Lumpur",
+      "latitude": 3.139,
+      "longitude": 101.6869,
+      "date": "2024-06-01",
+      "method": "MUSLIM_WORLD_LEAGUE",
+      "rounded": {
+        "fajr": "2024-05-31T21:48:00Z",
+        "sunrise": "2024-05-31T23:02:00Z",
+        "dhuhr": "2024-06-01T05:12:00Z",
+        "asr": "2024-06-01T08:37:00Z",
+        "maghrib": "2024-06-01T11:20:00Z",
+        "isha": "2024-06-01T12:30:00Z"
+      }
+    },
+    {
+      "city": "Kuala Lumpur",
+      "latitude": 3.139,
+      "longitude": 101.6869,
+      "date": "2024-06-01",
+      "method": "NORTH_AMERICA",
+      "rounded": {
+        "fajr": "2024-05-31T22:01:00Z",
+        "sunrise": "2024-05-31T23:02:00Z",
+        "dhuhr": "2024-06-01T05:12:00Z",
+        "asr": "2024-06-01T08:37:00Z",
+        "maghrib": "2024-06-01T11:20:00Z",
+        "isha": "2024-06-01T12:22:00Z"
+      }
+    }
+  ]
+}
