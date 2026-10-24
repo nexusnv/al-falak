@@ -18,11 +18,15 @@ At high latitudes, summer nights can be very short, making it difficult to deter
 ## Using a high latitude rule
 
 ```python
-from alfalak import PrayerTimes, CalculationParameters, HighLatitudeRule
-
-params = CalculationParameters(
-    high_latitude_rule=HighLatitudeRule.MIDDLE_OF_THE_NIGHT,
+from alfalak import (
+    CalculationMethod,
+    CalculationParameters,
+    HighLatitudeRule,
+    PrayerTimes,
 )
+
+params = CalculationParameters(method=CalculationMethod.MUSLIM_WORLD_LEAGUE)
+params.high_latitude_rule = HighLatitudeRule.MIDDLE_OF_THE_NIGHT
 prayer_times = PrayerTimes(
     (51.5074, -0.1278),  # London
     datetime.now(),
@@ -71,11 +75,11 @@ very short twilight windows. The choice of `PolarCircleRule` and
 `HighLatitudeRule` has a significant impact on calculated times; verify results
 against authoritative local sources when operating in these regions.
 
-See [Timezone Handling](timezone.md) for details on deterministic timezone
+See [Timezone Handling](timezone/) for details on deterministic timezone
 database behavior in tests and CI.
 
 ## See also
 
-- [Timezone Handling](timezone.md) — DST and timezone considerations
+- [Timezone Handling](timezone/) — DST and timezone considerations
 - [Polar Regions](polar-regions/) — handling polar day/night
 - [Calculation Methods](calculation-methods/) — method-specific defaults

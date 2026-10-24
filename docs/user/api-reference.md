@@ -149,6 +149,15 @@ equals that rounded prayer — this keeps `rounded_minute` round-tripping to
 `time_for_prayer`, and on such a day the true Asr genuinely coincides with
 the clamp target.
 
+## Accuracy and reference tolerances
+
+Golden tests use two narrow tiers: transit / equation-of-time chains are
+checked at ±10 s, and USNO rise/set values at ±60 s (the resolution of the
+published one-day tables). Takwim / e-solat comparisons assert minute
+agreement plus a documented numeric administrative delta. These bars are
+never widened to make a port or reference fit; see
+[Citations](citations/) for the sources behind each golden.
+
 ## LunarCoordinates
 
 ```python

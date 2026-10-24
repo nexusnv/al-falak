@@ -64,6 +64,13 @@ The Qibla direction, distance, and compass-heading calculations are derived from
 
 ## Golden test references
 
+Tolerances are two-tier and deliberately narrow:
+
+- **Transit / equation-of-time full-chain**: ±10 s. The Greenwich transit case is a chain-consistency lock derived from the published Meeus examples, not an independent physical truth.
+- **USNO rise/set**: ±60 s, matching the resolution of the published one-day tables.
+- **Takwim / e-solat**: minute agreement plus a documented numeric administrative delta (JAKIM applies minute-level adjustments).
+- **Unchanged tighter bars**: Meeus Ex. 25.a right ascension `abs=1e-5` deg and the equation-of-time golden `abs=0.17` min (±10.2 s).
+
 - Meeus, J. — *Astronomical Algorithms* (2nd ed., Willmann-Bell, 1998), Ex. 25.a (p. 165) and Ex. 28.a (p. 183). Used for the Greenwich solar transit chain-consistency test on 1992-10-13 (±10 s tolerance).
 - Jabatan Kemajuan Islam Malaysia (JAKIM) e-solat API — Takwim Solat (duration). Kuala Lumpur/Putrajaya zone `WLY01`, 2025-01-16 (local MYT UTC+8), retrieved 2026-10-12. URL: `https://www.e-solat.gov.my/index.php?r=esolatApi/takwimsolat&period=duration&zone=WLY01`
 - Jabatan Kemajuan Islam Malaysia (JAKIM) e-solat API — Takwim Solat (duration). Sabah (Kota Kinabalu area) zone `SBH07`, 2025-01-16 (local MYT UTC+8), retrieved 2026-10-12. URL: `https://www.e-solat.gov.my/index.php?r=esolatApi/takwimsolat&period=duration&zone=SBH07`
