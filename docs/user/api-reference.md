@@ -76,7 +76,7 @@ Exactly one of `calculation_method` or `calculation_parameters` must be provided
 | Method | Returns | Description |
 |---|---|---|
 | `time_for_prayer(prayer: Prayer)` | `datetime` | Get time for a specific prayer |
-| `time_for_prayer_unrounded(prayer: Prayer)` | `datetime` | Post-offset, pre-rounding UTC instant for a specific prayer (per-prayer `adjustments`/`method_adjustments` included, half-up minute rounding not yet applied); `syuruk` is the `sunrise` instant; when `asr` saturates to `dhuhr`/`maghrib` (polar edge) the value is that already-rounded target; `Prayer.NONE` or non-`Prayer` inputs raise `ConfigurationError` |
+| `time_for_prayer_unrounded(prayer: Prayer)` | `datetime` | Post-offset, pre-rounding UTC instant for a specific prayer (per-prayer `adjustments`/`method_adjustments` included, half-up minute rounding not yet applied); `syuruk` is the `sunrise` instant; when `asr` saturates to `dhuhr`/`maghrib` (polar edge or adjustment-driven clamp) the value is that already-rounded target; `Prayer.NONE` or non-`Prayer` inputs raise `ConfigurationError` |
 
 ## Qibla
 
@@ -143,8 +143,9 @@ The unrounded accessors (`time_for_prayer_unrounded`,
 `night_fraction_unrounded`) return the step-2 input: the adjusted,
 pre-rounding instant in UTC, per-prayer offsets included. They do **not**
 return raw solar geometry — offsets are already inside the value. One
-exception: when `asr` saturates to `dhuhr` or `maghrib` (polar edge), the
-clamp target is already rounded, so `time_for_prayer_unrounded(Prayer.ASR)`
+exception: when `asr` saturates to `dhuhr` or `maghrib` (polar edge or
+adjustment-driven clamp), the clamp target is already rounded, so
+`time_for_prayer_unrounded(Prayer.ASR)`
 equals that rounded prayer — this keeps `rounded_minute` round-tripping to
 `time_for_prayer`, and on such a day the true Asr genuinely coincides with
 the clamp target.
@@ -153,9 +154,10 @@ the clamp target.
 
 Golden tests use two narrow tiers: transit / equation-of-time chains are
 checked at ±10 s, and USNO rise/set values at ±60 s (the resolution of the
-published one-day tables). Takwim / e-solat comparisons assert minute
-agreement plus a documented numeric administrative delta. These bars are
-never widened to make a port or reference fit; see
+published one-day tables). Takwim / e-solat rows are checked against the
+JAKIM 18°/18° computation with the 0–2 minute ihtiyat the published tables
+apply; the 20° Singapore preset is not used for that comparison. These bars
+are never widened to make a port or reference fit; see
 [Citations](citations/) for the sources behind each golden.
 
 ## LunarCoordinates

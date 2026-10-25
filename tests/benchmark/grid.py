@@ -1,3 +1,6 @@
+import subprocess
+from pathlib import Path
+
 GRID = (
     ("Raleigh", 35.7750, -78.6336, "2015-07-12"),
     ("Raleigh", 35.7750, -78.6336, "2015-12-01"),
@@ -13,3 +16,34 @@ GRID = (
     ("Kuala Lumpur", 3.1390, 101.6869, "2024-06-01"),
 )
 METHODS = ("MUSLIM_WORLD_LEAGUE", "NORTH_AMERICA")
+
+SOURCE_PINS = {
+    "adhanpy": {
+        "sha": "f9cfed51a857cb6a8436ad4f5685e7ac27896782",
+        "version": "f9cfed51",
+        "seconds_procedure": "minute-only",
+        "high_latitude_rule": "MIDDLE_OF_THE_NIGHT",
+    },
+    "adhan_kotlin": {
+        "sha": "e23d14385f6203954256b935ef91dc3c6565de34",
+        "version": "e23d1438",
+        "seconds_procedure": "second",
+        "high_latitude_rule": "MIDDLE_OF_THE_NIGHT",
+    },
+}
+
+
+def assert_pinned_head(repo_dir: Path, expected_sha: str) -> None:
+    """Exit if ``repo_dir`` is not a git checkout at ``expected_sha``."""
+    result = subprocess.run(
+        ["git", "-C", str(repo_dir), "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        raise SystemExit(f"cannot read git HEAD in {repo_dir}")
+    head = result.stdout.strip()
+    if head != expected_sha:
+        raise SystemExit(
+            f"{repo_dir} HEAD {head} does not match pinned SHA {expected_sha}"
+        )

@@ -174,7 +174,16 @@ def _compare_tier_b(source, entry, prayer_times, minute_only):
 def test_cross_port(vector_path):
     data = json.loads(vector_path.read_text(encoding="utf-8"))
     source = data["source"]
+    pin = grid.SOURCE_PINS[source]
+    assert data["sha"] == pin["sha"], f"{source} vector SHA is not pinned"
+    assert data["version"] == pin["version"], f"{source} vector version is not pinned"
+    assert (
+        data["high_latitude_rule"] == pin["high_latitude_rule"]
+    ), f"{source} vector high-latitude rule is not pinned"
     seconds_procedure = data["seconds_procedure"]
+    assert seconds_procedure == pin["seconds_procedure"], (
+        f"{source} vector seconds_procedure is not pinned"
+    )
     assert seconds_procedure in ("fractional", "second", "minute-only")
     minute_only = seconds_procedure == "minute-only"
     if not minute_only:

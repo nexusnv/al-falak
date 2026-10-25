@@ -30,7 +30,8 @@ sys.path.insert(0, str(HERE))
 
 import grid  # noqa: E402  (path set above)
 
-SHA = "f9cfed51a857cb6a8436ad4f5685e7ac27896782"
+PIN = grid.SOURCE_PINS["adhanpy"]
+SHA = PIN["sha"]
 PKG = f"git+https://github.com/alphahm/adhanpy@{SHA}"
 VECTOR_PATH = HERE / "vectors" / "adhanpy.json"
 
@@ -40,13 +41,13 @@ import json
 import os
 from pathlib import Path
 
-from grid import GRID, METHODS
+from grid import GRID, METHODS, SOURCE_PINS
 
 from adhanpy.calculation import CalculationMethod, CalculationParameters
 from adhanpy.calculation.HighLatitudeRule import HighLatitudeRule
 from adhanpy.PrayerTimes import PrayerTimes
 
-SHA = os.environ["ADHANPY_SHA"]
+PIN = SOURCE_PINS["adhanpy"]
 
 
 def to_utc_iso(value):
@@ -86,15 +87,15 @@ for city, latitude, longitude, date_string in GRID:
 
 payload = {
     "source": "adhanpy",
-    "version": SHA[:8],
-    "sha": SHA,
+    "version": PIN["version"],
+    "sha": PIN["sha"],
     "generator": "tests/benchmark/generate_adhanpy.py",
-    "seconds_procedure": "minute-only",
+    "seconds_procedure": PIN["seconds_procedure"],
     "rounded_rounding": (
         "adhanpy CalendarUtil.rounded_minute "
         "(round-half-even on second/60; minute-59 truncation fallback)"
     ),
-    "high_latitude_rule": "MIDDLE_OF_THE_NIGHT",
+    "high_latitude_rule": PIN["high_latitude_rule"],
     "entries": entries,
 }
 out = Path(os.environ["ADHANPY_VECTORS_OUT"])
@@ -108,6 +109,7 @@ def _interpreter(source_dir: str | None) -> tuple[str, dict[str, str]]:
     env = os.environ.copy()
     if source_dir is not None:
         source_root = Path(source_dir).resolve()
+        grid.assert_pinned_head(source_root, SHA)
         src = source_root / "src"
         if not (src / "adhanpy").is_dir():
             raise SystemExit(f"no adhanpy package under {src}")
@@ -134,7 +136,6 @@ def main() -> None:
 
     python, env = _interpreter(args.source_dir)
     env["ADHANPY_VECTORS_OUT"] = str(VECTOR_PATH)
-    env["ADHANPY_SHA"] = SHA
     subprocess.run(
         [python, "-c", INNER_SCRIPT],
         cwd=HERE,

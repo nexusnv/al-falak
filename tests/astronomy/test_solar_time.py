@@ -10,7 +10,7 @@ from alfalak.util.TimeComponents import TimeComponents
 from alfalak.astronomy.SolarTime import (
     SolarTime,
     _solar_coords_for_date,
-    clear_solar_coords_cache,
+    _clear_solar_coords_cache,
 )
 
 
@@ -110,7 +110,7 @@ def test_cached_solar_coords_match_direct_construction(date, offset):
     edges (year 1 and year 9999) stay total: no ``date ± timedelta``
     ``OverflowError`` is introduced by the cache.
     """
-    clear_solar_coords_cache()
+    _clear_solar_coords_cache()
     year, month, day = date
     cached = _solar_coords_for_date(year, month, day, offset)
     direct = SolarCoordinates(julian_day(year, month, day) + offset)
@@ -129,7 +129,7 @@ def test_solar_time_accepts_proleptic_calendar_start():
 
 
 def test_solar_coords_cache_reuses_and_clears():
-    clear_solar_coords_cache()
+    _clear_solar_coords_cache()
     try:
         first = _solar_coords_for_date(2024, 3, 20)
         second = _solar_coords_for_date(2024, 3, 20)
@@ -138,7 +138,7 @@ def test_solar_coords_cache_reuses_and_clears():
         assert info.hits >= 1
         assert info.currsize == 1
     finally:
-        clear_solar_coords_cache()
+        _clear_solar_coords_cache()
     assert _solar_coords_for_date.cache_info().currsize == 0
 
 

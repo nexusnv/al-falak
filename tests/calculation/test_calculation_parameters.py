@@ -20,7 +20,7 @@ from alfalak.exceptions import ConfigurationError
         (CalculationMethod.QATAR, 18, 0, 90),
         (CalculationMethod.SINGAPORE, 20, 18, 0),
         (CalculationMethod.UOIF, 12, 12, 0),
-        (CalculationMethod.JAKIM, 20, 18, 0),
+        (CalculationMethod.JAKIM, 18, 18, 0),
     ],
 )
 def test_calculation_method(calculation_method, fajr_angle, isha_angle, isha_interval):

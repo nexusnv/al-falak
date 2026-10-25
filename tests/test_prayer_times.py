@@ -385,7 +385,7 @@ def test_twilight_preset_definitions_locked():
         CalculationMethod.QATAR: (18.0, 0.0, 90, (0, 0, 0, 0, 0, 0)),
         CalculationMethod.SINGAPORE: (20.0, 18.0, 0, (0, 0, 1, 0, 0, 0)),
         CalculationMethod.UOIF: (12.0, 12.0, 0, (0, 0, 0, 0, 0, 0)),
-        CalculationMethod.JAKIM: (20.0, 18.0, 0, (0, 0, 1, 0, 0, 0)),
+        CalculationMethod.JAKIM: (18.0, 18.0, 0, (0, 0, 1, 0, 0, 0)),
     }
 
     assert set(expected) == set(CalculationMethod)
@@ -420,7 +420,7 @@ def test_twilight_preset_definitions_locked():
 
 def test_milestone_twilight_rows_pinned():
     # Milestone Phase 2 rows mapped to presets: MWL 18/17, Egypt 19.5/17.5,
-    # ISNA 15/15 via NORTH_AMERICA, JAKIM/MUIS 20/18 via SINGAPORE and JAKIM.
+    # ISNA 15/15 via NORTH_AMERICA, JAKIM 18/18, Singapore 20/18.
     assert (
         CalculationParameters(method=CalculationMethod.MUSLIM_WORLD_LEAGUE).fajr_angle
         == 18.0
@@ -439,7 +439,7 @@ def test_milestone_twilight_rows_pinned():
     )
     assert CalculationParameters(method=CalculationMethod.SINGAPORE).fajr_angle == 20.0
     assert CalculationParameters(method=CalculationMethod.SINGAPORE).isha_angle == 18.0
-    assert CalculationParameters(method=CalculationMethod.JAKIM).fajr_angle == 20.0
+    assert CalculationParameters(method=CalculationMethod.JAKIM).fajr_angle == 18.0
     assert CalculationParameters(method=CalculationMethod.JAKIM).isha_angle == 18.0
 
 
@@ -556,7 +556,7 @@ def test_milestone_twilight_rows_pinned():
         ),
         (
             CalculationMethod.JAKIM,
-            "08:07:00",
+            "08:22:00",
             "10:08:00",
             "17:21:00",
             "21:09:00",
@@ -596,16 +596,21 @@ def test_twilight_preset_goldens_raleigh(
         )
 
 
-def test_jakim_matches_singapore_by_design():
-    # Slice 2.2: JAKIM uses identical 20/18 angles plus dhuhr=1, so computed
-    # times must equal SINGAPORE exactly. Not a different computation.
+def test_jakim_uses_current_18_degree_fajr():
+    # JAKIM moved its Subuh criterion to 18 degrees; SINGAPORE keeps 20/18.
+    # The presets share Isha, interval mode, and dhuhr+1, so only Fajr differs.
     jakim = CalculationParameters(method=CalculationMethod.JAKIM)
     singapore = CalculationParameters(method=CalculationMethod.SINGAPORE)
 
     assert (jakim.fajr_angle, jakim.isha_angle, jakim.isha_interval) == (
-        singapore.fajr_angle,
-        singapore.isha_angle,
-        singapore.isha_interval,
+        18.0,
+        18.0,
+        0,
+    )
+    assert (singapore.fajr_angle, singapore.isha_angle, singapore.isha_interval) == (
+        20.0,
+        18.0,
+        0,
     )
     assert (
         jakim.method_adjustments.fajr,
@@ -637,7 +642,8 @@ def test_jakim_matches_singapore_by_design():
             coordinates, prayer_date, calculation_method=CalculationMethod.SINGAPORE
         )
 
-        assert jakim_times.fajr == singapore_times.fajr
+        # 18-degree Fajr is later than 20-degree Fajr; the rest is identical.
+        assert jakim_times.fajr > singapore_times.fajr
         assert jakim_times.sunrise == singapore_times.sunrise
         assert jakim_times.dhuhr == singapore_times.dhuhr
         assert jakim_times.asr == singapore_times.asr
@@ -651,7 +657,7 @@ def test_jakim_matches_singapore_by_design():
         (
             (3.1390, 101.6869),
             DateComponents(2025, 1, 15),
-            "22:02:00",
+            "22:10:00",
             "23:24:00",
             "05:24:00",
             "08:46:00",
@@ -661,7 +667,7 @@ def test_jakim_matches_singapore_by_design():
         (
             (5.9804, 116.0735),
             DateComponents(2025, 1, 15),
-            "21:08:00",
+            "21:17:00",
             "22:31:00",
             "04:26:00",
             "07:48:00",
@@ -673,10 +679,10 @@ def test_jakim_matches_singapore_by_design():
 def test_jakim_malaysian_zone_goldens(
     coordinates, date, fajr, sunrise, dhuhr, asr, maghrib, isha
 ):
-    # Slice 2.2 Takwim verification anchors: Kuala Lumpur (3.1390, 101.6869)
-    # and Kota Kinabalu (5.9804, 116.0735) on 2025-01-15, UTC.
-    # Official e-solat tables may add minute-level administrative adjustments;
-    # these goldens lock the computed 20/18 baseline, not the portal display.
+    # Takwim verification anchors: Kuala Lumpur (3.1390, 101.6869) and
+    # Kota Kinabalu (5.9804, 116.0735) on 2025-01-15, UTC. These lock the
+    # computed 18/18 baseline; the official 2025-01-16 rows are checked in
+    # test_esolat_takwim_portal_rows against the published 0-2 minute ihtiyat.
     prayer_times = PrayerTimes(
         coordinates, date, calculation_method=CalculationMethod.JAKIM
     )
@@ -690,7 +696,7 @@ def test_jakim_malaysian_zone_goldens(
 
 
 @pytest.mark.parametrize(
-    "coordinates, local_date, official_utc, admin_delta_minutes",
+    "coordinates, local_date, official_utc, ihtiyat_minutes",
     [
         pytest.param(
             (3.1390, 101.6869),  # Kuala Lumpur
@@ -704,7 +710,7 @@ def test_jakim_malaysian_zone_goldens(
                 "isha": "2025-01-16T12:37:00+00:00",
             },
             {
-                "fajr": 11,
+                "fajr": 2,
                 "sunrise": 0,
                 "dhuhr": 2,
                 "asr": 1,
@@ -725,7 +731,7 @@ def test_jakim_malaysian_zone_goldens(
                 "isha": "2025-01-16T11:35:00+00:00",
             },
             {
-                "fajr": 9,
+                "fajr": 1,
                 "sunrise": 0,
                 "dhuhr": 2,
                 "asr": 1,
@@ -737,7 +743,7 @@ def test_jakim_malaysian_zone_goldens(
     ],
 )
 def test_esolat_takwim_portal_rows(
-    coordinates, local_date, official_utc, admin_delta_minutes
+    coordinates, local_date, official_utc, ihtiyat_minutes
 ):
     # Official JAKIM Takwim rows for the local prayer date 2025-01-16
     # (MYT, UTC+8), converted to UTC. Retrieved 2026-10-24 from:
@@ -745,10 +751,10 @@ def test_esolat_takwim_portal_rows(
     #   (06:03 06:13 07:24 13:26 16:48 19:23 20:37).
     # - SBH07 (Kota Kinabalu): e-solat XML feed snapshot 2025-01-16 10:31:15
     #   (05:08 05:18 06:31 12:28 15:49 18:21 19:35).
-    # The published tables apply minute-level administrative adjustments; the
-    # per-prayer deltas below are official minus computed. Subtracting them
-    # and asserting exact equality keeps the golden tight (a one-minute drift
-    # fails).
+    # The published tables add a 0-2 minute ihtiyat. Asserting that bound --
+    # not subtracting an arbitrary per-prayer offset -- makes the 18-degree
+    # Fajr criterion testable: a 20-degree Fajr is 9-11 minutes early and
+    # falls outside it.
     prayer_times = PrayerTimes(
         coordinates,
         DateComponents(local_date.year, local_date.month, local_date.day),
@@ -759,12 +765,14 @@ def test_esolat_takwim_portal_rows(
     for prayer, official in official_utc.items():
         computed = getattr(prayer_times, prayer)
         assert computed.astimezone(myt).date() == local_date, prayer
-        expected = datetime.fromisoformat(official) - timedelta(
-            minutes=admin_delta_minutes[prayer]
-        )
-        assert computed == expected, (
+        delta = datetime.fromisoformat(official) - computed
+        assert timedelta(0) <= delta <= timedelta(minutes=2), (
             f"{prayer} on {local_date}: computed {computed.isoformat()}, "
-            f"official {official} minus {admin_delta_minutes[prayer]}m"
+            f"official {official}, delta {delta}"
+        )
+        assert delta == timedelta(minutes=ihtiyat_minutes[prayer]), (
+            f"{prayer} on {local_date}: expected {ihtiyat_minutes[prayer]}m "
+            f"ihtiyat, got {delta}"
         )
 
 

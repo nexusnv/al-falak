@@ -25,15 +25,18 @@ def _solar_coords_for_date(
     at the edges of the proleptic calendar total (no ``date ± timedelta``
     ``OverflowError``) while preserving byte-identical output.
 
-    ``SolarTime`` asks for offsets -1, 0 and +1; a ``PrayerTimes`` build
-    therefore touches three dates. Sharing the results across repeated
-    builds and multi-day sweeps is the point of the cache. Elevation is
-    applied downstream in ``SolarTime`` and is not part of the key.
+    ``SolarTime`` asks for offsets -1, 0 and +1. ``PrayerTimes`` builds
+    today's and tomorrow's ``SolarTime``, so one build requests six keys over
+    four unique Julian days (``D-1`` through ``D+2``); ``(D, +1)`` and
+    ``(D+1, -1)`` are the same instant under different keys. Repeated builds
+    of the same date hit the cache; adjacent dates in a multi-day sweep use
+    disjoint keys and do not share entries. Elevation is applied downstream
+    in ``SolarTime`` and is not part of the key.
     """
     return SolarCoordinates(julian_day(year, month, day) + day_offset)
 
 
-def clear_solar_coords_cache() -> None:
+def _clear_solar_coords_cache() -> None:
     """Drop the date-keyed solar-coordinate cache (test hook)."""
     _solar_coords_for_date.cache_clear()
 

@@ -49,8 +49,9 @@ sys.path.insert(0, str(HERE))
 
 import grid  # noqa: E402  (path set above)
 
-SHA = "e23d14385f6203954256b935ef91dc3c6565de34"
-VERSION = "e23d1438"
+PIN = grid.SOURCE_PINS["adhan_kotlin"]
+SHA = PIN["sha"]
+VERSION = PIN["version"]
 REPO = "https://github.com/batoulapps/adhan-kotlin"
 VECTOR_PATH = HERE / "vectors" / "adhan_kotlin.json"
 TEST_CLASS = "com.batoulapps.adhan2.GenerateVectorsTest"
@@ -173,6 +174,7 @@ def _checkout(source_dir: str | None) -> tuple[Path, bool]:
         repo_dir = Path(source_dir).resolve()
         if not (repo_dir / "adhan").is_dir():
             raise SystemExit(f"no adhan module under {repo_dir}")
+        grid.assert_pinned_head(repo_dir, SHA)
         return repo_dir, False
 
     repo_dir = Path(tempfile.mkdtemp(prefix="adhan-kotlin-")) / "repo"
@@ -181,6 +183,7 @@ def _checkout(source_dir: str | None) -> tuple[Path, bool]:
         check=True,
     )
     subprocess.run(["git", "-C", str(repo_dir), "checkout", "--quiet", SHA], check=True)
+    grid.assert_pinned_head(repo_dir, SHA)
     return repo_dir, True
 
 
@@ -252,11 +255,11 @@ def main() -> None:
         "version": VERSION,
         "sha": SHA,
         "generator": "tests/benchmark/generate_adhan_kotlin.py",
-        "seconds_procedure": "second",
+        "seconds_procedure": PIN["seconds_procedure"],
         "rounded_rounding": (
             "Rounding.NEAREST (Float.roundToInt, half-away-from-zero)"
         ),
-        "high_latitude_rule": "MIDDLE_OF_THE_NIGHT",
+        "high_latitude_rule": PIN["high_latitude_rule"],
         "entries": data["entries"],
     }
     VECTOR_PATH.parent.mkdir(parents=True, exist_ok=True)

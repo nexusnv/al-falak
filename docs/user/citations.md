@@ -60,6 +60,7 @@ The Qibla direction, distance, and compass-heading calculations are derived from
 | Kuwait | Fajr angle 18°, Isha angle 17.5° |
 | Qatar | Fajr angle 18°, Isha interval 90 minutes |
 | Singapore | Fajr angle 20°, Isha angle 18° |
+| JAKIM | Fajr angle 18°, Isha angle 18° |
 | UOIF | Fajr angle 12°, Isha angle 12° |
 
 ## Golden test references
@@ -68,7 +69,7 @@ Tolerances are two-tier and deliberately narrow:
 
 - **Transit / equation-of-time full-chain**: ±10 s. The Greenwich transit case is a chain-consistency lock derived from the published Meeus examples, not an independent physical truth.
 - **USNO rise/set**: ±60 s, matching the resolution of the published one-day tables.
-- **Takwim / e-solat**: exact agreement after subtracting a documented per-prayer administrative delta (JAKIM applies minute-level adjustments).
+- **Takwim / e-solat**: official rows are checked against the JAKIM 18°/18° computation; the published tables add a 0–2 minute ihtiyat. A 20° Fajr angle is 9–11 minutes early and fails that bound.
 - **Unchanged tighter bars**: Meeus Ex. 25.a right ascension `abs=1e-5` deg and the equation-of-time golden `abs=0.17` min (±10.2 s).
 
 - Meeus, J. — *Astronomical Algorithms* (2nd ed., Willmann-Bell, 1998), Ex. 25.a (p. 165) and Ex. 28.a (p. 183). Used for the Greenwich solar transit chain-consistency test on 1992-10-13 (±10 s tolerance).

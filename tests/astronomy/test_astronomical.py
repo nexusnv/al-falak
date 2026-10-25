@@ -8,9 +8,9 @@ Two-tier accuracy policy for the independent-reference goldens (spec §3.3):
   case keeps its existing ±10.2 s bar.
 - **USNO rise/set**: ±60 s, matching the resolution of the published one-day
   tables (see ``test_solar_time.py``).
-- **Takwim / e-solat**: minute agreement plus a documented numeric
-  administrative delta (JAKIM applies minute-level adjustments); see
-  ``tests/test_prayer_times.py``.
+- **Takwim / e-solat**: official rows are checked against the JAKIM 18°/18°
+  computation with the published 0–2 minute ihtiyat. A 20° Fajr angle is
+  9–11 minutes early and fails that bound; see ``tests/test_prayer_times.py``.
 
 Unchanged tighter bars that must not be weakened: Ex.25.a right ascension
 ``abs=1e-5`` deg and the equation-of-time ``abs=0.17`` min (±10.2 s) chain

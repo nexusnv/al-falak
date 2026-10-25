@@ -22,20 +22,21 @@ Al-Falak supports 12 calculation methods. Each method defines Fajr and Isha angl
 | Qatar | 18° | — | 90 min | Modified Umm al-Qura |
 | Singapore | 20° | 18° | — | Singapore method |
 | UOIF | 12° | 12° | — | Union des organisations islamiques de France |
-| JAKIM | 20° | 18° | — | Malaysia (JAKIM); same 20/18 computation as Singapore |
+| JAKIM | 18° | 18° | — | Malaysia (JAKIM); current 18/18 Subuh criterion |
 
 ## JAKIM preset
 
-`JAKIM` uses Fajr 20° and Isha 18° with `dhuhr +1`, identical to `SINGAPORE`
-by design. It is not a different twilight computation: the separate preset
-exists for Malaysian operations (Malay naming, Malaysian zone handling, and
-e-solat timetable alignment).
+`JAKIM` uses Fajr 18° and Isha 18° with `dhuhr +1`. It deliberately differs
+from `SINGAPORE` (Fajr 20°): current JAKIM/Takwim tables use an 18° Subuh
+criterion, while the Singapore preset retains 20°. The separate preset exists
+for Malaysian operations (Malay naming, Malaysian zone handling, and e-solat
+timetable alignment).
 
-Verification anchors (checked 2026-10-03): Kuala Lumpur (3.1390, 101.6869)
-and Kota Kinabalu (5.9804, 116.0735) on 2025-01-15 lock the computed 20/18
-baseline in `tests/test_prayer_times.py`, with `JAKIM == SINGAPORE` asserted
-to the second. Official e-solat tables may add minute-level administrative
-adjustments on top of this baseline.
+Verification anchors (checked 2026-10-25): Kuala Lumpur (3.1390, 101.6869)
+and Kota Kinabalu (5.9804, 116.0735) on 2025-01-15 lock the computed 18/18
+baseline in `tests/test_prayer_times.py`; the official 2025-01-16 rows are
+within the 0–2 minute ihtiyat the published tables apply. A 20° Fajr angle
+would be 9–11 minutes early and fails the e-solat golden.
 
 ## Imsak
 
@@ -43,9 +44,10 @@ adjustments on top of this baseline.
 `CalculationParameters(imsak_offset=...)`). The JAKIM convention defaults to
 10, but published Malaysian tables are mostly — not always — exactly Fajr-10,
 so the offset stays configurable rather than hardcoded. The offset applies to
-the rounded Fajr (equivalent to pre-rounding for integer-minute offsets);
-`adjustments.imsak` applies on top, and Fajr adjustments flow through to
-Imsak. Defined for all methods including `NONE`.
+the unrounded Fajr before the final minute rounding (equivalent to applying it
+to the rounded Fajr for integer-minute offsets); `adjustments.imsak` applies
+on top, and Fajr adjustments flow through to Imsak. Defined for all methods
+including `NONE`.
 
 ## Syuruk, Ishraq and Dhuha
 
