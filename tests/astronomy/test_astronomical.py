@@ -9,8 +9,10 @@ Two-tier accuracy policy for the independent-reference goldens (spec §3.3):
 - **USNO rise/set**: ±60 s, matching the resolution of the published one-day
   tables (see ``test_solar_time.py``).
 - **Takwim / e-solat**: official rows are checked against the JAKIM 18°/18°
-  computation with the published 0–2 minute ihtiyat. A 20° Fajr angle is
-  9–11 minutes early and fails that bound; see ``tests/test_prayer_times.py``.
+  computation. The tables round to the minute and add a small ihtiyat; the
+  cited 2025 Kuala Lumpur rows span a −1 to +4 minute official-minus-computed
+  residual. A 20° Fajr angle is 9–12 minutes early and fails that envelope;
+  see ``tests/test_prayer_times.py``.
 
 Unchanged tighter bars that must not be weakened: Ex.25.a right ascension
 ``abs=1e-5`` deg and the equation-of-time ``abs=0.17`` min (±10.2 s) chain

@@ -175,6 +175,7 @@ def _checkout(source_dir: str | None) -> tuple[Path, bool]:
         if not (repo_dir / "adhan").is_dir():
             raise SystemExit(f"no adhan module under {repo_dir}")
         grid.assert_pinned_head(repo_dir, SHA)
+        grid.assert_clean_worktree(repo_dir)
         return repo_dir, False
 
     repo_dir = Path(tempfile.mkdtemp(prefix="adhan-kotlin-")) / "repo"
@@ -224,12 +225,6 @@ def main() -> None:
 
     repo_dir, temporary = _checkout(args.source_dir)
     test_path = repo_dir / TEST_RELATIVE_PATH
-    test_path.parent.mkdir(parents=True, exist_ok=True)
-    test_path.write_text(
-        TEST_TEMPLATE.format(rows=_kotlin_rows(), methods=_kotlin_methods()),
-        encoding="utf-8",
-    )
-
     entries_dir = Path(tempfile.mkdtemp(prefix="adhan-vectors-"))
     entries_path = entries_dir / "entries.json"
     env = os.environ.copy()
@@ -241,7 +236,17 @@ def main() -> None:
         "--tests",
         TEST_CLASS,
     ]
-    subprocess.run(command, cwd=repo_dir, env=env, check=True)
+    try:
+        test_path.parent.mkdir(parents=True, exist_ok=True)
+        test_path.write_text(
+            TEST_TEMPLATE.format(rows=_kotlin_rows(), methods=_kotlin_methods()),
+            encoding="utf-8",
+        )
+        subprocess.run(command, cwd=repo_dir, env=env, check=True)
+    finally:
+        # Never leave the injected test behind in a caller-provided checkout.
+        if not temporary:
+            test_path.unlink(missing_ok=True)
 
     data = json.loads(entries_path.read_text(encoding="utf-8"))
     expected = len(grid.GRID) * len(grid.METHODS)

@@ -106,5 +106,5 @@ def test_public_prayer_ordering_across_seeded_cases():
     # most cases into AstronomicalError would make the ordering checks
     # vacuous. The fixed seed currently evaluates 1670 of 2000 cases.
     assert evaluated >= 4 * N // 5, f"only {evaluated}/{N} cases evaluated"
-    assert undefined <= N // 5, f"{undefined}/{N} cases undefined"
+    assert undefined > 0, "sweep never exercised the polar/AstronomicalError branch"
     assert evaluated + undefined == N

@@ -47,3 +47,20 @@ def assert_pinned_head(repo_dir: Path, expected_sha: str) -> None:
         raise SystemExit(
             f"{repo_dir} HEAD {head} does not match pinned SHA {expected_sha}"
         )
+
+
+def assert_clean_worktree(repo_dir: Path) -> None:
+    """Exit if ``repo_dir`` has tracked or untracked changes.
+
+    Vectors generated from a dirty ``--source-dir`` checkout would claim the
+    pinned SHA while running different code.
+    """
+    result = subprocess.run(
+        ["git", "-C", str(repo_dir), "status", "--porcelain"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        raise SystemExit(f"cannot read git status in {repo_dir}")
+    if result.stdout.strip():
+        raise SystemExit(f"{repo_dir} is dirty; generate vectors from a clean checkout")

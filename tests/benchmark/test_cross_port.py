@@ -181,9 +181,9 @@ def test_cross_port(vector_path):
         data["high_latitude_rule"] == pin["high_latitude_rule"]
     ), f"{source} vector high-latitude rule is not pinned"
     seconds_procedure = data["seconds_procedure"]
-    assert seconds_procedure == pin["seconds_procedure"], (
-        f"{source} vector seconds_procedure is not pinned"
-    )
+    assert (
+        seconds_procedure == pin["seconds_procedure"]
+    ), f"{source} vector seconds_procedure is not pinned"
     assert seconds_procedure in ("fractional", "second", "minute-only")
     minute_only = seconds_procedure == "minute-only"
     if not minute_only:

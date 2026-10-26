@@ -57,10 +57,16 @@ def test_unrounded_round_trips_every_prayer(tz):
     pt = _pt(tz)
     display = tz or timezone.utc
     for prayer in ALL:
-        assert pt.time_for_prayer_unrounded(prayer).utcoffset() == timedelta(0), prayer
-        assert rounded_minute(pt.time_for_prayer_unrounded(prayer)).astimezone(
-            display
-        ) == pt.time_for_prayer(prayer), prayer
+        unrounded = pt.time_for_prayer_unrounded(prayer)
+        rounded = pt.time_for_prayer(prayer).astimezone(timezone.utc)
+        assert unrounded.utcoffset() == timedelta(0), prayer
+        # Returning the public rounded field must fail: every Raleigh fixture
+        # instant has non-zero seconds, so the unrounded value differs.
+        assert unrounded != rounded, prayer
+        assert unrounded.second != 0, prayer
+        assert rounded_minute(unrounded).astimezone(display) == pt.time_for_prayer(
+            prayer
+        ), prayer
 
 
 def test_unrounded_includes_offsets():
@@ -91,6 +97,18 @@ def test_unrounded_derived_markers_keep_second_precision():
         minutes=15
     )
     assert pt.time_for_prayer_unrounded(Prayer.DHUHA) - sunrise == timedelta(minutes=28)
+    # Integer-minute offsets must be applied to the unrounded base, not to
+    # the already-rounded public field.
+    for marker in (
+        Prayer.IMSAK,
+        Prayer.FAJR,
+        Prayer.SUNRISE,
+        Prayer.ISHRAQ,
+        Prayer.DHUHA,
+    ):
+        value = pt.time_for_prayer_unrounded(marker)
+        assert value.second != 0, marker
+        assert value != pt.time_for_prayer(marker).astimezone(timezone.utc), marker
 
 
 def test_unrounded_asr_clamp_dhuhr():
@@ -128,6 +146,13 @@ def test_night_fraction_unrounded_round_trips():
             timezone.utc
         ) == st.night_fraction(f).astimezone(timezone.utc)
 
+    # The default anchors are whole minutes, so a half-night offset ends on
+    # :30. Returning the rounded field would fail both assertions.
+    unrounded = st.night_fraction_unrounded(0.5)
+    rounded = st.night_fraction(0.5).astimezone(timezone.utc)
+    assert unrounded.second == 30
+    assert unrounded != rounded
+
 
 def test_night_fraction_unrounded_explicit_anchors():
     pt = _pt()
@@ -135,6 +160,14 @@ def test_night_fraction_unrounded_explicit_anchors():
     assert rounded_minute(
         st.night_fraction_unrounded(1 / 3, start=pt.isha)
     ) == st.night_fraction(1 / 3, start=pt.isha)
+
+    # A sub-minute anchor must survive into the unrounded value.
+    start = pt.isha + timedelta(seconds=30)
+    unrounded = st.night_fraction_unrounded(1 / 3, start=start)
+    rounded = st.night_fraction(1 / 3, start=start).astimezone(timezone.utc)
+    assert unrounded.second != 0
+    assert unrounded != rounded
+    assert rounded_minute(unrounded) == rounded
 
 
 @pytest.mark.parametrize("bad", [0, 1, -0.1, 1.1, True, "x", None])

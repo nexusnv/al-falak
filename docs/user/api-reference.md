@@ -129,8 +129,8 @@ zone.
 
 ## Rounding order
 
-Every second-precision result is derived from the exact solar instant in
-the same order:
+Prayer-time results are derived from the exact solar instant in the same
+order:
 
 1. Per-prayer `adjustments` and `method_adjustments` (integer minutes) are
    applied to the raw solar time **before** any rounding.
@@ -139,26 +139,32 @@ the same order:
 3. Only the final wall-clock reads run `astimezone` to the display zone
    (`time_zone`, default UTC); rounding is never re-applied afterwards.
 
-The unrounded accessors (`time_for_prayer_unrounded`,
-`night_fraction_unrounded`) return the step-2 input: the adjusted,
-pre-rounding instant in UTC, per-prayer offsets included. They do **not**
+`time_for_prayer_unrounded` returns the step-2 input: the adjusted,
+pre-rounding instant in UTC, per-prayer offsets included. It does **not**
 return raw solar geometry — offsets are already inside the value. One
 exception: when `asr` saturates to `dhuhr` or `maghrib` (polar edge or
-adjustment-driven clamp), the clamp target is already rounded, so
-`time_for_prayer_unrounded(Prayer.ASR)`
-equals that rounded prayer — this keeps `rounded_minute` round-tripping to
-`time_for_prayer`, and on such a day the true Asr genuinely coincides with
-the clamp target.
+adjustment-driven clamp), the clamp is the final instant by construction, so
+the accessor exposes the rounded clamp target rather than a notional
+pre-clamp Asr; this keeps `rounded_minute` round-tripping to
+`time_for_prayer`.
+
+`night_fraction_unrounded` returns the exact fraction offset computed from
+the same rounded Maghrib/Fajr anchors as `night_fraction`, with only the
+final minute rounding and display-zone conversion removed. Its anchors are
+therefore minute-rounded prayer fields, not raw solar instants; the
+accessor's contract is the unrounded fraction offset and the round-trip
+guarantee, not sub-minute anchor fidelity.
 
 ## Accuracy and reference tolerances
 
 Golden tests use two narrow tiers: transit / equation-of-time chains are
 checked at ±10 s, and USNO rise/set values at ±60 s (the resolution of the
 published one-day tables). Takwim / e-solat rows are checked against the
-JAKIM 18°/18° computation with the 0–2 minute ihtiyat the published tables
-apply; the 20° Singapore preset is not used for that comparison. These bars
-are never widened to make a port or reference fit; see
-[Citations](citations/) for the sources behind each golden.
+JAKIM 18°/18° computation; the tables round to the minute and carry a small
+ihtiyat, and the cited 2025 Kuala Lumpur rows span a −1 to +4 minute
+official-minus-computed residual. The 20° Singapore preset is not used for
+that comparison. These bars are never widened to make a port or reference
+fit; see [Citations](citations/) for the sources behind each golden.
 
 ## LunarCoordinates
 
@@ -502,8 +508,9 @@ on pinned tzdata, CI configuration, and tested zones, see
   no wall-clock time is constructed inside a gap. See
   [Timezone Handling](timezone/#nonexistent-local-time-policy) for details.
 - For deterministic behavior across environments (especially CI and Windows),
-  the test suite pins `tzdata==2026.5` and sets `PYTHONTZPATH=""`. End users on
-  Windows may need `pip install tzdata`. For more details, see
+  the dev requirements pin `tzdata==2026.5` and CI runs the pytest step with
+  `PYTHONTZPATH=""`. End users on Windows may need `pip install tzdata`. For
+  more details, see
   [Timezone Handling](timezone/#tested-zones-and-db-pinning).
 
 ## See also

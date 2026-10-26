@@ -34,9 +34,17 @@ timetable alignment).
 
 Verification anchors (checked 2026-10-25): Kuala Lumpur (3.1390, 101.6869)
 and Kota Kinabalu (5.9804, 116.0735) on 2025-01-15 lock the computed 18/18
-baseline in `tests/test_prayer_times.py`; the official 2025-01-16 rows are
-within the 0–2 minute ihtiyat the published tables apply. A 20° Fajr angle
-would be 9–11 minutes early and fails the e-solat golden.
+baseline in `tests/test_prayer_times.py`. Official rows are compared against
+the computed values: across the cited 2025 Kuala Lumpur table the residual
+spans −1 to +4 minutes (table rounding plus a small ihtiyat), and the tests
+pin the exact per-row residuals. A 20° Fajr angle is 9–12 minutes early
+versus those rows and fails the golden; the 18° Fajr is 8–10 minutes later
+than the Singapore preset.
+
+The published tables round minute times and apply a small administrative
+ihtiyat; they are not an exact sub-minute reference. The golden tests
+therefore assert the documented residual envelope rather than pretending
+the tables are computed output.
 
 ## Imsak
 

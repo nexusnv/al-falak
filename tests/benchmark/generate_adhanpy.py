@@ -110,6 +110,7 @@ def _interpreter(source_dir: str | None) -> tuple[str, dict[str, str]]:
     if source_dir is not None:
         source_root = Path(source_dir).resolve()
         grid.assert_pinned_head(source_root, SHA)
+        grid.assert_clean_worktree(source_root)
         src = source_root / "src"
         if not (src / "adhanpy").is_dir():
             raise SystemExit(f"no adhanpy package under {src}")

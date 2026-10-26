@@ -69,11 +69,11 @@ Tolerances are two-tier and deliberately narrow:
 
 - **Transit / equation-of-time full-chain**: ±10 s. The Greenwich transit case is a chain-consistency lock derived from the published Meeus examples, not an independent physical truth.
 - **USNO rise/set**: ±60 s, matching the resolution of the published one-day tables.
-- **Takwim / e-solat**: official rows are checked against the JAKIM 18°/18° computation; the published tables add a 0–2 minute ihtiyat. A 20° Fajr angle is 9–11 minutes early and fails that bound.
+- **Takwim / e-solat**: official rows are checked against the JAKIM 18°/18° computation. The tables round to the minute and add a small ihtiyat; on the cited 2025 Kuala Lumpur table the official-minus-computed residual spans −1 to +4 minutes. A 20° Fajr angle is 9–12 minutes early and fails that envelope.
 - **Unchanged tighter bars**: Meeus Ex. 25.a right ascension `abs=1e-5` deg and the equation-of-time golden `abs=0.17` min (±10.2 s).
 
 - Meeus, J. — *Astronomical Algorithms* (2nd ed., Willmann-Bell, 1998), Ex. 25.a (p. 165) and Ex. 28.a (p. 183). Used for the Greenwich solar transit chain-consistency test on 1992-10-13 (±10 s tolerance).
-- Pejabat Mufti Wilayah Persekutuan — *Jadual Waktu Solat Wilayah Persekutuan Kuala Lumpur dan Putrajaya bagi Tahun 2025* (Sumber: Almanak Falak Syarie JAKIM), 16 January row (06:03 06:13 07:24 13:26 16:48 19:23 20:37). Zone `WLY01`, local MYT (UTC+8), retrieved 2026-10-24. URL: `https://muftiwp.gov.my/images/falak/takwim/jadual-waktu-solat/KL-dan-Putrajaya/JADUAL-WAKTU-SOLAT-WPKLPTJ-2025.pdf`
+- Pejabat Mufti Wilayah Persekutuan — *Jadual Waktu Solat Wilayah Persekutuan Kuala Lumpur dan Putrajaya bagi Tahun 2025* (Sumber: Almanak Falak Syarie JAKIM), 16 January row (06:03 06:13 07:24 13:26 16:48 19:23 20:37), 15 June row (05:41 05:51 07:04 13:17 16:42 19:26 20:41), and 16 September row (05:47 05:57 07:03 13:11 16:13 19:14 20:23). Zone `WLY01`, local MYT (UTC+8), retrieved 2026-10-24. URL: `https://muftiwp.gov.my/images/falak/takwim/jadual-waktu-solat/KL-dan-Putrajaya/JADUAL-WAKTU-SOLAT-WPKLPTJ-2025.pdf`
 - Jabatan Kemajuan Islam Malaysia (JAKIM) e-solat XML feed — Kota Kinabalu/Ranau/Kota Belud/Tuaran/Penampang/Papar/Putatan zone `SBH07`, 16 January 2025 (local MYT UTC+8), retrieved 2026-10-24. Archived snapshot: `https://web.archive.org/web/20250116103115/https://www.e-solat.gov.my/index.php?r=esolatApi/xmlfeed&zon=SBH07`
 
 ## License

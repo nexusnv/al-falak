@@ -18,6 +18,8 @@ At high latitudes, summer nights can be very short, making it difficult to deter
 ## Using a high latitude rule
 
 ```python
+from datetime import datetime
+
 from alfalak import (
     CalculationMethod,
     CalculationParameters,

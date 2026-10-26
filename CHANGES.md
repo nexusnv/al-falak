@@ -3,9 +3,10 @@
 ## Unreleased
 
 * Breaking (behavior): `CalculationMethod.JAKIM` now uses an 18° Fajr angle
-  (was 20°), matching current JAKIM/Takwim tables; Fajr is 8–9 minutes later
+  (was 20°), matching current JAKIM/Takwim tables; Fajr is 8–10 minutes later
   for Malaysian locations. `SINGAPORE` remains 20°/18°. The e-solat golden
-  now checks the official rows within the published 0–2 minute ihtiyat.
+  now checks official rows against the documented −1 to +4 minute residual
+  envelope (table rounding plus a small ihtiyat).
 * API: add `PrayerTimes.time_for_prayer_unrounded(prayer)` and
   `SunnahTimes.night_fraction_unrounded(fraction, start=None, end=None)` for
   second-precision, post-offset, pre-rounding UTC values; existing rounded
