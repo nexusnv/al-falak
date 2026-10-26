@@ -26,5 +26,8 @@ The generator scripts are reference implementations. They are **not** collected 
 **Vectors are vendored.** They are committed under `vectors/` so the harness runs offline and deterministically in CI. Regenerate only when the pinned SHA or the grid changes, and commit the resulting JSON.
 
 ## Comparison
+The harness asserts that every source in `grid.SOURCE_PINS` has a committed
+vector file, so deleting one cannot silently halve coverage.
+
 - Tier-(a): for `second`/`fractional` sources, compare `time_for_prayer_unrounded` (UTC) to the vector's `unrounded` instant at ≤ 1 s (6 prayers).
 - Tier-(b): compare rounded values using `_boundary_minute_equal` (allows a single ±60s flip if either side's pre-round second was within ~1 s of :30). For `minute-only` vectors, use `_minute_only_equal` to accept adhanpy's documented rollover artifact (truncates at :59 second>=30 instead of rolling hour) — never blanket exact-minute equality. Include `syuruk` only at tier-(b) via `sunrise`. Derived markers (`imsak/ishraq/dhuha`) are not present in either port's vectors, so they are exercised by the existing golden/ordering suites rather than this harness.

@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -105,7 +106,9 @@ print(out)
 """
 
 
-def _interpreter(source_dir: str | None) -> tuple[str, dict[str, str]]:
+def _interpreter(
+    source_dir: str | None,
+) -> tuple[str, dict[str, str], Path | None]:
     env = os.environ.copy()
     if source_dir is not None:
         source_root = Path(source_dir).resolve()
@@ -115,16 +118,20 @@ def _interpreter(source_dir: str | None) -> tuple[str, dict[str, str]]:
         if not (src / "adhanpy").is_dir():
             raise SystemExit(f"no adhanpy package under {src}")
         env["PYTHONPATH"] = str(src)
-        return sys.executable, env
+        return sys.executable, env, None
 
     venv_dir = Path(tempfile.mkdtemp(prefix="adhanpy-venv-"))
-    subprocess.run([sys.executable, "-m", "venv", str(venv_dir)], check=True)
-    python = venv_dir / ("Scripts" if os.name == "nt" else "bin") / "python"
-    subprocess.run(
-        [str(python), "-m", "pip", "install", "--no-deps", PKG],
-        check=True,
-    )
-    return str(python), env
+    try:
+        subprocess.run([sys.executable, "-m", "venv", str(venv_dir)], check=True)
+        python = venv_dir / ("Scripts" if os.name == "nt" else "bin") / "python"
+        subprocess.run(
+            [str(python), "-m", "pip", "install", "--no-deps", PKG],
+            check=True,
+        )
+    except BaseException:
+        shutil.rmtree(venv_dir, ignore_errors=True)
+        raise
+    return str(python), env, venv_dir
 
 
 def main() -> None:
@@ -135,21 +142,25 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    python, env = _interpreter(args.source_dir)
-    env["ADHANPY_VECTORS_OUT"] = str(VECTOR_PATH)
-    subprocess.run(
-        [python, "-c", INNER_SCRIPT],
-        cwd=HERE,
-        env=env,
-        check=True,
-    )
-    data = json.loads(VECTOR_PATH.read_text(encoding="utf-8"))
-    expected = len(grid.GRID) * len(grid.METHODS)
-    if len(data["entries"]) != expected:
-        raise SystemExit(
-            f"generated {len(data['entries'])} entries, expected {expected}"
+    python, env, temporary_venv = _interpreter(args.source_dir)
+    try:
+        env["ADHANPY_VECTORS_OUT"] = str(VECTOR_PATH)
+        subprocess.run(
+            [python, "-c", INNER_SCRIPT],
+            cwd=HERE,
+            env=env,
+            check=True,
         )
-    print(f"wrote {VECTOR_PATH} ({len(data['entries'])} entries)")
+        data = json.loads(VECTOR_PATH.read_text(encoding="utf-8"))
+        expected = len(grid.GRID) * len(grid.METHODS)
+        if len(data["entries"]) != expected:
+            raise SystemExit(
+                f"generated {len(data['entries'])} entries, expected {expected}"
+            )
+        print(f"wrote {VECTOR_PATH} ({len(data['entries'])} entries)")
+    finally:
+        if temporary_venv is not None:
+            shutil.rmtree(temporary_venv, ignore_errors=True)
 
 
 if __name__ == "__main__":

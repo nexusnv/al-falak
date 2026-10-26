@@ -225,6 +225,7 @@ def main() -> None:
 
     repo_dir, temporary = _checkout(args.source_dir)
     test_path = repo_dir / TEST_RELATIVE_PATH
+    original = test_path.read_bytes() if test_path.exists() else None
     entries_dir = Path(tempfile.mkdtemp(prefix="adhan-vectors-"))
     entries_path = entries_dir / "entries.json"
     env = os.environ.copy()
@@ -243,37 +244,39 @@ def main() -> None:
             encoding="utf-8",
         )
         subprocess.run(command, cwd=repo_dir, env=env, check=True)
+
+        data = json.loads(entries_path.read_text(encoding="utf-8"))
+        expected = len(grid.GRID) * len(grid.METHODS)
+        if len(data["entries"]) != expected:
+            raise SystemExit(
+                f"generated {len(data['entries'])} entries, expected {expected}"
+            )
+
+        payload = {
+            "source": "adhan_kotlin",
+            "version": VERSION,
+            "sha": SHA,
+            "generator": "tests/benchmark/generate_adhan_kotlin.py",
+            "seconds_procedure": PIN["seconds_procedure"],
+            "rounded_rounding": (
+                "Rounding.NEAREST (Float.roundToInt, half-away-from-zero)"
+            ),
+            "high_latitude_rule": PIN["high_latitude_rule"],
+            "entries": data["entries"],
+        }
+        VECTOR_PATH.parent.mkdir(parents=True, exist_ok=True)
+        VECTOR_PATH.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        print(f"wrote {VECTOR_PATH} ({len(payload['entries'])} entries)")
     finally:
-        # Never leave the injected test behind in a caller-provided checkout.
+        # Restore a caller-provided checkout; only remove what we injected.
         if not temporary:
-            test_path.unlink(missing_ok=True)
-
-    data = json.loads(entries_path.read_text(encoding="utf-8"))
-    expected = len(grid.GRID) * len(grid.METHODS)
-    if len(data["entries"]) != expected:
-        raise SystemExit(
-            f"generated {len(data['entries'])} entries, expected {expected}"
-        )
-
-    payload = {
-        "source": "adhan_kotlin",
-        "version": VERSION,
-        "sha": SHA,
-        "generator": "tests/benchmark/generate_adhan_kotlin.py",
-        "seconds_procedure": PIN["seconds_procedure"],
-        "rounded_rounding": (
-            "Rounding.NEAREST (Float.roundToInt, half-away-from-zero)"
-        ),
-        "high_latitude_rule": PIN["high_latitude_rule"],
-        "entries": data["entries"],
-    }
-    VECTOR_PATH.parent.mkdir(parents=True, exist_ok=True)
-    VECTOR_PATH.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-    print(f"wrote {VECTOR_PATH} ({len(payload['entries'])} entries)")
-
-    if temporary and not args.keep_build:
-        shutil.rmtree(repo_dir.parent, ignore_errors=True)
-    shutil.rmtree(entries_dir, ignore_errors=True)
+            if original is None:
+                test_path.unlink(missing_ok=True)
+            else:
+                test_path.write_bytes(original)
+        if temporary and not args.keep_build:
+            shutil.rmtree(repo_dir.parent, ignore_errors=True)
+        shutil.rmtree(entries_dir, ignore_errors=True)
 
 
 if __name__ == "__main__":

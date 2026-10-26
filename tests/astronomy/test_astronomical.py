@@ -6,8 +6,8 @@ Two-tier accuracy policy for the independent-reference goldens (spec §3.3):
   chain-consistency lock derived from published Meeus examples (Ex.25.a α and
   Ex.28.a E for 1992-10-13), not an independent physical truth; the EoT
   case keeps its existing ±10.2 s bar.
-- **USNO rise/set**: ±60 s, matching the resolution of the published one-day
-  tables (see ``test_solar_time.py``).
+- **USNO rise/set**: minute-resolution equality with the published USNO
+  one-day table (see ``test_solar_time.py``).
 - **Takwim / e-solat**: official rows are checked against the JAKIM 18°/18°
   computation. The tables round to the minute and add a small ihtiyat; the
   cited 2025 Kuala Lumpur rows span a −1 to +4 minute official-minus-computed

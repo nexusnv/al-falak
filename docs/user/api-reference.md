@@ -149,17 +149,18 @@ pre-clamp Asr; this keeps `rounded_minute` round-tripping to
 `time_for_prayer`.
 
 `night_fraction_unrounded` returns the exact fraction offset computed from
-the same rounded Maghrib/Fajr anchors as `night_fraction`, with only the
-final minute rounding and display-zone conversion removed. Its anchors are
-therefore minute-rounded prayer fields, not raw solar instants; the
-accessor's contract is the unrounded fraction offset and the round-trip
-guarantee, not sub-minute anchor fidelity.
+the same anchors as `night_fraction`, with only the final minute rounding and
+display-zone conversion removed. With the default anchors, those anchors are
+the minute-rounded Maghrib/Fajr prayer fields, not raw solar instants;
+explicit `start`/`end` datetimes are used as supplied, so sub-minute anchors
+are preserved. The accessor's contract is the unrounded fraction offset and
+the round-trip guarantee, not sub-minute fidelity of the default anchors.
 
 ## Accuracy and reference tolerances
 
 Golden tests use two narrow tiers: transit / equation-of-time chains are
-checked at ±10 s, and USNO rise/set values at ±60 s (the resolution of the
-published one-day tables). Takwim / e-solat rows are checked against the
+checked at ±10 s, and USNO rise/set values by minute-resolution equality with
+the published one-day table. Takwim / e-solat rows are checked against the
 JAKIM 18°/18° computation; the tables round to the minute and carry a small
 ihtiyat, and the cited 2025 Kuala Lumpur rows span a −1 to +4 minute
 official-minus-computed residual. The 20° Singapore preset is not used for

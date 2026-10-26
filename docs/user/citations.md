@@ -68,7 +68,7 @@ The Qibla direction, distance, and compass-heading calculations are derived from
 Tolerances are two-tier and deliberately narrow:
 
 - **Transit / equation-of-time full-chain**: ±10 s. The Greenwich transit case is a chain-consistency lock derived from the published Meeus examples, not an independent physical truth.
-- **USNO rise/set**: ±60 s, matching the resolution of the published one-day tables.
+- **USNO rise/set**: minute-resolution equality with the published USNO one-day table.
 - **Takwim / e-solat**: official rows are checked against the JAKIM 18°/18° computation. The tables round to the minute and add a small ihtiyat; on the cited 2025 Kuala Lumpur table the official-minus-computed residual spans −1 to +4 minutes. A 20° Fajr angle is 9–12 minutes early and fails that envelope.
 - **Unchanged tighter bars**: Meeus Ex. 25.a right ascension `abs=1e-5` deg and the equation-of-time golden `abs=0.17` min (±10.2 s).
 

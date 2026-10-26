@@ -89,6 +89,6 @@ and DST behavior.
 ## Next steps
 
 - [Timezone Handling](timezone/) — DST and timezone considerations
-- [Calculation Methods](calculation-methods/) — compare all 11 methods
+- [Calculation Methods](calculation-methods/) — compare all 12 methods
 - [API Reference](api-reference/) — full API documentation
 - [CLI Usage](cli/) — command-line interface

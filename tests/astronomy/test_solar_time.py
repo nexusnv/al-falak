@@ -1,3 +1,4 @@
+from dataclasses import FrozenInstanceError
 from datetime import datetime, timezone, timedelta
 import math
 import pytest
@@ -126,6 +127,14 @@ def test_solar_time_accepts_proleptic_calendar_start():
     solar = SolarTime(DateComponents(1, 1, 1), Coordinates(0.0, 0.0))
     assert math.isfinite(solar.transit)
     assert math.isfinite(solar.sunrise)
+
+
+def test_cached_solar_coords_are_immutable():
+    # Cached instances are shared across builds; mutating one must not poison
+    # later PrayerTimes construction for the same date.
+    solar = _solar_coords_for_date(2024, 3, 20)
+    with pytest.raises(FrozenInstanceError):
+        solar.declination = 0.0
 
 
 def test_solar_coords_cache_reuses_and_clears():

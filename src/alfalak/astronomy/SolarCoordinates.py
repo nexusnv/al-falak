@@ -1,4 +1,6 @@
 import math
+from dataclasses import dataclass
+
 from alfalak.astronomy.CalendricalHelper import julian_century
 from alfalak.astronomy.Astronomical import (
     apparent_obliquity_of_the_ecliptic,
@@ -14,7 +16,18 @@ from alfalak.astronomy.Astronomical import (
 from alfalak.util.FloatUtil import unwind_angle
 
 
+@dataclass(frozen=True, slots=True)
 class SolarCoordinates:
+    """Solar coordinates for one Julian day.
+
+    Instances are shared through the date cache in ``SolarTime``; they are
+    frozen so a caller cannot mutate a cached value and poison later builds.
+    """
+
+    declination: float
+    right_ascension: float
+    apparent_sidereal_time: float
+
     def __init__(self, julian_day: float) -> None:
         T = julian_century(julian_day)
         L0 = mean_solar_longitude(T)
@@ -28,14 +41,22 @@ class SolarCoordinates:
         εapp = math.radians(apparent_obliquity_of_the_ecliptic(T, ε0))
 
         # Equation from Astronomical Algorithms page 165
-        self.declination = math.degrees(math.asin(math.sin(εapp) * math.sin(λ)))
+        object.__setattr__(
+            self, "declination", math.degrees(math.asin(math.sin(εapp) * math.sin(λ)))
+        )
 
         # Equation from Astronomical Algorithms page 165
-        self.right_ascension = unwind_angle(
-            math.degrees(math.atan2(math.cos(εapp) * math.sin(λ), math.cos(λ)))
+        object.__setattr__(
+            self,
+            "right_ascension",
+            unwind_angle(
+                math.degrees(math.atan2(math.cos(εapp) * math.sin(λ), math.cos(λ)))
+            ),
         )
 
         # Equation from Astronomical Algorithms page 88
-        self.apparent_sidereal_time = θ0 + (
-            ((ΔΨ * 3600) * math.cos(math.radians(ε0 + Δε))) / 3600
+        object.__setattr__(
+            self,
+            "apparent_sidereal_time",
+            θ0 + (((ΔΨ * 3600) * math.cos(math.radians(ε0 + Δε))) / 3600),
         )

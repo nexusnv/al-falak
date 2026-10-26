@@ -56,6 +56,17 @@ def _vector_paths():
     return sorted((Path(__file__).parent / "vectors").glob("*.json"))
 
 
+def test_vectors_cover_every_pinned_source():
+    # The harness must not silently halve its coverage if one vendor file is
+    # deleted: every pinned source has exactly one committed vector file.
+    present = {path.stem for path in _vector_paths()}
+    expected = set(grid.SOURCE_PINS)
+    assert present == expected, (
+        f"missing vendored vectors: {sorted(expected - present)}; "
+        f"unexpected: {sorted(present - expected)}"
+    )
+
+
 def _build_prayer_times(entry):
     year, month, day = (int(part) for part in entry["date"].split("-"))
     params = CalculationParameters(method=METHOD_MAP[entry["method"]])
