@@ -179,12 +179,18 @@ def _checkout(source_dir: str | None) -> tuple[Path, bool]:
         return repo_dir, False
 
     repo_dir = Path(tempfile.mkdtemp(prefix="adhan-kotlin-")) / "repo"
-    subprocess.run(
-        ["git", "clone", "--quiet", "--filter=blob:none", REPO, str(repo_dir)],
-        check=True,
-    )
-    subprocess.run(["git", "-C", str(repo_dir), "checkout", "--quiet", SHA], check=True)
-    grid.assert_pinned_head(repo_dir, SHA)
+    try:
+        subprocess.run(
+            ["git", "clone", "--quiet", "--filter=blob:none", REPO, str(repo_dir)],
+            check=True,
+        )
+        subprocess.run(
+            ["git", "-C", str(repo_dir), "checkout", "--quiet", SHA], check=True
+        )
+        grid.assert_pinned_head(repo_dir, SHA)
+    except BaseException:
+        shutil.rmtree(repo_dir.parent, ignore_errors=True)
+        raise
     return repo_dir, True
 
 
@@ -230,14 +236,14 @@ def main() -> None:
     entries_path = entries_dir / "entries.json"
     env = os.environ.copy()
     env["ADHAN_VECTORS_OUT"] = str(entries_path)
-    command = _gradle_command(repo_dir, args.gradle_bin) + [
-        "--no-daemon",
-        "--console=plain",
-        ":adhan:jvmTest",
-        "--tests",
-        TEST_CLASS,
-    ]
     try:
+        command = _gradle_command(repo_dir, args.gradle_bin) + [
+            "--no-daemon",
+            "--console=plain",
+            ":adhan:jvmTest",
+            "--tests",
+            TEST_CLASS,
+        ]
         test_path.parent.mkdir(parents=True, exist_ok=True)
         test_path.write_text(
             TEST_TEMPLATE.format(rows=_kotlin_rows(), methods=_kotlin_methods()),

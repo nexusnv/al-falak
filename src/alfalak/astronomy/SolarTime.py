@@ -27,11 +27,12 @@ def _solar_coords_for_date(
 
     ``SolarTime`` asks for offsets -1, 0 and +1. ``PrayerTimes`` builds
     today's and tomorrow's ``SolarTime``, so one build requests six keys over
-    four unique Julian days (``D-1`` through ``D+2``); ``(D, +1)`` and
-    ``(D+1, -1)`` are the same instant under different keys. Repeated builds
-    of the same date hit the cache; adjacent dates in a multi-day sweep use
-    disjoint keys and do not share entries. Elevation is applied downstream
-    in ``SolarTime`` and is not part of the key.
+    four unique Julian days (``D-1`` through ``D+2``). Two key pairs alias the
+    same Julian day without sharing a cache entry: ``(D, 0)`` with
+    ``(D+1, -1)``, and ``(D, +1)`` with ``(D+1, 0)``. Repeated builds of the
+    same date hit the cache; adjacent dates in a multi-day sweep use disjoint
+    keys and do not share entries. Elevation is applied downstream in
+    ``SolarTime`` and is not part of the key.
     """
     return SolarCoordinates(julian_day(year, month, day) + day_offset)
 

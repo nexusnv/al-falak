@@ -58,9 +58,18 @@ def _vector_paths():
 
 def test_vectors_cover_every_pinned_source():
     # The harness must not silently halve its coverage if one vendor file is
-    # deleted: every pinned source has exactly one committed vector file.
-    present = {path.stem for path in _vector_paths()}
+    # deleted or mislabeled: every pinned source has exactly one committed
+    # vector file, and each file's stem matches its declared ``source``.
+    sources = []
+    for path in _vector_paths():
+        data = json.loads(path.read_text(encoding="utf-8"))
+        assert (
+            data["source"] == path.stem
+        ), f"{path.name} declares source {data['source']!r}"
+        sources.append(data["source"])
+    assert len(sources) == len(set(sources)), f"duplicate vectors: {sources}"
     expected = set(grid.SOURCE_PINS)
+    present = set(sources)
     assert present == expected, (
         f"missing vendored vectors: {sorted(expected - present)}; "
         f"unexpected: {sorted(present - expected)}"

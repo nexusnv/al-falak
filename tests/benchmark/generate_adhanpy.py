@@ -143,22 +143,26 @@ def main() -> None:
     args = parser.parse_args()
 
     python, env, temporary_venv = _interpreter(args.source_dir)
+    VECTOR_PATH.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = VECTOR_PATH.with_name(VECTOR_PATH.name + ".tmp")
     try:
-        env["ADHANPY_VECTORS_OUT"] = str(VECTOR_PATH)
+        env["ADHANPY_VECTORS_OUT"] = str(tmp_path)
         subprocess.run(
             [python, "-c", INNER_SCRIPT],
             cwd=HERE,
             env=env,
             check=True,
         )
-        data = json.loads(VECTOR_PATH.read_text(encoding="utf-8"))
+        data = json.loads(tmp_path.read_text(encoding="utf-8"))
         expected = len(grid.GRID) * len(grid.METHODS)
         if len(data["entries"]) != expected:
             raise SystemExit(
                 f"generated {len(data['entries'])} entries, expected {expected}"
             )
+        os.replace(tmp_path, VECTOR_PATH)
         print(f"wrote {VECTOR_PATH} ({len(data['entries'])} entries)")
     finally:
+        tmp_path.unlink(missing_ok=True)
         if temporary_venv is not None:
             shutil.rmtree(temporary_venv, ignore_errors=True)
 
