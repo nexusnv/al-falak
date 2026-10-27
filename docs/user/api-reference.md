@@ -76,6 +76,7 @@ Exactly one of `calculation_method` or `calculation_parameters` must be provided
 | Method | Returns | Description |
 |---|---|---|
 | `time_for_prayer(prayer: Prayer)` | `datetime` | Get time for a specific prayer |
+| `time_for_prayer_unrounded(prayer: Prayer)` | `datetime` | Post-offset, pre-rounding UTC instant for a specific prayer (per-prayer `adjustments`/`method_adjustments` included, half-up minute rounding not yet applied); `syuruk` is the `sunrise` instant; when `asr` saturates to `dhuhr`/`maghrib` (polar edge or adjustment-driven clamp) the value is that already-rounded target; `Prayer.NONE` or non-`Prayer` inputs raise `ConfigurationError` |
 
 ## Qibla
 
@@ -124,6 +125,47 @@ zone.
 | Method | Returns | Description |
 |---|---|---|
 | `night_fraction(fraction, start=None, end=None)` | `datetime` | Maghrib + `fraction` of the night (`0 < fraction < 1`, else `ValidationError`); accepts `int`/`float`/`Fraction`/`Decimal` (`bool` rejected); pass aware `start`/`end` datetimes for Isha-anchored or sunset-anchored variants, `end` must be after `start` |
+| `night_fraction_unrounded(fraction, start=None, end=None)` | `datetime` | Same computation and validation as `night_fraction` minus the minute rounding and display-zone conversion: Maghrib + `fraction` of the night in UTC, never rounded; invalid fractions raise `ValidationError` |
+
+## Rounding order
+
+Prayer-time results are derived from the exact solar instant in the same
+order:
+
+1. Per-prayer `adjustments` and `method_adjustments` (integer minutes) are
+   applied to the raw solar time **before** any rounding.
+2. The adjusted instant is rounded half-up to the nearest minute in UTC
+   (`rounded_minute`: seconds ≥ 30 round up, with hour/day rollover).
+3. Only the final wall-clock reads run `astimezone` to the display zone
+   (`time_zone`, default UTC); rounding is never re-applied afterwards.
+
+`time_for_prayer_unrounded` returns the step-2 input: the adjusted,
+pre-rounding instant in UTC, per-prayer offsets included. It does **not**
+return raw solar geometry — offsets are already inside the value. One
+exception: when `asr` saturates to `dhuhr` or `maghrib` (polar edge or
+adjustment-driven clamp), the clamp is the final instant by construction, so
+the accessor exposes the rounded clamp target rather than a notional
+pre-clamp Asr; this keeps `rounded_minute` round-tripping to
+`time_for_prayer`.
+
+`night_fraction_unrounded` returns the exact fraction offset computed from
+the same anchors as `night_fraction`, with only the final minute rounding and
+display-zone conversion removed. With the default anchors, those anchors are
+the minute-rounded Maghrib/Fajr prayer fields, not raw solar instants;
+explicit `start`/`end` datetimes are used as supplied, so sub-minute anchors
+are preserved. The accessor's contract is the unrounded fraction offset and
+the round-trip guarantee, not sub-minute fidelity of the default anchors.
+
+## Accuracy and reference tolerances
+
+Golden tests use two narrow tiers: transit / equation-of-time chains are
+checked at ±10 s, and USNO rise/set values by minute-resolution equality with
+the published one-day table. Takwim / e-solat rows are checked against the
+JAKIM 18°/18° computation; the tables round to the minute and carry a small
+ihtiyat, and the cited 2025 Kuala Lumpur rows span a −1 to +4 minute
+official-minus-computed residual. The 20° Singapore preset is not used for
+that comparison. These bars are never widened to make a port or reference
+fit; see [Citations](citations/) for the sources behind each golden.
 
 ## LunarCoordinates
 
@@ -452,8 +494,29 @@ re-lookup of the destination month; months without an entry pass
 through untouched. `to_gregorian` ignores the store (display
 correction for the Gregorian→Hijri direction only).
 
+## Timezone support
+
+All prayer times are returned as timezone-aware `datetime` objects. By default,
+the display zone is `UTC`. Pass `time_zone=ZoneInfo("...")` to the
+`PrayerTimes` constructor to convert outputs to a specific local zone; the
+returned datetimes can also be converted with `.astimezone(...)`. For details
+on pinned tzdata, CI configuration, and tested zones, see
+[Timezone Handling](timezone/).
+
+- Internal calculations are performed in UTC; rounding is applied in UTC before
+  converting to the display zone (see [Rounding order](#rounding-order)).
+- DST transitions (including spring-forward gaps) are handled via `zoneinfo`;
+  no wall-clock time is constructed inside a gap. See
+  [Timezone Handling](timezone/#nonexistent-local-time-policy) for details.
+- For deterministic behavior across environments (especially CI and Windows),
+  the dev requirements pin `tzdata==2026.5` and CI runs the pytest step with
+  `PYTHONTZPATH=""`. End users on Windows may need `pip install tzdata`. For
+  more details, see
+  [Timezone Handling](timezone/#tested-zones-and-db-pinning).
+
 ## See also
 
+- [Timezone Handling](timezone/) — zones, DST, and database pinning
 - [CLI Usage](cli/) — command-line access to this API (`prayer`, `qibla`, `sunnah`, `hijri`, `moon-sighting`, `astro`)
 - [Getting Started](getting-started/) — quick start guide
 - [Calculation Methods](calculation-methods/) — method details

@@ -1,3 +1,4 @@
+import functools
 import math
 from alfalak.astronomy.Astronomical import (
     approximate_transit,
@@ -10,6 +11,35 @@ from alfalak.data.ShadowLength import ShadowLength
 from alfalak.astronomy.SolarCoordinates import SolarCoordinates
 from alfalak.exceptions import ValidationError
 from alfalak.util.DateComponents import DateComponents
+
+
+@functools.lru_cache(maxsize=512)
+def _solar_coords_for_date(
+    year: int, month: int, day: int, day_offset: int = 0
+) -> SolarCoordinates:
+    """Return solar coordinates for a calendar date shifted by ``day_offset``.
+
+    The key is the calendar date plus a small integer offset, never a Julian
+    day float: adjacent calendar days differ by exactly 1.0 day, so the
+    neighbour is computed in Julian-day space. That keeps ``DateComponents``
+    at the edges of the proleptic calendar total (no ``date ± timedelta``
+    ``OverflowError``) while preserving byte-identical output.
+
+    ``SolarTime`` asks for offsets -1, 0 and +1. ``PrayerTimes`` builds
+    today's and tomorrow's ``SolarTime``, so one build requests six keys over
+    four unique Julian days (``D-1`` through ``D+2``). Two key pairs alias the
+    same Julian day without sharing a cache entry: ``(D, 0)`` with
+    ``(D+1, -1)``, and ``(D, +1)`` with ``(D+1, 0)``. Repeated builds of the
+    same date hit the cache; adjacent dates in a multi-day sweep use disjoint
+    keys and do not share entries. Elevation is applied downstream in
+    ``SolarTime`` and is not part of the key.
+    """
+    return SolarCoordinates(julian_day(year, month, day) + day_offset)
+
+
+def _clear_solar_coords_cache() -> None:
+    """Drop the date-keyed solar-coordinate cache (test hook)."""
+    _solar_coords_for_date.cache_clear()
 
 
 class SolarTime:
@@ -29,13 +59,16 @@ class SolarTime:
                 "Elevation must be a finite non-negative number of metres, "
                 f"got {elevation_m!r}."
             )
-        julian_date = julian_day(
+
+        self.prev_solar = _solar_coords_for_date(
+            date_components.year, date_components.month, date_components.day, -1
+        )
+        self.solar = _solar_coords_for_date(
             date_components.year, date_components.month, date_components.day
         )
-
-        self.prev_solar = SolarCoordinates(julian_date - 1)
-        self.solar = SolarCoordinates(julian_date)
-        self.next_solar = SolarCoordinates(julian_date + 1)
+        self.next_solar = _solar_coords_for_date(
+            date_components.year, date_components.month, date_components.day, 1
+        )
 
         self.approximate_transit = approximate_transit(
             coordinates.longitude,

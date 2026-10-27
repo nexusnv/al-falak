@@ -129,9 +129,7 @@ def test_qibla_self_both_models_return_180():
     # (spherical atan2(0, ~0) and the ellipsoidal meridian path); any
     # bearing is equally valid there, contract is float in [0, 360).
     for method in ("spherical", "ellipsoidal"):
-        direction = Qibla(
-            (MAKKAH.latitude, MAKKAH.longitude), method=method
-        ).direction
+        direction = Qibla((MAKKAH.latitude, MAKKAH.longitude), method=method).direction
         assert direction == pytest.approx(180.0, abs=1e-6)
         assert 0 <= direction < 360
 

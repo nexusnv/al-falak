@@ -84,6 +84,16 @@ class SunnahTimes:
         (``end`` at or before ``start``, including a Maghrib at or
         after next-day Fajr) raises ``ValidationError``.
         """
+        return rounded_minute(
+            self._night_fraction_utc(fraction, start, end)
+        ).astimezone(self._zone)
+
+    def _night_fraction_utc(
+        self,
+        fraction: float | Decimal | Fraction,
+        start: datetime | None = None,
+        end: datetime | None = None,
+    ) -> datetime:
         if isinstance(fraction, bool) or not isinstance(
             fraction, (numbers.Real, Decimal)
         ):
@@ -127,9 +137,20 @@ class SunnahTimes:
             # input already validated above, fall back to its float value.
             frac_exact = Fraction(float(fraction))
         offset_seconds = float(duration * frac_exact)
-        return rounded_minute(start_utc + timedelta(seconds=offset_seconds)).astimezone(
-            self._zone
-        )
+        return start_utc + timedelta(seconds=offset_seconds)
+
+    def night_fraction_unrounded(
+        self,
+        fraction: float | Decimal | Fraction,
+        start: datetime | None = None,
+        end: datetime | None = None,
+    ) -> datetime:
+        """Return Maghrib + ``fraction`` of the night, UTC, never rounded.
+
+        Same computation and validation as ``night_fraction`` minus the minute
+        rounding and the display-zone conversion.
+        """
+        return self._night_fraction_utc(fraction, start, end)
 
     @staticmethod
     def _coerce_utc(value: datetime, name: str) -> datetime:

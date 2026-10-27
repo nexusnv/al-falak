@@ -20,7 +20,7 @@ An offline Python library for calculating Islamic prayer times. A community-main
 | Does | Does not |
 |---|---|
 | Calculate all 6 prayer times (Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha) | Require network access |
-| Support 11 calculation methods | Provide Hadith or fiqh rulings |
+| Support 12 calculation methods | Provide Hadith or fiqh rulings |
 | Handle polar day/night with configurable strategies | Calculate prayer times for other religions |
 | Return timezone-aware UTC datetimes | Include a GUI or web interface |
 | Calculate Qibla direction | |

@@ -45,7 +45,7 @@ METHODS_PARAMETERS: dict[CalculationMethod, dict[str, Any]] = {
     },
     CalculationMethod.UOIF: {"fajr_angle": 12.0, "isha_angle": 12.0},
     CalculationMethod.JAKIM: {
-        "fajr_angle": 20.0,
+        "fajr_angle": 18.0,
         "isha_angle": 18.0,
         "method_adjustments": PrayerAdjustments(dhuhr=1),
     },

@@ -1,10 +1,33 @@
+"""Astronomical-algorithm goldens.
+
+Two-tier accuracy policy for the independent-reference goldens (spec §3.3):
+
+- **Transit / equation-of-time full-chain**: ±10 s. The transit case is a
+  chain-consistency lock derived from published Meeus examples (Ex.25.a α and
+  Ex.28.a E for 1992-10-13), not an independent physical truth; the EoT
+  case keeps its existing ±10.2 s bar.
+- **USNO rise/set**: minute-resolution equality with the published USNO
+  one-day table (see ``test_solar_time.py``).
+- **Takwim / e-solat**: official rows are checked against the JAKIM 18°/18°
+  computation. The tables round to the minute and add a small ihtiyat; the
+  cited 2025 Kuala Lumpur rows span a −1 to +4 minute official-minus-computed
+  residual. A 20° Fajr angle is 9–12 minutes early and fails that envelope;
+  see ``tests/test_prayer_times.py``.
+
+Unchanged tighter bars that must not be weakened: Ex.25.a right ascension
+``abs=1e-5`` deg and the equation-of-time ``abs=0.17`` min (±10.2 s) chain
+golden.
+"""
+
 import math
 import pytest
 import alfalak.astronomy.Astronomical as Astronomical
 import alfalak.util.FloatUtil as FloatUtil
 import alfalak.astronomy.CalendricalHelper as CalendricalHelper
 from alfalak.astronomy.SolarCoordinates import SolarCoordinates
+from alfalak.astronomy.SolarTime import SolarTime
 from alfalak.data.Coordinates import Coordinates
+from alfalak.util.DateComponents import DateComponents
 
 
 def test_solar_coordinates():
@@ -179,21 +202,34 @@ def test_equation_of_time_curve_spots():
     ]
     for (year, month, day), expected in spots:
         jd = CalendricalHelper.julian_day(year, month, day)
-        assert Astronomical.equation_of_time(jd) == pytest.approx(
-            expected, abs=1.0
-        )
+        assert Astronomical.equation_of_time(jd) == pytest.approx(expected, abs=1.0)
 
 
 def test_equation_of_time_agrees_with_transit():
     # Characterization: the Ch.28 direct EoT path and the Ch.15 interpolated
     # transit path agree. For Greenwich (lon 0): transit ≈ 12:00 − E/60.
-    from alfalak.astronomy.SolarTime import SolarTime
-    from alfalak.util.DateComponents import DateComponents
-
-    for (year, month, day) in [(1992, 10, 13), (2025, 2, 11), (2025, 11, 3)]:
+    for year, month, day in [(1992, 10, 13), (2025, 2, 11), (2025, 11, 3)]:
         jd = CalendricalHelper.julian_day(year, month, day)
         eot_hours = Astronomical.equation_of_time(jd) / 60.0
         transit = SolarTime(
             DateComponents(year, month, day), Coordinates(51.5, 0.0)
         ).transit
         assert transit == pytest.approx(12.0 - eot_hours, abs=30 / 3600)
+
+
+def test_greenwich_solar_transit_chain_consistency():
+    # Chain-consistency lock (spec §3.3 fallback), NOT independent physical
+    # truth: an independent Meeus Ch.15 hand-work needs the apparent sidereal
+    # time Theta0 for 1992-10-13, which the cited examples do not publish, so
+    # it would have to come from this repo (circular). Instead the expected
+    # value is derived from published examples only:
+    #   Meeus 2nd ed. Ex.25.a (p.165): apparent RA for 1992-10-13 (0h TD),
+    #     alpha = 198.38083 deg = 13h13m31.4s;
+    #   Meeus 2nd ed. Ex.28.a (p.183): E = +13m42s for the same date.
+    # For the Sun at Greenwich, H = 0 gives transit = 12h - E:
+    #   12:00:00 - 0:13:42 = 11:46:18 UT.
+    # The independent transit truth is the USNO spot rows in test_solar_time.py;
+    # this case locks the second-level chain. Expected value is not taken from
+    # this repo's corrected_transit.
+    transit = SolarTime(DateComponents(1992, 10, 13), Coordinates(51.4779, 0.0)).transit
+    assert transit == pytest.approx(11 + 46 / 60 + 18 / 3600, abs=10 / 3600)

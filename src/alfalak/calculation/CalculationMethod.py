@@ -76,8 +76,10 @@ class CalculationMethod(Enum):
     JAKIM = 12
     """
     Jabatan Kemajuan Islam Malaysia (JAKIM)
-    Uses a Fajr angle of 20 and an Isha angle of 18, identical angles to
-    SINGAPORE by design. Not a different twilight computation: the separate
-    preset exists for presentation/operations (Malay naming, Malaysian zone
-    metadata, e-solat timetable alignment).
+    Uses an 18-degree Fajr angle and an 18-degree Isha angle, matching current
+    JAKIM/Takwim tables. This deliberately differs from SINGAPORE, which keeps
+    a 20-degree Fajr angle. The separate preset exists for
+    presentation/operations (Malay naming and e-solat timetable alignment).
+    It does not select a timezone; callers must pass a Malaysian ``ZoneInfo``
+    to display local times.
     """

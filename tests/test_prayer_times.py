@@ -1,6 +1,6 @@
 import math
 import pytest
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from unittest.mock import patch
 from alfalak.data.Coordinates import Coordinates
 from alfalak.data.Prayer import Prayer
@@ -385,7 +385,7 @@ def test_twilight_preset_definitions_locked():
         CalculationMethod.QATAR: (18.0, 0.0, 90, (0, 0, 0, 0, 0, 0)),
         CalculationMethod.SINGAPORE: (20.0, 18.0, 0, (0, 0, 1, 0, 0, 0)),
         CalculationMethod.UOIF: (12.0, 12.0, 0, (0, 0, 0, 0, 0, 0)),
-        CalculationMethod.JAKIM: (20.0, 18.0, 0, (0, 0, 1, 0, 0, 0)),
+        CalculationMethod.JAKIM: (18.0, 18.0, 0, (0, 0, 1, 0, 0, 0)),
     }
 
     assert set(expected) == set(CalculationMethod)
@@ -420,7 +420,7 @@ def test_twilight_preset_definitions_locked():
 
 def test_milestone_twilight_rows_pinned():
     # Milestone Phase 2 rows mapped to presets: MWL 18/17, Egypt 19.5/17.5,
-    # ISNA 15/15 via NORTH_AMERICA, JAKIM/MUIS 20/18 via SINGAPORE and JAKIM.
+    # ISNA 15/15 via NORTH_AMERICA, JAKIM 18/18, Singapore 20/18.
     assert (
         CalculationParameters(method=CalculationMethod.MUSLIM_WORLD_LEAGUE).fajr_angle
         == 18.0
@@ -439,7 +439,7 @@ def test_milestone_twilight_rows_pinned():
     )
     assert CalculationParameters(method=CalculationMethod.SINGAPORE).fajr_angle == 20.0
     assert CalculationParameters(method=CalculationMethod.SINGAPORE).isha_angle == 18.0
-    assert CalculationParameters(method=CalculationMethod.JAKIM).fajr_angle == 20.0
+    assert CalculationParameters(method=CalculationMethod.JAKIM).fajr_angle == 18.0
     assert CalculationParameters(method=CalculationMethod.JAKIM).isha_angle == 18.0
 
 
@@ -556,7 +556,7 @@ def test_milestone_twilight_rows_pinned():
         ),
         (
             CalculationMethod.JAKIM,
-            "08:07:00",
+            "08:22:00",
             "10:08:00",
             "17:21:00",
             "21:09:00",
@@ -596,16 +596,21 @@ def test_twilight_preset_goldens_raleigh(
         )
 
 
-def test_jakim_matches_singapore_by_design():
-    # Slice 2.2: JAKIM uses identical 20/18 angles plus dhuhr=1, so computed
-    # times must equal SINGAPORE exactly. Not a different computation.
+def test_jakim_uses_current_18_degree_fajr():
+    # JAKIM moved its Subuh criterion to 18 degrees; SINGAPORE keeps 20/18.
+    # The presets share Isha, interval mode, and dhuhr+1, so only Fajr differs.
     jakim = CalculationParameters(method=CalculationMethod.JAKIM)
     singapore = CalculationParameters(method=CalculationMethod.SINGAPORE)
 
     assert (jakim.fajr_angle, jakim.isha_angle, jakim.isha_interval) == (
-        singapore.fajr_angle,
-        singapore.isha_angle,
-        singapore.isha_interval,
+        18.0,
+        18.0,
+        0,
+    )
+    assert (singapore.fajr_angle, singapore.isha_angle, singapore.isha_interval) == (
+        20.0,
+        18.0,
+        0,
     )
     assert (
         jakim.method_adjustments.fajr,
@@ -623,7 +628,7 @@ def test_jakim_matches_singapore_by_design():
         singapore.method_adjustments.isha,
     )
 
-    for coordinates, date in [
+    for coordinates, prayer_date in [
         ((35.7750, -78.6336), DateComponents(2015, 7, 12)),
         ((3.1390, 101.6869), DateComponents(2015, 7, 12)),
         ((5.9804, 116.0735), DateComponents(2015, 7, 12)),
@@ -631,13 +636,14 @@ def test_jakim_matches_singapore_by_design():
         ((5.9804, 116.0735), DateComponents(2025, 1, 15)),
     ]:
         jakim_times = PrayerTimes(
-            coordinates, date, calculation_method=CalculationMethod.JAKIM
+            coordinates, prayer_date, calculation_method=CalculationMethod.JAKIM
         )
         singapore_times = PrayerTimes(
-            coordinates, date, calculation_method=CalculationMethod.SINGAPORE
+            coordinates, prayer_date, calculation_method=CalculationMethod.SINGAPORE
         )
 
-        assert jakim_times.fajr == singapore_times.fajr
+        # 18-degree Fajr is later than 20-degree Fajr; the rest is identical.
+        assert jakim_times.fajr > singapore_times.fajr
         assert jakim_times.sunrise == singapore_times.sunrise
         assert jakim_times.dhuhr == singapore_times.dhuhr
         assert jakim_times.asr == singapore_times.asr
@@ -651,7 +657,7 @@ def test_jakim_matches_singapore_by_design():
         (
             (3.1390, 101.6869),
             DateComponents(2025, 1, 15),
-            "22:02:00",
+            "22:10:00",
             "23:24:00",
             "05:24:00",
             "08:46:00",
@@ -661,7 +667,7 @@ def test_jakim_matches_singapore_by_design():
         (
             (5.9804, 116.0735),
             DateComponents(2025, 1, 15),
-            "21:08:00",
+            "21:17:00",
             "22:31:00",
             "04:26:00",
             "07:48:00",
@@ -673,10 +679,10 @@ def test_jakim_matches_singapore_by_design():
 def test_jakim_malaysian_zone_goldens(
     coordinates, date, fajr, sunrise, dhuhr, asr, maghrib, isha
 ):
-    # Slice 2.2 Takwim verification anchors: Kuala Lumpur (3.1390, 101.6869)
-    # and Kota Kinabalu (5.9804, 116.0735) on 2025-01-15, UTC.
-    # Official e-solat tables may add minute-level administrative adjustments;
-    # these goldens lock the computed 20/18 baseline, not the portal display.
+    # Takwim verification anchors: Kuala Lumpur (3.1390, 101.6869) and
+    # Kota Kinabalu (5.9804, 116.0735) on 2025-01-15, UTC. These lock the
+    # computed 18/18 baseline; official rows are checked in
+    # test_esolat_takwim_portal_rows against the published residual envelope.
     prayer_times = PrayerTimes(
         coordinates, date, calculation_method=CalculationMethod.JAKIM
     )
@@ -687,6 +693,133 @@ def test_jakim_malaysian_zone_goldens(
     assert prayer_times.asr.strftime("%H:%M:%S") == asr
     assert prayer_times.maghrib.strftime("%H:%M:%S") == maghrib
     assert prayer_times.isha.strftime("%H:%M:%S") == isha
+
+
+@pytest.mark.parametrize(
+    "coordinates, local_date, official_utc, residual_minutes",
+    [
+        pytest.param(
+            (3.1390, 101.6869),  # Kuala Lumpur
+            date(2025, 1, 16),
+            {
+                "fajr": "2025-01-15T22:13:00+00:00",
+                "sunrise": "2025-01-15T23:24:00+00:00",
+                "dhuhr": "2025-01-16T05:26:00+00:00",
+                "asr": "2025-01-16T08:48:00+00:00",
+                "maghrib": "2025-01-16T11:23:00+00:00",
+                "isha": "2025-01-16T12:37:00+00:00",
+            },
+            {
+                "fajr": 2,
+                "sunrise": 0,
+                "dhuhr": 2,
+                "asr": 1,
+                "maghrib": 1,
+                "isha": 2,
+            },
+            id="WLY01-2025-01-16",
+        ),
+        pytest.param(
+            (5.9804, 116.0735),  # Kota Kinabalu
+            date(2025, 1, 16),
+            {
+                "fajr": "2025-01-15T21:18:00+00:00",
+                "sunrise": "2025-01-15T22:31:00+00:00",
+                "dhuhr": "2025-01-16T04:28:00+00:00",
+                "asr": "2025-01-16T07:49:00+00:00",
+                "maghrib": "2025-01-16T10:21:00+00:00",
+                "isha": "2025-01-16T11:35:00+00:00",
+            },
+            {
+                "fajr": 1,
+                "sunrise": 0,
+                "dhuhr": 2,
+                "asr": 1,
+                "maghrib": 1,
+                "isha": 1,
+            },
+            id="SBH07-2025-01-16",
+        ),
+        pytest.param(
+            (3.1390, 101.6869),  # Kuala Lumpur
+            date(2025, 6, 15),
+            {
+                "fajr": "2025-06-14T21:51:00+00:00",
+                "sunrise": "2025-06-14T23:04:00+00:00",
+                "dhuhr": "2025-06-15T05:17:00+00:00",
+                "asr": "2025-06-15T08:42:00+00:00",
+                "maghrib": "2025-06-15T11:26:00+00:00",
+                "isha": "2025-06-15T12:41:00+00:00",
+            },
+            {
+                "fajr": 2,
+                "sunrise": -1,
+                "dhuhr": 2,
+                "asr": 2,
+                "maghrib": 3,
+                "isha": 3,
+            },
+            id="WLY01-2025-06-15",
+        ),
+        pytest.param(
+            (3.1390, 101.6869),  # Kuala Lumpur
+            date(2025, 9, 16),
+            {
+                "fajr": "2025-09-15T21:57:00+00:00",
+                "sunrise": "2025-09-15T23:03:00+00:00",
+                "dhuhr": "2025-09-16T05:11:00+00:00",
+                "asr": "2025-09-16T08:13:00+00:00",
+                "maghrib": "2025-09-16T11:14:00+00:00",
+                "isha": "2025-09-16T12:23:00+00:00",
+            },
+            {
+                "fajr": 2,
+                "sunrise": -1,
+                "dhuhr": 2,
+                "asr": 4,
+                "maghrib": 2,
+                "isha": 2,
+            },
+            id="WLY01-2025-09-16",
+        ),
+    ],
+)
+def test_esolat_takwim_portal_rows(
+    coordinates, local_date, official_utc, residual_minutes
+):
+    # Official JAKIM Takwim rows for the local prayer date (MYT, UTC+8),
+    # converted to UTC. Retrieved 2026-10-24 from:
+    # - WLY01 (KL/Putrajaya): JADUAL-WAKTU-SOLAT-WPKLPTJ-2025.pdf, 16 Jan,
+    #   15 Jun, and 16 Sep rows (e.g. 16 Jan: 06:03 06:13 07:24 13:26 16:48
+    #   19:23 20:37).
+    # - SBH07 (Kota Kinabalu): e-solat XML feed snapshot 2025-01-16 10:31:15
+    #   (05:08 05:18 06:31 12:28 15:49 18:21 19:35).
+    # Across the full 2025 WLY01 table the official-minus-computed residual
+    # spans -1..+4 minutes (table rounding plus a small ihtiyat). Asserting
+    # that envelope, plus the exact per-row residuals, keeps the golden tight
+    # while staying honest about the source: a 20-degree Fajr is 9-12 minutes
+    # early and falls outside it.
+    prayer_times = PrayerTimes(
+        coordinates,
+        DateComponents(local_date.year, local_date.month, local_date.day),
+        calculation_method=CalculationMethod.JAKIM,
+    )
+    myt = timezone(timedelta(hours=8))
+    min_residual = timedelta(minutes=-1)
+    max_residual = timedelta(minutes=4)
+
+    for prayer, official in official_utc.items():
+        computed = getattr(prayer_times, prayer)
+        assert computed.astimezone(myt).date() == local_date, prayer
+        delta = datetime.fromisoformat(official) - computed
+        assert min_residual <= delta <= max_residual, (
+            f"{prayer} on {local_date}: computed {computed.isoformat()}, "
+            f"official {official}, delta {delta}"
+        )
+        assert delta == timedelta(minutes=residual_minutes[prayer]), (
+            f"{prayer} on {local_date}: expected {residual_minutes[prayer]}m "
+            f"residual, got {delta}"
+        )
 
 
 def test_imsak_defaults_to_fajr_minus_ten():

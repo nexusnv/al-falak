@@ -71,7 +71,8 @@ def test_table_count_300_no_dup_keys():
     for key, city in CITY_TABLE.items():
         assert key == f"{city.name.lower()},{city.country.upper()}" or (
             # Name may contain collapsed whitespace; recompute via helper
-            key == normalize_city_key(f"{city.name},{city.country}")
+            key
+            == normalize_city_key(f"{city.name},{city.country}")
         )
     assert len(set(CITY_TABLE.keys())) == 300
 
