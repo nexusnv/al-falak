@@ -29,8 +29,10 @@ Al-Falak supports 12 calculation methods. Each method defines Fajr and Isha angl
 `JAKIM` uses Fajr 18° and Isha 18° with `dhuhr +1`. It deliberately differs
 from `SINGAPORE` (Fajr 20°): current JAKIM/Takwim tables use an 18° Subuh
 criterion, while the Singapore preset retains 20°. The separate preset exists
-for Malaysian operations (Malay naming, Malaysian zone handling, and e-solat
-timetable alignment).
+for Malaysian operations (Malay naming and e-solat timetable alignment). It
+does not select a timezone: `PrayerTimes` returns UTC unless you pass
+`time_zone=ZoneInfo("Asia/Kuala_Lumpur")` (or the relevant Malaysian zone)
+when displaying local times.
 
 Verification anchors (checked 2026-10-25): Kuala Lumpur (3.1390, 101.6869)
 and Kota Kinabalu (5.9804, 116.0735) on 2025-01-15 lock the computed 18/18

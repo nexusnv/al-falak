@@ -98,17 +98,21 @@ def _parse_iso_utc(value):
     return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(timezone.utc)
 
 
+def _rounds_up(value):
+    return value.second + value.microsecond / 1e6 >= 30
+
+
 def _boundary_minute_equal(our_rounded, our_unrounded, their_rounded, their_unrounded):
     if our_rounded == their_rounded:
         return True
     if abs((our_rounded - their_rounded).total_seconds()) != 60:
         return False
-    # A one-minute flip is legitimate only if either side was within 1 s of
-    # the :30 half-up boundary before rounding.
-    return any(
-        abs(value.second + value.microsecond / 1e6 - 30) <= 1
-        for value in (our_unrounded, their_unrounded)
-    )
+    # The pre-round instants must be within tier-(a) tolerance and straddle
+    # the :30 boundary. If both sit on the same side, at most one of the two
+    # rounded minutes can be correct, so a flip is a real mismatch.
+    if abs((our_unrounded - their_unrounded).total_seconds()) > 1.0:
+        return False
+    return _rounds_up(our_unrounded) != _rounds_up(their_unrounded)
 
 
 def _minute_only_equal(our_rounded, our_unrounded, their_rounded):
@@ -242,18 +246,33 @@ def test_vectors_directory_is_not_empty():
 def test_boundary_minute_equal_requires_a_boundary_value():
     our_rounded = datetime(2024, 1, 1, 12, 0, tzinfo=timezone.utc)
     their_rounded = datetime(2024, 1, 1, 12, 1, tzinfo=timezone.utc)
-    near_boundary = datetime(2024, 1, 1, 12, 0, 29, 500_000, tzinfo=timezone.utc)
+    below_boundary = datetime(2024, 1, 1, 12, 0, 29, 500_000, tzinfo=timezone.utc)
+    above_boundary = datetime(2024, 1, 1, 12, 0, 30, 500_000, tzinfo=timezone.utc)
     far_from_boundary = datetime(2024, 1, 1, 12, 0, 20, tzinfo=timezone.utc)
 
+    # Opposite sides of :30 justify the one-minute flip.
     assert _boundary_minute_equal(
-        our_rounded, near_boundary, their_rounded, near_boundary
+        our_rounded, below_boundary, their_rounded, above_boundary
+    )
+    # Both on the same side (even at the boundary) do not.
+    assert not _boundary_minute_equal(
+        our_rounded, below_boundary, their_rounded, below_boundary
+    )
+    assert not _boundary_minute_equal(
+        our_rounded, above_boundary, their_rounded, above_boundary
     )
     assert not _boundary_minute_equal(
         our_rounded, far_from_boundary, their_rounded, far_from_boundary
     )
+    # More than one minute apart is never a rounding flip.
     assert not _boundary_minute_equal(
         our_rounded,
-        near_boundary,
+        below_boundary,
         their_rounded + timedelta(minutes=1),
-        near_boundary,
+        above_boundary,
+    )
+    # Outside tier-(a) tolerance, a straddle is not a rounding difference.
+    wide_straddle = datetime(2024, 1, 1, 12, 0, 31, tzinfo=timezone.utc)
+    assert not _boundary_minute_equal(
+        our_rounded, below_boundary, their_rounded, wide_straddle
     )
