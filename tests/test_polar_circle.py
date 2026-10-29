@@ -1,5 +1,5 @@
 import pytest
-from datetime import date
+from datetime import date, datetime, timezone
 from alfalak import PrayerTimes
 from alfalak.calculation import (
     CalculationMethod,
@@ -41,6 +41,8 @@ def test_nearest_day_keeps_location_but_shifts_date():
     assert _ordered(prayer_times)
     assert prayer_times.coordinates.latitude == TROMSO[0]
     assert prayer_times.fajr.date() != date(2015, 12, 21)
+    assert prayer_times.prayer_date.date() == prayer_times.fajr.date()
+    assert prayer_times.prayer_date != datetime(2015, 12, 21, tzinfo=timezone.utc)
 
 
 def test_makkah_rule_matches_makkah_schedule():

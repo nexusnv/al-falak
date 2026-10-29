@@ -602,7 +602,7 @@ def test_sunnah_middle_and_last_third_golden():
 
 def test_sunnah_night_markers_ordered():
     # BB-SUNNAH-02. Source: test_sunnah_times_ordering (public seam only:
-    # tomorrow rebuilt from a public datetime, no _prayer_date access).
+    # tomorrow rebuilt from a literal datetime, no prayer_date access).
     pt = _mw_l_raleigh_mid_july()
     sunnah = SunnahTimes(pt)
     tomorrow = PrayerTimes(
