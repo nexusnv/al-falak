@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from fractions import Fraction
+from types import SimpleNamespace
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -35,6 +36,29 @@ def test_sunnah_times():
     assert sunnah_times.last_third_of_the_night == datetime(
         2015, 7, 13, 5, 46, tzinfo=timezone.utc
     )
+
+
+def test_sunnah_times_tomorrow_fajr_uses_public_prayer_date():
+    # Next-day derivation must stay on public PrayerTimes attributes:
+    # effective date, coordinates, calculation parameters, and time zone.
+    # A public-only stand-in makes any private attribute access fail loudly.
+    prayer_times = _prayer_times()
+    public_only = SimpleNamespace(
+        coordinates=prayer_times.coordinates,
+        prayer_date=prayer_times.prayer_date,
+        calculation_parameters=prayer_times.calculation_parameters,
+        time_zone=prayer_times.time_zone,
+        maghrib=prayer_times.maghrib,
+    )
+    sunnah_times = SunnahTimes(public_only)  # type: ignore[arg-type]
+    tomorrow = PrayerTimes(
+        prayer_times.coordinates,
+        prayer_times.prayer_date + timedelta(days=1),
+        calculation_parameters=prayer_times.calculation_parameters,
+        time_zone=prayer_times.time_zone,
+    )
+
+    assert sunnah_times.tahajjud_window[1] == tomorrow.fajr
 
 
 def test_first_third_ordering_within_night():

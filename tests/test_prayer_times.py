@@ -328,6 +328,17 @@ def test_prayer_times_accepts_datetime_and_date_components():
     assert from_components.isha == from_datetime.isha
 
 
+def test_prayer_date_is_effective_utc_midnight():
+    prayer_times = PrayerTimes(
+        (35.7750, -78.6336),
+        datetime(2015, 7, 12, 23, 59, tzinfo=timezone.utc),
+        calculation_method=CalculationMethod.NORTH_AMERICA,
+    )
+
+    assert prayer_times.prayer_date == datetime(2015, 7, 12, tzinfo=timezone.utc)
+    assert prayer_times.prayer_date.tzinfo is timezone.utc
+
+
 def test_prayer_times_timezone_conversion():
     # Arrange
     calculation_method = CalculationMethod.MOON_SIGHTING_COMMITTEE

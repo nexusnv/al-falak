@@ -100,6 +100,11 @@ def _nearest_date_with_sunrise_sunset(
 
 
 class PrayerTimes:
+    #: Effective calculation date at UTC midnight. Reflects any
+    #: ``PolarCircleRule.NEAREST_DAY`` adjustment, so it is the date the
+    #: computed times belong to, not necessarily the requested input date.
+    prayer_date: datetime
+
     imsak: datetime
     fajr: datetime
     sunrise: datetime
@@ -156,16 +161,16 @@ class PrayerTimes:
 
         self._resolve_polar_circle()
 
-        self._prayer_date = datetime(
+        self.prayer_date = datetime(
             self._date_components.year,
             self._date_components.month,
             self._date_components.day,
             tzinfo=timezone.utc,
         )
 
-        self._day_of_year = self._prayer_date.timetuple().tm_yday
+        self._day_of_year = self.prayer_date.timetuple().tm_yday
 
-        tomorrow_date = self._prayer_date + timedelta(days=1)
+        tomorrow_date = self.prayer_date + timedelta(days=1)
         tomorrow_date_components = DateComponents.from_utc(tomorrow_date)
 
         self._solar_time = SolarTime(
@@ -305,7 +310,7 @@ class PrayerTimes:
             safe_fajr = season_adjusted_morning_twilight(
                 self.coordinates.latitude,
                 self._day_of_year,
-                self._prayer_date.year,
+                self.prayer_date.year,
                 self._sunrise_components,
             )
         else:

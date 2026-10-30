@@ -35,9 +35,11 @@ class SunnahTimes:
     tahajjud_window: tuple[datetime, datetime]
 
     def __init__(self, prayer_times: PrayerTimes) -> None:
+        # Next-day derivation stays on PrayerTimes' public seam: effective
+        # date, coordinates, calculation parameters, and display zone.
         tomorrow = PrayerTimes(
             prayer_times.coordinates,
-            prayer_times._prayer_date + timedelta(days=1),
+            prayer_times.prayer_date + timedelta(days=1),
             calculation_parameters=prayer_times.calculation_parameters,
             time_zone=prayer_times.time_zone,
         )

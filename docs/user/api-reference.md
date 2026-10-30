@@ -67,6 +67,7 @@ Exactly one of `calculation_method` or `calculation_parameters` must be provided
 | `asr` | `datetime` | Asr time |
 | `maghrib` | `datetime` | Maghrib time |
 | `isha` | `datetime` | Isha time |
+| `prayer_date` | `datetime` | Effective calculation date at UTC midnight (after any `PolarCircleRule.NEAREST_DAY` adjustment) |
 | `coordinates` | `Coordinates` | Location coordinates |
 | `calculation_parameters` | `CalculationParameters` | Parameters used |
 | `time_zone` | `ZoneInfo \| None` | Timezone (if set) |
